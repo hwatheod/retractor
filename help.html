@@ -1,0 +1,472 @@
+<div class="helpPage" id="help_front">
+<p>
+    Welcome to Retractor 2.0! Retractor is a tool for working with retrograde analysis (retro) chess problems.
+    <br>
+    In a retro problem, you play chess backwards to learn about the history of a position.
+        <a href="javascript:openHelpPage('help_tutorial_1')">Click here</a> for an introduction to retros.
+    <br>
+    The position above is a problem by Gerald Ettl.
+    What were the last 30 single moves played?
+    Source: <a href="https://www.janko.at/Retros/Schwalbe/N157.htm" target="_blank"><em>Die Schwalbe</em> Heft 157, Feb 1996, Problem 9129.</a>
+    <br>
+    <a href="javascript:openTutorialPosition('nBb2R1R/bqr5/kppp4/n3K2B/p1P1ppNN/rP2PPpp/P2P1QPP/8', 'b')">Click here</a> to set up the Ettl problem again.
+    <a href="javascript:openHelpPage('help_ettl_solution')">Solution to Ettl problem.</a>
+    </p>
+
+    <p>
+    Retractor has 2 modes: edit and play.<br>
+    In edit mode, you set up the position on the chess board.<br>
+    In play mode, you retract (take back) moves, and Retractor tells you when it detects an illegal position.<br>
+    Retractor can also attempt to solve a position (find the last N moves).
+    </p>
+
+    <a href="javascript:openHelpPage('help_edit')">Edit mode controls</a><br>
+    <a href="javascript:openHelpPage('help_play')">Play mode controls</a><br>
+    <a href="javascript:openHelpPage('help_play_2')">Play mode details</a><br>
+    <a href="javascript:openHelpPage('help_solve')">Solving a position</a><br>
+    <a href="javascript:openHelpPage('help_advanced')">Advanced features</a><br>
+    <a href="detectedByRetractor.html" target="_blank">What illegal positions are detected by Retractor 2.0? (new tab)</a><br>
+    <a href="javascript:openHelpPage('help_about')">About Retractor 2.0</a>
+</div>
+
+<div class="helpPage" id="help_edit">
+    <p>
+    Edit mode controls:<br><br>
+    Select a piece from the right panel, then left click on the board to add it.<br>
+    Drag a piece around the board to move it.<br>
+    Right click a piece to remove it.<br>
+    You can also enter Forsythe notation in the box below the board and click "Set".<br>
+    <br>
+    In the "Retract Next" section, you select which color will make the first retraction when you switch to Play mode.
+    </p>
+</div>
+
+<div class="helpPage" id="help_play">
+    <p>
+    Play mode controls:<br><br>
+    To retract a move, drag a piece from its square to an empty square.<br>
+    To uncapture a piece, select it from the right panel, then perform the retraction. To uncapture en passant, select "e.p.". <br>
+    To unpromote a piece, check the box "unpromote".<br>
+    To uncastle, retract the king move, then the rook will automatically move (if legal).<br><br>
+</p>
+    <p>
+    The &lt; button undoes a retraction.<br>
+    The &lt;&lt; button undoes back to the initial position.<br>
+    The &gt; button replays a retraction previously undone.<br>
+    The &gt;&gt; button replays all retractions previously undone.<br>
+    The <a href="javascript:openHelpPage('help_solve')">Solve</a> button attempts to solve the current position.<br>
+    The Copy button copies all moves as text to the clipboard.<br>
+    The Paste button allows you to paste a sequence of moves.
+    </p>
+</div>
+
+<div class="helpPage" id="help_play_2">
+    <p>
+    Retractor attempts to detect illegal retractions. Simple illegalities are immediately rejected with a message
+    in red below the board.  For more complex illegalities, the new position will show on the board, with a message
+    in a popup box below the board.  This allows you to see the new position and why it is illegal. You can choose to
+    undo the move with "Go Back", or play on by clicking "Continue anyway".  The purpose of "Continue anyway" is to
+    let you play some more moves to see why it is illegal.  Some parts of Retractor may not function properly after
+    you choose "Continue anyway" on an illegal position.
+    </p>
+
+    <p>
+    In the "Captures" section, Retractor shows the number of pawn captures and number of total captures it could
+    determine for White (W), Black (B), and Total (T).  The "Total" column may exceed the sum of "White" and "Black", because
+    sometimes a capture can be detected without knowing which side made it (example: White pawn on e5, Black pawn on
+    e4).  The "Total" row includes captures from non-pawn sources, such as an original bishop captured on its own
+    square (example: White pawns on b2 and d2, empty square on c1, means that the White c1 bishop was captured on c1).
+    </p>
+
+    <p>
+    In the "Promoted pieces" section, Retractor shows the number of promoted pieces of each color that it could
+    detect. This includes excess pieces (for example, 2 queens or 3 rooks), pieces trapped in a cage (for example,
+    White pawns on a2 and c2 with a black bishop on b1), and <a href="javascript:openHelpPage('help_advanced')">
+    marked promoted</a> pieces.
+    </p>
+
+    <p>
+    If the numbers in the "Captures" or "Promoted pieces" section are grey, that means that Retractor is still
+    calculating their values. Most positions should calculate immediately on a modern computer, but positions with
+    complicated pawn structures can take a long time. You can interrupt the calculation by playing a move on the
+    board.  If you undo a move back to a position where you interrupted the calculation, the numbers will continue
+    to show as grey as a reminder that they may not be correct.
+    </p>
+</div>
+
+<div class="helpPage" id="help_solve">
+    <p>
+    Solving a position in Retractor means to determine the possible sequences of last N moves in a position, for
+    some value of N.
+    </p>
+
+    <p>
+    When you click the "Solve" button in Play mode, there are 3 parameters for you to set:
+    <ul>
+        <li>Solve depth - the number of previous moves to solve for.  If you want to know the last 3 moves in a position,
+            for example, you should set the "Solve depth" to be 3.</li>
+        <li>Extra depth - the additional depth beyond the solve depth that Retractor should search, in order to confirm that
+            a solution is legal. Sometimes, it is not obvious that a position is illegal until you search back a few
+            more moves (beyond the solve depth) to see that one side has no possible last move. The default value 3
+            is sufficient for most problems.
+        </li>
+        <li>Max solutions - the maximum number of solutions to report.</li>
+    </ul>
+    </p>
+
+    <p>
+        If Retractor finds one or more solutions, they will shows as buttons in the upper right section of the
+        page.  You can click on a button to navigate to that move in that solution.  "Copy" will copy that solution
+        as text to the clipboard.
+    </p>
+    <p>
+        If you make any move on the board, then all the solution buttons will be deactivated (because they may no
+        longer apply to the new position). Using the navigation buttons is fine, though.  Even if the solution buttons
+        are deactivated, the "Copy" button for each solution will still work.
+    </p>
+    <p>
+        If Retractor finds no solutions, it will report that in an error message below the board. This means that
+        the position is impossible.
+    </p>
+</div>
+
+<div class="helpPage" id="help_advanced">
+    <p>
+    In Edit mode, you can mark pieces as either <em>frozen</em> or <em>promoted</em>.  By shift-clicking on a piece
+    (not a pawn), the piece will cycle through the possibilities: frozen, promoted, neither.  The current markings,
+    if any, for all pieces will show up as "Flags" in the upper right section of the page. If you do not see a Flags
+    section, that means there are no markings for any pieces.
+    </p>
+    <p>
+    A frozen piece is a piece on its original square which has never moved.  No retractions will be allowed with this
+    piece. You can only mark a piece as frozen if it is on its original square (for example, a White king on e1, or a
+    Black knight on g8).
+    </p>
+    <p>
+    Marking a piece as promoted indicates to Retractor that this piece is promoted. This is useful if there is a
+    promoted piece on the board that Retractor cannot detect, or if there is a condition "piece X is promoted"
+    given in a problem.
+    </p>
+</div>
+<div class="helpPage" id="help_ettl_solution">
+    All 32 pieces are on the board, so there have been no captures. The White king on e5 is in check from the Black
+    pawn on d6, so Black made the last move and it must have been d7-d6. Now all pieces on the left side of the board
+    are locked in.
+    <br><br>To unlock it, Black must retract Kb5-a6 and then White must retract c3-c4. However, we cannot
+    do that immediately because then the configuration of White pawns forms a cage that the White rooks couldn't have
+    escaped to get to their present positions.
+    <br><br>
+    So White must retract rook moves to bring them back into the cage before Kb5-a6 and c3-c4 can be retracted. In
+    the meantime, Black has only pawn moves to retract, so there are only a limited number of moves for Black. So White
+    must proceed as quickly as possible so that Black does not run out of moves to retract. White pieces must also
+    move out of the way of the Black pawns at the right time, or Black will run out of moves even earlier.
+    <br><br>
+    The only
+    <a href="javascript:openTutorialPosition('nBb2R1R/bqr5/kppp4/n3K2B/p1P1ppNN/rP2PPpp/P2P1QPP/8', 'b', 'd7-d6+ Kd6-e5 e5-e4 Rf5-f8 e6-e5 Rd5-f5 f5-f4 Rd3-d5 f6-f5 Rc3-d3 f7-f6 Nf6-g4 g4-g3 Rc1-c3 g5-g4 Bg4-h5 g6-g5 Rh5-h8 g7-g6 Ng6-h4 h4-h3 Rd5-h5 h5-h4 Rd3-d5 h6-h5 Rc3-d3 h7-h6 Rc2-c3 Kb5-a6 c3-c4+')">
+    sequence of moves</a> that works is
+    <b>d7-d6+ Kd6-e5 e5-e4 Rf5-f8 e6-e5 Rd5-f5 f5-f4 Rd3-d5 f6-f5 Rc3-d3 f7-f6 Nf6-g4 g4-g3 Rc1-c3 g5-g4 Bg4-h5 g6-g5 Rh5-h8
+    g7-g6 Ng6-h4 h4-h3 Rd5-h5 h5-h4 Rd3-d5 h6-h5 Rc3-d3 h7-h6 Rc2-c3 Kb5-a6 c3-c4+.</b> Clicking the link will show the
+    final position. You can use &lt;&lt; to go back to the beginning, then &gt; to view the moves one by one.
+    <br>
+</div>
+<div class="helpPage" id="help_about">
+    Retractor 2.0 is developed by Theodore Hwa. It is the successor to the original
+    <a href="http://xenon.stanford.edu/~hwatheod/Retractor/" target="_blank">Retractor 1.0</a>, developed by Theodore Hwa and Chad Whipkey
+    in 1998.<br><br>
+    Retractor 2.0 Copyright (C) 2021 Theodore Hwa.<br>
+    <a href="mailto:hwatheod@cs.stanford.edu">hwatheod@cs.stanford.edu</a>
+    <br><br>
+    Source code available at the <a href="https://github.com/hwatheod/retractor" target="_blank">Retractor 2.0 github repository</a>.
+    <br>
+</div>
+<div class="helpPage" id="help_tutorial_1">
+    Throughout this tutorial, you can navigate using the "Previous Page" and "Next Page" links at the top and bottom of each
+    page of the tutorial. Be sure to scroll down if necessary to see all the text on each page.<br>
+    <H3>What is Retrograde Analysis?</H3>
+    Retrograde analysis is a type of chess problem in which you are asked to figure out something about
+    the history of the game leading to a position. <a href="javascript:openTutorialPosition('8/8/8/8/1k6/P7/1K6/8', 'w')">Click here</a>
+    to setup a very simple example of a retro problem on the board.
+    <br><br>
+    The problem is: what was the last move?  Try to answer this for yourself.  For the solution, turn to the next page.
+
+</div>
+
+<div class="helpPage" id="help_tutorial_2">
+    The last move was made by White and it was <b>a3+</b>.
+<br><br>
+How do we solve this?  First, we notice that the black King is in check from the white pawn.
+Therefore, the move must have been for White to deliver this check.
+The pawn must have just moved to give this check.  The only possible such square is a2, since b2 is now occupied.
+So the white pawn just advanced from a2 to a3.
+<br><br>
+Most retro problems are much more complicated than this.  However, there are several important principles to gather from
+this problem:
+<br><br>
+
+1. If one side (such as Black) is in check, then the other side (White) must have made the last move.<br>
+2. White's last move must have been to put Black in check.  There are two ways this can happen: the checking piece just moved,
+    or some other piece moved to reveal a discovered check.  In this case, the check is by a pawn, so the pawn must have
+    just moved.  We must now determine where this pawn moved from.<br>
+3. The square that the pawn came from must now be empty.  A White pawn can move from a2 to a3 (without capturing a piece),
+    or from b2 to a3 (capturing a Black piece). But in this case, b2 is occupied, so the second possibility is ruled out.<br>
+<br>
+To try another problem, turn to the next page.
+</div>
+
+<div class="helpPage" id="help_tutorial_3">
+    <br>
+    <a href="javascript:openTutorialPosition('k1K5/8/8/8/8/8/7P/6B1', 'b')">Click here</a> to setup the next problem
+    by Raymond Smullyan, from the book <em>The Chess Mysteries of Sherlock Holmes</em>, 1979.<br><br>
+
+    The problem is: Black made the last move.  What was it?<br><br>
+
+    The solution is on the next page.
+</div>
+
+<div class="helpPage" id="help_tutorial_4">
+    <br>
+    <a href="javascript:openTutorialPosition('k1K5/8/8/8/8/8/7P/6B1', 'b')">Click here</a> to setup the problem again if necessary.<br><br>
+
+    If you said that the last move was Ka7-a8, that is not correct. To see this, move the Black king from a8 to a7, and look at
+    the resulting position.<br><br>
+    Black is in check from the white Bishop.  How could White have delivered this check?  There is no way: the Bishop could
+    only have come from squares further up the g1 to a7 diagonal, where it would already have been checking the black King.
+    Try again before reading the correct solution on the next page.
+
+</div>
+
+<div class="helpPage" id="help_tutorial_5">
+    <br>
+    <a href="javascript:openTutorialPosition('k1K5/8/8/8/8/8/7P/6B1', 'b')">Click here</a> to setup the problem again if necessary.<br><br>
+Black's last move must have been with the King (what else?) and it just moved from a7 (where else?).
+However, the correct solution is that Black's last move was Ka7xNa8.  Black has just captured a knight!
+<p>
+To see the position before Ka7xNa8, click on the knight on the right panel, then move the Black king from a8 to a7. You
+have just <em>uncaptured</em> a piece! This is the opposite from normal chess, where you <em>capture</em> pieces.
+   </p>
+<p>
+Now again Black is in check from the white Bishop.  How did White deliver this check?  As before, the Bishop couldn't
+have moved to deliver the check.  But now, the White Knight could have just moved from b6 to a8 to give a discovered check.
+</p>
+
+The following are important principles to gather from this problem:<br>
+1. Always ask whether the position after taking back a move (or a sequence of moves) is still legal.
+    Here, the problem only asked for the last move, but in order to determine the correct answer we had to look back
+    to the move before the last move (to ask how White delivered the check).<br>
+2. Always remember that the last move could have been a capture!  In order to completely solve a "last move(s)" problem,
+    you must determine which piece, if any, was captured.  You must know exactly what the board looked like before the
+    move(s) in question.<br>
+</div>
+
+<div class="helpPage" id="help_tutorial_6">
+    <h3>Watching for special cases</h3>
+
+    Next, we consider 3 problems that illustrate special cases that often come up in retro problems.<br><br>
+
+    <a href="javascript:openTutorialPosition('7R/5R1k/5K2/8/8/8/8/8', 'w')">Click here</a> to set up problem 1.<br>
+    Is this position legal? (Could it have arisen in a legal chess game?) <br><br>
+
+    <a href="javascript:openTutorialPosition('8/8/4Pk2/8/8/7K/8/B7', 'w')">Click here</a> to set up problem 2.<br>
+    Is this position legal? (Could it have arisen in a legal chess game?) <br><br>
+
+    <a href="javascript:openTutorialPosition('r3k3/p1p5/Q3K3/8/8/8/8/8', 'b')">Click here</a> to set up problem 3.<br>
+    Samuel Loyd, <em>Musical World</em>, 1859<br>
+    White to play and mate in two <br><br>
+    (Problem 3 might look like just an ordinary chess problem, but there is a retro component to it!)<br><br>
+
+    The solutions are discussed in the next few pages.
+</div>
+
+<div class="helpPage" id="help_tutorial_7">
+    <h3>Solution to special cases problem 1 </h3>
+    <a href="javascript:openTutorialPosition('7R/5R1k/5K2/8/8/8/8/8', 'w')">Click here</a> to set up problem 1 again if necessary.<br><br>
+
+At first sight, this position looks illegal because Black is in a double check by two rooks and it appears impossible
+for one of the rooks to have revealed a check by the other rook.  However, this is possible by a pawn promotion!
+The previous position had a White pawn on g7 and some other Black piece on h8.  White played gxh8=R, giving check with
+the two rooks simultaneously.
+<br><br>
+To see this in Retractor, click the "unpromote" box, select one of the pieces (say a knight) to uncapture, then move
+the White rook on h8 to g7.  You have <em>unpromoted</em> a rook back to a pawn! This is the opposite of the promotion
+move in normal chess.
+<br><br>
+Whenever you see a White piece on the eighth rank, or a Black piece on the first rank, always remember that it could have
+been created by promotion on the previous move.  Also, remember that unless stated or implied to the contrary, any piece
+(except kings and pawns) on the board could been created by promotion earlier in the game!  It is entirely possible to have 2
+queens or 3 rooks, etc., on the board.
+<br><br>
+Although in a normal, well-played game of chess, one generally promotes to a queen and there are only occasional
+instances of promotions to other pieces, in retrograde analysis problems, because the game is only known to be legal
+(not well-played), promotions to other pieces are often employed.
+</div>
+
+<div class="helpPage" id="help_tutorial_8">
+    <h3>Solution to special cases problem 2 </h3>
+     <a href="javascript:openTutorialPosition('8/8/4Pk2/8/8/7K/8/B7', 'w')">Click here</a> to set up problem 2 again if necessary.<br><br>
+
+Just as in the previous problem, there appears to be an impossible check here.  White's bishop is giving check to the
+Black king.  The bishop had no square to move from where it would not already be checking the king.  It might appear that
+the White pawn could have moved from e5 to e6 to give the check, but this is impossible because the White pawn on e5 would
+have already been checking the king.
+<br><br>
+The solution involves an en passant capture!  White's last move was actually an en passant capture: -1.d5xe6ep, taking a
+Black pawn on e5 en passant, which was of course covering the bishop's diagonal.  Black's move before that must have been
+e7-e5 (in order for the en passant capture to be legal), and White's move before that was d4-d5, discovering the check
+from the bishop.
+<br><br>
+To play -1.d5xe6ep in Retractor, click the "e.p." button in the right panel, then move the e6 pawn back
+to d5.  Then you can follow up with the retractions -1...e7-e5 -2. d4-d5.
+<br><br>
+Finally, note that the en passant capture must really have come from d5 rather than f5.  If, from the initial position,
+we retract the alternative sequence -1. f5xe6ep?? e7-e5 then in the resulting position Black is again in check from the
+White bishop, and now there really is no way of giving this check.
+<br><br>
+Remember that a White pawn on the sixth rank, or a Black pawn on the third rank, could just have made an en passant
+capture.  Also, when you retract an en passant capture, you must immediately follow with the retraction of the double
+step pawn move. Retractor will reject any other move.
+</div>
+
+<div class="helpPage" id="help_tutorial_9">
+    <h3>Solution to special cases problem 3</h3>
+     <a href="javascript:openTutorialPosition('r3k3/p1p5/Q3K3/8/8/8/8/8', 'b')">Click here</a> to set up problem 3 again if necessary.<br><br>
+
+This problem looks like a normal mate in two problem.  But if you don't notice the hidden retro content, the problem may
+appear to have no solution.  The retro-content revolves around Black's castling in the above position.<br><br>
+
+The solution is to play 1. Qa1! followed by 2. Qh8 mate.  The only objection is to wonder why Black can't reply to
+White's first move with 1... O-O-O, after which White has no mate, and therein lies the retro content.<br><br>
+
+Since it is White to move in the above position, Black made the last move.  What was it?<br>
+It could not have been either pawn, since they are on their original squares, hence it was with the king or rook.
+Therefore, the king or rook has moved, and Black cannot castle.
+
+</div>
+
+<div class="helpPage" id="help_tutorial_10">
+<h3>Cages and Captures</h3>
+
+<a href="javascript:openTutorialPosition('B7/P1Ppp1p1/1k6/3Q4/1P6/5P1R/6PP/R3KB2', 'b')">Click here</a> for the next
+    problem by Peter Schaefer.<br>
+White to move.  Can White castle? <br>
+(b) wNh3<br>
+(c) Remove wRh3
+<br><br>
+There are 3 problems in one here.  The first problem is the diagram as shown;
+in the second, we replace the White rook on h3 in the diagram by a White knight;
+and in the third we remove the White rook in the diagram from h3.  In each case, we are asked whether
+White castling is legal.  (Castling is always assumed to be legal, unless it can be proved to the contrary.)
+So the question at hand is whether the White king or rook must have moved previously in the game.
+<br><br>
+For a start, try to figure out the last several moves played in this position.  Remember that it is White to move.  To start the solution, turn to the next page.
+</div>
+
+<div class="helpPage" id="help_tutorial_11">
+<br>
+<a href="javascript:openTutorialPosition('B7/P1Ppp1p1/1k6/3Q4/1P6/5P1R/6PP/R3KB2', 'b')">Click here</a> to set up the problem again if necessary.
+<br><br>
+Here Black has made the last move, obviously with his king.  All of the potential squares around the king look like they lead to impossible double checks, but the situation is explained by an en passant capture.  The last 3 single moves were
+<a href="javascript:openTutorialPosition('B7/P1Ppp1p1/1k6/3Q4/1P6/5P1R/6PP/R3KB2', 'b', '0... Ka6xPb6 -1. a5xb6ep b7-b5')">0... Ka6xPb6 -1. a5xb6ep b7-b5</a>
+<br><br>
+Now Black is once again in check from the White bishop on f1.  How did White give this check?  There are two possibilities: the White king moved from e2 to e1, or the White pawn captured from e2 to f3.
+In the former case, White cannot castle, but in the latter case there is no problem with the castling.
+So we want to know if we can rule out e2xf3 as a possible last move.  Assume it was the last move, and we get
+    <a href="javascript:openTutorialPosition('B7/P1Ppp1p1/1k6/3Q4/1P6/5P1R/6PP/R3KB2', 'b', '0... Ka6xPb6 -1. a5xb6ep b7-b5 -2. e2xRf3')">this position</a>
+(we have arbitrarily uncaptured a rook on f3, but the choice of piece is not relevant):
+<br><br>
+
+To continue with the solution, turn to the next page.
+</div>
+<div class="helpPage" id="help_tutorial_12">
+ <br>
+    <a href="javascript:openTutorialPosition('B7/P1Ppp1p1/1k6/3Q4/1P6/5P1R/6PP/R3KB2', 'b', '0... Ka6xPb6 -1. a5xb6ep b7-b5 -2. e2xRf3')">Click here</a>
+to set up the last position on the previous page if necessary.<br><br>
+
+This is the only possible history of the game if White is assumed to be able to castle, except that the rook on f3
+ was arbitrarily chosen as the uncaptured piece.  Now is this position possible?  To figure that out, we must draw more
+conclusions about the history of the game.<br><br>
+
+The first important fact is that the bishop on a8 must be a promoted pawn, since the Black pawn on b7 blocks the original
+bishop from reaching a8.  We can also see this by noticing the original White bishop moving on light squares is still on
+f1 on its original square (it is trapped in a cage).  But, assuming White can castle, the rook on h3 is also promoted!
+Why?<br><br>
+
+If White can castle, then the rook on a1 has not yet moved.  Could the rook on h3 be the rook from h1?  No!  Because the
+White bishop on f1 is trapped on its original square, then the rook from h1 was also trapped in a cage consisting of
+squares g1 and h1.  It could not leave those two squares, and was captured on one of those squares.  So the rook on h3
+must also be promoted.  But since we have 7 White pawns on the board, we could have at most one promotion.  This is a
+contradiction, so White cannot castle.<br><br>
+
+On the next page, we discuss part (b) of the original problem, where the white rook on h3 is replaced by a white knight.
+</div>
+
+<div class="helpPage" id="help_tutorial_13">
+<br>
+<a href="javascript:openTutorialPosition('B7/P1Ppp1p1/1k6/3Q4/1P6/5P1N/6PP/R3KB2', 'b')">Click here</a> to set up part (b) of the problem.
+<br><br>
+By the same reasoning as before, we must have
+<a href="javascript:openTutorialPosition('B7/P1Ppp1p1/1k6/3Q4/1P6/5P1N/6PP/R3KB2', 'b', '0... Ka6xPb6 -1. a5xb6ep b7-b5 -2. e2xRf3')">
+    0... Ka6xPb6 -1. a5xb6ep b7-b5 -2. e2xRf3
+</a> and as before, the White bishop on a8 must be promoted.  Now we introduce a very important technique in retro problems,
+<em>counting captures</em>.<br><br>
+
+First, we count pawn captures. There are 4 White pawns on the left side of the board, plus the promoted bishop on a8
+which also came from a pawn. These 5 pawns collectively came from the a-, b-, c-, d-, f-files. We don't know for sure
+which pawn came from which file, but we can say they must have made (at least) 8 captures total.<br><br>
+
+Next, we have 2 cage captures to count: both original Black bishops were captured on their original squares c8 and f8,
+since the releasing pawns have not moved.  This makes a total of 10 captures, and since Black has 6 units on the board,
+that accounts for all missing Black units.<br><br>
+
+    The solution continues on the next page.
+</div>
+
+<div class="helpPage" id="help_tutorial_14">
+<a href="javascript:openTutorialPosition('B7/P1Ppp1p1/1k6/3Q4/1P6/5P1N/6PP/R3KB2', 'b', '0... Ka6xPb6 -1. a5xb6ep b7-b5 -2. e2xRf3')">
+Click here
+</a> to setup the position after part (b) 0... Ka6xPb6 -1. a5xb6ep b7-b5 -2. e2xRf3
+<br><br>
+
+On the previous page, we determined that the white pawns captured all the missing Black units except for the two original bishops.
+Among these missing Black units is the Black pawn originally from h7.  How did it get captured?
+<br><br>
+Here we come to another important principle in retros: If a pawn is missing, it could have either been captured
+<em>or it could have promoted</em>. (The promoted piece could have been captured later, or some original piece
+could have been captured, and the promoted piece replaced it.) Suppose the Black pawn from h7 was captured by a White pawn.  The rightmost
+capture by a White pawn was on the e-file, so the Black h-pawn would have to make 3 captures get to the e-file.
+Now White has 13 units on the board, so there seems to be no problem with these 3 captures.<br><br>
+
+But we must not forget about the cage in the lower right hand corner!  The White rook originally from h1 was captured
+on either g1 or h1, and could not be one of the captures that the Black h-pawn used to get from the h-file to the e-file,
+so that makes a fourth capture by Black, which is one too many.<br><br>
+
+The remaining possibility is that the Black pawn on h7 promoted.   It takes at least 3 captures for this pawn to promote,
+one of which had to be in the lower right cage (g1/h1).  Since only 3 captures are available, the Black h-pawn must have
+captured f2xRg1 at some point in the game.  So a Black pawn occupied f2 at some point in the game.
+The White king was not on e1 when Black played f2xRg1, since the pawn would have checked the king.  Therefore, the
+White king has moved earlier in the game, and White cannot castle.<br><br>
+
+To answer part (c), note that if we remove the White unit from h3, then White is missing 4 units so that there is no
+problem with the h-pawn making 3 captures to get to the e-file to be captured.  The White rook on was captured on g1 or
+h1 separately.  So in this case, White can castle.  (Technically, for completeness, we must give a legal game leading
+to this position in which neither the king nor rook has moved.  We leave this to the reader.)<br><br>
+
+This is the last problem in the tutorial. On the next page, we list some resources for finding more on retro problems.
+</div>
+
+<div class="helpPage" id="help_tutorial_15">
+<h3>Conclusion</h3>
+    There’s a lot more to the world of retros than was presented in this brief tutorial. An excellent starting point for more retro problems is
+    the <a href="https://www.janko.at/Retros/" target="_blank">Retrograde Analysis Corner</a>, originally created by Philippe Schnoebelen
+    and currently maintained jointly by Joost de Heer and Otto Janko. This collection of web pages contains an enormous collection
+    of retro problems. <br><br>
+
+There is also a mailing list for discussing retro problems. For instructions on subscribing to this
+mailing list, see the Retrograde Analysis Corner.<br><br>
+
+Finally, if you prefer books, there are two books by Raymond Smullyan that are
+excellent introductions to retro problems: <em>The Chess Mysteries of Sherlock Holmes</em> and <em>
+The Chess Mysteries of the Arabian Knights</em>. Additional information on books, journals, and articles related to
+retrograde analysis can be found at the Retrograde Analysis Corner.<br><br>
+
+This concludes the tutorial.
+</div>

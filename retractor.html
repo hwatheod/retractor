@@ -1,0 +1,418 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 //EN">
+
+<html lang="en">
+<head>
+    <title>Retractor 2.0</title>
+    <meta name="keywords" content="retrograde analysis, retros, chess problems, chess puzzles">
+    <meta name="description" content="Retrograde analysis chess problems software in Javascript">
+    <meta charset="UTF-8" content="Retractor 2.0">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<script type="text/javascript" src="constants.js"></script>
+<script type="text/javascript" src="error.js"></script>
+<script type="text/javascript" src="pseudoLegalityChecker.js"></script>
+<script type="text/javascript" src="legalityChecker.js"></script>
+<script type="text/javascript" src="piece.js"></script>
+<script type="text/javascript" src="board.js"></script>
+<script type="text/javascript" src="boardGui.js"></script>
+<script type="text/javascript" src="undo.js"></script>
+<script type="text/javascript" src="stateChanges.js"></script>
+<script type="text/javascript" src="pawnCaptures.js"></script>
+<script type="text/javascript" src="solver.js"></script>
+
+<body>
+<div id="modalBackground" class="modal-background"></div>
+<div class="flex-container">
+    <div class="left-inner-flex-container">
+        <div id="moveDiv">
+            <span>Mode</span>
+            <div>
+                <input type="radio" name="mode" id="modeEdit" value="edit"/>
+                <label for="modeEdit">Edit</label>
+            </div>
+            <div>
+                <input type="radio" name="mode" id="modePlay" value="play"/>
+                <label for="modePlay">Play</label>
+            </div>
+            <hr style="width:90%">
+        </div>
+        <div id="toRetractDiv">
+            <div id="retractHeading">Retract next</div>
+            <span id="retractColor"></span>
+            <div id="retractRadioButtons">
+                <div>
+                    <input type="radio" name="toRetract" id="retractWhite" value="w"/>
+                    <label for="retractWhite">White</label>
+                </div>
+                <div>
+                    <input type="radio" name="toRetract" id="retractBlack" value="b"/>
+                    <label for="retractBlack">Black</label>
+                </div>
+            </div>
+            <hr style="width:90%">
+        </div>
+        <div id="pieceCountDiv">
+            White <span id="whitePieceCount"></span><br>
+            Black <span id="blackPieceCount"></span><br>
+            <span id="moves">Moves <span id="moveCount"></span></span>
+            <hr style="width:90%">
+        </div>
+        <div id="pawnCapturesTable">
+            Captures
+            <table>
+                <tr>
+                    <th></th>
+                    <th>W</th>
+                    <th>B</th>
+                    <th>T</th>
+                </tr>
+                <tr>
+                    <td>Pawn</td>
+                    <td style="text-align:center" class="positionData" id="pawnCapturesWhite"></td>
+                    <td style="text-align:center" class="positionData" id="pawnCapturesBlack"></td>
+                    <td style="text-align:center" class="positionData" id="pawnCapturesTotal"></td>
+                </tr>
+                <tr>
+                    <td>Total</td>
+                    <td style="text-align:center" class="positionData" id="totalCapturesWhite"></td>
+                    <td style="text-align:center" class="positionData" id="totalCapturesBlack"></td>
+                    <td style="text-align:center" class="positionData" id="totalCapturesTotal"></td>
+                </tr>
+            </table>
+            <hr style="width:90%">
+        </div>
+        <div id="promoteeTable">
+            Promoted pieces
+            <table>
+                <tr>
+                    <th></th>
+                    <th>Q</th>
+                    <th>R</th>
+                    <th>B</th>
+                    <th>N</th>
+                </tr>
+                <tr>
+                    <td>W</td>
+                    <td style="text-align:center" class="positionData" id="promoted_wQ"></td>
+                    <td style="text-align:center" class="positionData" id="promoted_wR"></td>
+                    <td style="text-align:center" class="positionData" id="promoted_wB"></td>
+                    <td style="text-align:center" class="positionData" id="promoted_wN"></td>
+                </tr>
+                <tr>
+                    <td>B</td>
+                    <td style="text-align:center" class="positionData" id="promoted_bQ"></td>
+                    <td style="text-align:center" class="positionData" id="promoted_bR"></td>
+                    <td style="text-align:center" class="positionData" id="promoted_bB"></td>
+                    <td style="text-align:center" class="positionData" id="promoted_bN"></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div class="center-flex-container">
+        <div class="board" id="board"></div>
+        <div id="setForsytheDiv">
+            <input id="forsytheText" type="text" placeholder="Forsythe notation" maxLength=80 size=45 value="">
+            <input id="setPositionButton" type="button" value="Set" onclick="setPosition()">
+        </div>
+        <div id="clearBoardGroup">
+            <input type="button" value="Clear board" onclick="clearBoardGui()">
+            <input type="button" value="Initial Position" onclick="setInitialPositionGui()">
+        </div>
+        <div id="controlGroup">
+            <input type="button" value="<<" onclick="undoAllGui()">
+            <input type="button" value="<" onclick="undoGui()">
+            <input type="button" value=">" onclick="redoGui()">
+            <input type="button" value=">>" onclick="redoAllGui()">
+            <input type="button" id="solve" value="Solve">
+            <input type="button" id="copyGame" value="Copy" onclick="copyGameGui()">
+            <input type="button" id="pasteGame" value="Paste" onclick="showPasteGameModal()">
+        </div>
+        <div id="errorMessage" style="color:#FF0000; flex-grow: 0"></div>
+        <div id="solveModal" class="modal-content">
+            <span id="solveClose" class="close">&times;</span>
+            <div class="modal-body">
+                <label for="solveDepth">Solve depth:</label>
+                <input id="solveDepth" type="number" min="1" max="100" size="3" value="1">
+                <br>
+                <label for="extraDepth">Extra depth:</label>
+                <input id="extraDepth" type="number" min="0" max="100" size="3" value="3">
+                <br>
+                <label for="maxSolutions">Max solutions:</label>
+                <input id="maxSolutions" type="number" min="1" max="10" size="2" value="5">
+                <br>
+                <div id="solveErrorMessage" style="color:#FF0000"></div>
+                <br>
+                <input id="startSolve" type="button" value="Solve" onclick="solveGui()">
+            </div>
+        </div>
+
+        <div id="illegalPositionModal" class="modal-content">
+            <span id="illegalPositionClose" class="close">&times;</span>
+            <div id="illegalPositionErrorMessage" style="color:#FF0000"></div>
+            <input type="button" id="illegalPositionUndo" value="Go back">
+            <input type="button" id="illegalPositionContinue" value="Continue anyway">
+        </div>
+        <div id="pasteGameModal" class="modal-content">
+            <span id="pasteGameClose" class="close">&times;</span>
+            <label for="pasteGameInput">Paste game here</label><br>
+            <textarea id="pasteGameInput" cols=40 rows=5></textarea>
+            <input type="button" id="reallyPasteGame" value="Paste">
+        </div>
+    </div>
+    <div class="right-inner-flex-container">
+        <div>
+            <input type="radio" name="pieceSelection" id="pieceSelection_wQ" value="Q"/>
+            <label for="pieceSelection_wQ"><img alt="white queen" src="images/Chess_qll44.png"/></label>
+        </div>
+        <div>
+            <input type="radio" name="pieceSelection" id="pieceSelection_wR" value="R"/>
+            <label for="pieceSelection_wR"><img alt="white rook" src="images/Chess_rll44.png"/></label>
+        </div>
+        <div>
+            <input type="radio" name="pieceSelection" id="pieceSelection_wB" value="B"/>
+            <label for="pieceSelection_wB"><img alt="white bishop" src="images/Chess_bll44.png"/></label>
+        </div>
+        <div>
+            <input type="radio" name="pieceSelection" id="pieceSelection_wN" value="N"/>
+            <label for="pieceSelection_wN"><img alt="white knight" src="images/Chess_nll44.png"/></label>
+        </div>
+        <div>
+            <input type="radio" name="pieceSelection" id="pieceSelection_wP" value="P"/>
+            <label for="pieceSelection_wP"><img alt="white pawn" src="images/Chess_pll44.png"/></label>
+        </div>
+        <div id="none_and_ep">
+            <div>
+                <input type="radio" name="pieceSelection" id="pieceSelection_none" value=""/>
+                <label for="pieceSelection_none">None</label>
+            </div>
+            <div>
+                <input type="radio" name="pieceSelection" id="pieceSelection_ep" value="ep"/>
+                <label for="pieceSelection_ep">e.p.</label>
+            </div>
+            <hr style="width:90%">
+            <div>
+                <input type="checkbox" name="unpromote" id="unpromoteSelection" onclick="toggleUnpromote()"/>
+                <label for="unpromoteSelection">Unpromote</label>
+            </div>
+        </div>
+    </div>
+    <div id="black_pieces" class="right-inner-flex-container">
+        <div>
+            <input type="radio" name="pieceSelection" id="pieceSelection_bQ" value="q"/>
+            <label for="pieceSelection_bQ"><img alt="black queen" src="images/Chess_qdl44.png"/></label>
+        </div>
+        <div>
+            <input type="radio" name="pieceSelection" id="pieceSelection_bR" value="r"/>
+            <label for="pieceSelection_bR"><img alt="black rook" src="images/Chess_rdl44.png"/></label>
+        </div>
+        <div>
+            <input type="radio" name="pieceSelection" id="pieceSelection_bB" value="b"/>
+            <label for="pieceSelection_bB"><img alt="black bishop" src="images/Chess_bdl44.png"/></label>
+        </div
+        ><div>
+            <input type="radio" name="pieceSelection" id="pieceSelection_bN" value="n"/>
+            <label for="pieceSelection_bN"><img alt="black knight" src="images/Chess_ndl44.png"/></label>
+        </div>
+        <div>
+            <input type="radio" name="pieceSelection" id="pieceSelection_bP" value="p"/>
+            <label for="pieceSelection_bP"><img alt="black pawn" src="images/Chess_pdl44.png"/></label>
+        </div>
+    </div>
+
+    <div id="solutions" class="solution-flex-container">
+        <div id="positionDataDisplay"></div>
+        Solutions will appear here
+        <div id="solutionDisplay"></div>
+    </div>
+</div>
+<div class="helpSection" id="help">
+</div>
+<script type="text/javascript">
+    let currentPage;
+    function openHelpPage(page) {
+        const newPage = document.getElementById(page);
+        if (newPage) {
+            if (currentPage) {
+                document.getElementById(currentPage).style.display = "none";
+            }
+            currentPage = page;
+            document.getElementById(currentPage).style.display = "block";
+        }
+    }
+
+    fetch("help.html").then(response => response.text()).then(text => {
+        document.getElementById("help").innerHTML = text;
+        openHelpPage("help_front");
+        const allHelpPages = document.getElementsByClassName("helpPage");
+        Array.prototype.forEach.call(allHelpPages, helpPage => {
+            if (helpPage.id != "help_front" && !helpPage.id.startsWith("help_tutorial")) {
+                helpPage.innerHTML += "<a href=\"javascript:openHelpPage('help_front')\">Back to front page</a>";
+            } else if (helpPage.id.startsWith("help_tutorial")) {
+                const pageNumber = parseInt(helpPage.id.split("_")[2]);
+                let prevPage;
+                let nextPage;
+                if (pageNumber == 1) {
+                    prevPage = "help_front";
+                } else {
+                    prevPage = "help_tutorial_" + (pageNumber - 1);
+                }
+                nextPage = "help_tutorial_" + (pageNumber + 1);
+                const nextPageElement = document.getElementById(nextPage);
+                let navigationText =
+                    "<a href=\"javascript:openHelpPage('" + prevPage + "')\">Previous page</a>";
+                if (nextPageElement != null) {
+                    navigationText += "&nbsp;&nbsp;&nbsp;<a href=\"javascript:openHelpPage('" + nextPage + "')\">Next page</a>";
+                }
+                navigationText += "&nbsp;&nbsp;&nbsp;<a href=\"javascript:openHelpPage('help_front')\">Back to front page</a>";
+                helpPage.innerHTML = navigationText + "<br>" + helpPage.innerHTML + "<br><br>" + navigationText;
+            }
+        });
+    });
+
+    function openTutorialPosition(forsythe, toRetract, playMoves) {
+        updateMode(MODE_EDIT, true);
+        setForsythe(forsythe);
+        setRetract(toRetract);
+        assert (updateMode(MODE_PLAY, true, false) == error_ok, 'Illegal position ' + forsythe + ' in tutorial');
+        currentMode = MODE_PLAY;
+        document.getElementById("modeEdit").checked = false;
+        document.getElementById("modePlay").checked = true;
+        if (playMoves != null) {
+            const [numMoves, illegalMove] = replayGame(playMoves);
+            assert(illegalMove == null, 'Illegal move ' + illegalMove + ' in tutorial position ' + forsythe);
+            for (let i = 0; i < numMoves; i++) redo();
+            updateVisualBoard();
+        }
+    }
+
+    document.getElementsByName("pieceSelection").forEach(
+        element => {
+            element.onclick = setUncapturedPiece;
+        }
+    )
+
+    document.getElementsByName("mode").forEach(
+        element => {
+            element.onclick = setMode;
+        }
+    )
+
+    document.getElementsByName("toRetract").forEach(
+        element => {
+            element.onclick = setRetractGui;
+        }
+    )
+
+    // some browsers will insert the filename of the image if you drag the image
+    // into a text input element. Disable this.
+    document.getElementById("forsytheText").ondragenter = function() { return false; }
+    document.getElementById("forsytheText").ondragover = function() { return false; }
+    document.getElementById("forsytheText").ondrop = function() { return false; }
+
+    // disable dragging of any image other than those on the chessboard
+    document.ondragstart = function(event) {
+        if (event.target.className != "cell") {
+            return false;
+        }
+    }
+
+    // Setup modals
+    const modalBackground = document.getElementById("modalBackground");
+
+    // Setup solve modal
+    const solveModal = document.getElementById("solveModal");
+    const solveButton = document.getElementById("solve");
+    const solveCloseSpan = document.getElementById("solveClose");
+    solveButton.onclick = function() {
+        showSolveModal();
+    }
+    solveCloseSpan.onclick = function() {
+        resetSolver();
+    }
+
+    // Setup illegal position modal
+    const illegalPositionModal = document.getElementById("illegalPositionModal");
+    const illegalPositionUndo = function() {
+        if (!undoGui(true)) { // if we can't undo, then we need to switch back to edit mode
+            updateMode(MODE_EDIT, false); // don't clear flags since we haven't played any moves
+            document.getElementById("modePlay").checked = false;
+		    document.getElementById("modeEdit").checked = true;
+		    currentMode = MODE_EDIT;
+        }
+        clearIllegalPositionModal();
+    }
+    document.getElementById("illegalPositionClose").onclick = illegalPositionUndo;
+    document.getElementById("illegalPositionUndo").onclick = illegalPositionUndo;
+    document.getElementById("illegalPositionContinue").onclick = function() {
+        clearIllegalPositionModal();
+        showError("Continuing on illegal position.");
+    }
+
+    // Setup paste game modal
+    const pasteGameModal = document.getElementById("pasteGameModal");
+    document.getElementById("pasteGameClose").onclick = clearPasteGameModal;
+    document.getElementById("reallyPasteGame").onclick = function() {
+        processMoveText(document.getElementById("pasteGameInput").value);
+        clearPasteGameModal();
+    }
+
+    // Take the "close" action if clicking on the outside for certain modals
+    window.onclick = function(event) {
+        if (event.target == document.getElementById("modalBackground")) {
+            if (illegalPositionModal.style.display != "none" && illegalPositionModal.style.display != "") {
+                illegalPositionUndo();
+            } else if (pasteGameModal.style.display != "none" && pasteGameModal.style.display != "") {
+                clearPasteGameModal();
+            }
+        }
+    }
+
+    // "Show" and "Clear" functions for each modal
+    function showIllegalPositionModal() {
+        modalBackground.style.display = "block";
+        illegalPositionModal.style.display = "block";
+    }
+
+    function clearIllegalPositionModal() {
+        modalBackground.style.display = "none";
+        illegalPositionModal.style.display = "none";
+    }
+
+    function showSolveModal() {
+        modalBackground.style.display = "block";
+        solveModal.style.display = "block";
+    }
+
+    function clearSolveModal() {
+        modalBackground.style.display = "none";
+        solveModal.style.display = "none";
+    }
+
+    function showPasteGameModal() {
+        modalBackground.style.display = "block";
+        pasteGameModal.style.display = "block";
+    }
+
+    function clearPasteGameModal() {
+        modalBackground.style.display = "none";
+        pasteGameModal.style.display = "none";
+    }
+
+    initializeBoardGui();
+
+    currentUncapturedUnit = "";
+
+    /* Gerald Ettl, Die Schwalbe Heft 157, Feb 1996, Problem 9129 - Last 30 single moves? */
+    setForsythe('nBb2R1R/bqr5/kppp4/n3K2B/p1P1ppNN/rP2PPpp/P2P1QPP/8');
+    setRetract("b");
+    currentMode = MODE_PLAY;
+    updateMode(MODE_PLAY, true, true);
+    document.getElementById('modePlay').checked = true;
+</script>
+
+
+</body>
+
+</html>
+

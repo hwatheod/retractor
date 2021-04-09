@@ -1,0 +1,18 @@
+importScripts('board.js', 'constants.js', 'error.js', 'legalityChecker.js', 'pawnCaptures.js',
+    'piece.js', 'pseudoLegalityChecker.js', 'solver.js', 'undo.js');
+let undoStack = new UndoStack();
+
+onmessage = function(e) {
+    const solveParameters = e.data[0];
+    board = e.data[1];
+    currentRetract = e.data[2];
+    positionData = new PositionData();
+    positionData.initializeDataFromBoard(false); // solver assumes position is legal
+    positionData.ep = e.data[3];
+    getPawnCaptureCache().set(e.data[4]);
+	pieceLetters = "kqrbnp";
+	undoStack.reset();
+
+    const result = solve(solveParameters);
+    postMessage([result, getPawnCaptureCache()]);
+}

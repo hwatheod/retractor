@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 //EN">
+
+<html lang="en">
+<head>
+    <title>Retractor 2.0</title>
+    <meta charset="UTF-8" content="Retractor 2.0">
+</head>
+<h2>Cages in Retractor 2.0</h2>
+<p>
+	A cage is any configuration of pieces and pawns which does not permit another piece to have left or entered a particular set of squares.
+    The simplest example of a cage is White pawns on b2 and d2.  These pawns do not the permit the White c1-bishop to have left the square c1.
+    A black bishop on c1 could only have gotten there through promotion.  Whenever there is a cage present in retro play, then the caged pieces
+    must either be in their cages, or else we can deduce that the caged pieces were captured on some square in the cage.
+    In the case of caged bishops and queens, we can also deduce that any other bishop (on the same colored square) or queen
+    of the same color that is outside the cage must be promoted. In the case of a caged king, the king must be in the cage or the position is illegal.
+</p>
+<p>
+	Some cages are illegal and other permit deduction that particular piece(s) are promoted.
+</p>
+<p>
+	Retractor detects cages and makes deductions based on them as follows.  The descriptions that follow will be from White’s point of view.
+</p>
+<p>
+	(In the following paragraph only, X,Y,Z are any 3 consecutive files.)  First, check for bishop cages by searching for white pawns on
+    X2 and Z2. If there is a white bishop on Y1, then that is illegal unless Y1 is an original square of a bishop, in which case Y1 is
+    now a frozen bishop. If there is a black bishop on Y1, then it is promoted; further, Y2 better not be occupied by a white pawn, or
+    the promotion could not occur (the position is illegal). If there are White pawns on X2, Y3, Z2, then we cannot have both a bishop
+    on Y1 and a rook on Y2 (regardless of the color of the bishop or the rook).
+</p>
+<p>
+    Then scan the first rank for frozen pieces.  A piece can become frozen either because it has been marked so by the user,
+    it has been deduced as such (such as the bishop cage in the previous paragraph), or from an uncastling (uncastling freezes
+    the king and the rook involved in the uncastling).   Suppose there are frozen pieces on X1 and Y1
+    and none in-between.  Then we check the pawn structure on all files between X and Y inclusive.
+    There are 2 cases in which cages arise.<br><br>
+    Strong cage: All pawns are on their second rank on files X through Y, inclusive.  In this case, no enemy pieces except knights are
+    permitted inside the cage.  A friendly rook(s), queen, or king is permitted in the cage if and only if the cage includes the
+    a/h, d, or e files respectively.  The a-rook must be to the left of the queen, which must be to the left of the h-rook.  The
+    queen must be to the left of the king.  If the e-file is in the cage, then the king must be in the cage.<br><br>
+	Weak cage: All pawns are on their second and third ranks on files X through Y, inclusive, with no two consecutive pawns on
+    their third rank*.  Any enemy rook inside such a cage is promoted; each such promotion requires at least one pawn capture.  A
+    friendly rook(s) is permitted if and only if the cage includes the a/h files.<br>
+<br><br>
+* The reason that two consecutive pawns cannot be on their third rank is because the cage then could have been opened by
+    means of a cross-capture (e.g. fxe3 and exf3).  This entails 2 captures.  If Retractor can account for all captures or
+    all but one capture from other sources for that side, then two consecutive pawns on the third rank will be considered
+    for a cage.
+</html>

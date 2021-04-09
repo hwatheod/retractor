@@ -1,0 +1,85 @@
+function placeOnSquare(square, piece) {
+    placePieceAt(square.mFile, square.mRank, piece);
+}
+
+function getPieceAt(square) {
+    return board[square.mFile][square.mRank];
+}
+
+A1 = new Square(0, 0);
+B1 = new Square(1, 0);
+C1 = new Square(2, 0);
+D1 = new Square(3, 0);
+E1 = new Square(4, 0);
+F1 = new Square(5, 0);
+G1 = new Square(6, 0);
+H1 = new Square(7, 0);
+A2 = new Square(0, 1);
+B2 = new Square(1, 1);
+C2 = new Square(2, 1);
+D2 = new Square(3, 1);
+E2 = new Square(4, 1);
+F2 = new Square(5, 1);
+G2 = new Square(6, 1);
+H2 = new Square(7, 1);
+A3 = new Square(0, 2);
+B3 = new Square(1, 2);
+C3 = new Square(2, 2);
+D3 = new Square(3, 2);
+E3 = new Square(4, 2);
+F3 = new Square(5, 2);
+G3 = new Square(6, 2);
+H3 = new Square(7, 2);
+A4 = new Square(0, 3);
+B4 = new Square(1, 3);
+C4 = new Square(2, 3);
+D4 = new Square(3, 3);
+E4 = new Square(4, 3);
+F4 = new Square(5, 3);
+G4 = new Square(6, 3);
+H4 = new Square(7, 3);
+A5 = new Square(0, 4);
+B5 = new Square(1, 4);
+C5 = new Square(2, 4);
+D5 = new Square(3, 4);
+E5 = new Square(4, 4);
+F5 = new Square(5, 4);
+G5 = new Square(6, 4);
+H5 = new Square(7, 4);
+A6 = new Square(0, 5);
+B6 = new Square(1, 5);
+C6 = new Square(2, 5);
+D6 = new Square(3, 5);
+E6 = new Square(4, 5);
+F6 = new Square(5, 5);
+G6 = new Square(6, 5);
+H6 = new Square(7, 5);
+A7 = new Square(0, 6);
+B7 = new Square(1, 6);
+C7 = new Square(2, 6);
+D7 = new Square(3, 6);
+E7 = new Square(4, 6);
+F7 = new Square(5, 6);
+G7 = new Square(6, 6);
+H7 = new Square(7, 6);
+A8 = new Square(0, 7);
+B8 = new Square(1, 7);
+C8 = new Square(2, 7);
+D8 = new Square(3, 7);
+E8 = new Square(4, 7);
+F8 = new Square(5, 7);
+G8 = new Square(6, 7);
+H8 = new Square(7, 7);
+
+WHITE_KING = new Piece("w", "K");
+BLACK_KING = new Piece("b", "K");
+WHITE_QUEEN = new Piece("w", "Q");
+BLACK_QUEEN = new Piece("b", "Q");
+WHITE_ROOK = new Piece("w", "R");
+BLACK_ROOK = new Piece("b", "R");
+WHITE_BISHOP = new Piece("w", "B");
+BLACK_BISHOP = new Piece("b", "B");
+WHITE_KNIGHT = new Piece("w", "N");
+BLACK_KNIGHT = new Piece("b", "N");
+WHITE_PAWN = new Piece("w", "P");
+BLACK_PAWN = new Piece("b", "P");

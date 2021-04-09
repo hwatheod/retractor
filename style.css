@@ -1,0 +1,99 @@
+.board {
+    width: 380px;
+    height: 360px;
+    position: relative;
+}
+
+.cell {
+    position: absolute;
+    overflow: hidden;
+}
+
+.flex-container {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+}
+
+.center-flex-container {
+  display: flex;
+  flex-direction: column;
+  max-width: 380px;
+}
+
+.left-inner-flex-container {
+  display: flex;
+  flex-direction: column;
+  width: 150px;
+}
+
+div > .left-inner-flex-container {
+  text-align: center;
+}
+
+.left-inner-flex-container table {
+  width: 100%;
+}
+
+.right-inner-flex-container {
+  display: flex;
+  flex-direction: column;
+  width: 100px;
+}
+
+.solution-flex-container {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 5;
+}
+
+ /* The Modal (background) */
+.modal-background {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.1); /* Black w/ opacity */
+}
+
+/* Modal Content/Box */
+.modal-content {
+  display: none;
+  z-index: 2;
+  position: relative;
+  background-color: #fefefe;
+  padding: 20px;
+  border: 1px solid #888;
+}
+
+/* The Close Button */
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.helpPage {
+  display: none;
+}
+
+#solveModal {
+  width: 50%;
+}
+
+#illegalPositionModal {
+  width: 100%;
+}
