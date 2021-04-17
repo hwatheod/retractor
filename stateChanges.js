@@ -81,9 +81,8 @@ function redoAllGui() {
 function copyGameGui() {
 	const moveRecord = undoStack.getMoveRecordToHere();
 	const textMoveRecord = moveRecord.map(moveToString).join(" ");
-	navigator.clipboard.writeText(textMoveRecord)
-		.then(() => showError("Game copied to clipboard."),
-		      () => showError("Failed to copy game to clipboard."));
+	document.getElementById("copyGameText").innerHTML = textMoveRecord;
+	showModal("copyGameModal");
 }
 
 function replayGame(moveText) {
@@ -131,7 +130,7 @@ function resetSolver() {
 		solverWorker = null;
 	}
 	solverDone = true;
-	clearSolveModal();
+	clearModal("solveModal");
 	document.getElementById("startSolve").value = "Solve";
 	document.getElementById("solveErrorMessage").innerHTML = "";
 }

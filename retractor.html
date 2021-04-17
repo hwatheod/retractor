@@ -126,7 +126,7 @@
             <input type="button" value=">>" onclick="redoAllGui()">
             <input type="button" id="solve" value="Solve">
             <input type="button" id="copyGame" value="Copy" onclick="copyGameGui()">
-            <input type="button" id="pasteGame" value="Paste" onclick="showPasteGameModal()">
+            <input type="button" id="pasteGame" value="Paste" onclick="showModal('pasteGameModal')">
         </div>
         <div id="errorMessage" style="color:#FF0000; flex-grow: 0"></div>
         <div id="solveModal" class="modal-content">
@@ -158,6 +158,11 @@
             <label for="pasteGameInput">Paste game here</label><br>
             <textarea id="pasteGameInput" cols=40 rows=5></textarea>
             <input type="button" id="reallyPasteGame" value="Paste">
+        </div>
+        <div id="copyGameModal" class="modal-content">
+            <span id="copyGameClose" class="close">&times;</span>
+            <label for="copyGameText">Copy game from here</label><br>
+            <textarea id="copyGameText" cols=40 rows=5 readonly></textarea>
         </div>
     </div>
     <div class="right-inner-flex-container">
@@ -325,7 +330,7 @@
     const solveButton = document.getElementById("solve");
     const solveCloseSpan = document.getElementById("solveClose");
     solveButton.onclick = function() {
-        showSolveModal();
+        showModal("solveModal");
     }
     solveCloseSpan.onclick = function() {
         resetSolver();
@@ -340,22 +345,26 @@
 		    document.getElementById("modeEdit").checked = true;
 		    currentMode = MODE_EDIT;
         }
-        clearIllegalPositionModal();
+        clearModal("illegalPositionModal");
     }
     document.getElementById("illegalPositionClose").onclick = illegalPositionUndo;
     document.getElementById("illegalPositionUndo").onclick = illegalPositionUndo;
     document.getElementById("illegalPositionContinue").onclick = function() {
-        clearIllegalPositionModal();
+        clearModal("illegalPositionModal");
         showError("Continuing on illegal position.");
     }
 
     // Setup paste game modal
     const pasteGameModal = document.getElementById("pasteGameModal");
-    document.getElementById("pasteGameClose").onclick = clearPasteGameModal;
+    document.getElementById("pasteGameClose").onclick = function() { clearModal("pasteGameModal"); }
     document.getElementById("reallyPasteGame").onclick = function() {
         processMoveText(document.getElementById("pasteGameInput").value);
-        clearPasteGameModal();
+        clearModal("pasteGameModal");
     }
+
+    // Setup copy game modal
+    const copyGameModal = document.getElementById("copyGameModal");
+    document.getElementById("copyGameClose").onclick = function() { clearModal("copyGameModal"); }
 
     // Take the "close" action if clicking on the outside for certain modals
     window.onclick = function(event) {
@@ -363,40 +372,22 @@
             if (illegalPositionModal.style.display != "none" && illegalPositionModal.style.display != "") {
                 illegalPositionUndo();
             } else if (pasteGameModal.style.display != "none" && pasteGameModal.style.display != "") {
-                clearPasteGameModal();
+                clearModal("pasteGameModal");
+            } else if (copyGameModal.style.display != "none" && copyGameModal.style.display != "") {
+                clearModal("copyGameModal");
             }
         }
     }
 
     // "Show" and "Clear" functions for each modal
-    function showIllegalPositionModal() {
+    function showModal(modalId) {
         modalBackground.style.display = "block";
-        illegalPositionModal.style.display = "block";
+        document.getElementById(modalId).style.display = "block";
     }
 
-    function clearIllegalPositionModal() {
+    function clearModal(modalId) {
         modalBackground.style.display = "none";
-        illegalPositionModal.style.display = "none";
-    }
-
-    function showSolveModal() {
-        modalBackground.style.display = "block";
-        solveModal.style.display = "block";
-    }
-
-    function clearSolveModal() {
-        modalBackground.style.display = "none";
-        solveModal.style.display = "none";
-    }
-
-    function showPasteGameModal() {
-        modalBackground.style.display = "block";
-        pasteGameModal.style.display = "block";
-    }
-
-    function clearPasteGameModal() {
-        modalBackground.style.display = "none";
-        pasteGameModal.style.display = "none";
+        document.getElementById(modalId).style.display = "none";
     }
 
     initializeBoardGui();

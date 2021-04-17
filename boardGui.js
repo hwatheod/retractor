@@ -354,7 +354,7 @@ function asyncLegalityCheck() {
 			updateVisualBoard();
 			if (error != error_ok) {
 				document.getElementById("illegalPositionErrorMessage").innerHTML = errorText[error];
-				showIllegalPositionModal();
+				showModal("illegalPositionModal");
 			} else {
 				showError("");
 			}
@@ -529,12 +529,8 @@ function copySolution(event) {
 		result += moveToString(move) + " ";
 	});
 	result = result.trim();
-	navigator.clipboard.writeText(result).then(() => {
-		showError("Solution copied to clipboard.");
-		setTimeout(function() { showError(""); }, 2000);
-	}, () => {
-		showError("Copy to clipboard failed.");
-	});
+	document.getElementById("copyGameText").innerHTML = result;
+	showModal("copyGameModal");
 }
 
 function disableSolutionButtons() {
