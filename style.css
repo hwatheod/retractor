@@ -45,6 +45,8 @@ div > .left-inner-flex-container {
   display: flex;
   flex-direction: column;
   flex-shrink: 5;
+  height: 360px;
+  overflow: scroll;
 }
 
  /* The Modal (background) */

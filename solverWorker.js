@@ -14,5 +14,6 @@ onmessage = function(e) {
 	undoStack.reset();
 
     const result = solve(solveParameters);
-    postMessage([result, getPawnCaptureCache()]);
+    const maybeTruncated = result.length == solveParameters.maxSolutions;
+    postMessage([result, getPawnCaptureCache(), maybeTruncated]);
 }

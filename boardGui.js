@@ -551,10 +551,13 @@ function createSolutionButton(solutionCount, moveCount, value) {
 	return startInput;
 }
 
-function showSolutions() {
+function showSolutions(maybeTruncated) {
 	navigatedMoveIndex = null;
 	const solutionDisplay = document.getElementById("solutionDisplay");
 	solutionDisplay.innerHTML = "";
+	if (maybeTruncated) {
+		solutionDisplay.innerHTML = "<b>Maximum solution limit reached; not all solutions may have been found.</b><br>";
+	}
 	if (solutions != null && solutions.length > 0) {
 		const table = document.createElement("table");
 		let solutionCount = 0;

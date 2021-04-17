@@ -149,7 +149,8 @@ function solveGui() {
 			if (solutions.length == 0) {
 				showError("No solutions found; position is impossible.");
 			}
-			showSolutions();
+			const maybeTruncated = e.data[2];
+			showSolutions(maybeTruncated);
 			updateVisualBoard();
 		}
 	}
