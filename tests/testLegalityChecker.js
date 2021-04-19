@@ -344,7 +344,7 @@ describe("illegalities related to bishops", function() {
     it("Frozen bishop cannot be promoted", function() {
         setForsythe("2b2b2/1p1pp1p1/3k4/8/8/2K5/1P1PP1P1/2B2B2");
         setRetract("b");
-        undoStack.changePromotedFlag(C1.mFile, C1.mRank, true);
+        setPromotedFlag(C1.mFile, C1.mRank, true);
         expect(errorText[startPlay()]).toBe(errorText[error_impossiblePromotedWhiteBishop]);
     });
 
@@ -582,8 +582,8 @@ describe("strong cage tests", function() {
         setForsythe("r2qkb1r/p1p2p1p/1pn3p1/3ppb2/8/3P4/PPP1PPPP/3RK2R");
         setRetract("b");
         expect(errorText[startPlay()]).toBe(errorText[error_ok]);
-        undoStack.changeFrozenFlag(E1.mFile, E1.mRank, true);
-        undoStack.changeFrozenFlag(H1.mFile, H1.mRank, true);
+        setFrozenFlag(E1.mFile, E1.mRank, true);
+        setFrozenFlag(H1.mFile, H1.mRank, true);
         expect(isStrongCage(4, 7, 0)).toBe(true);
         expect(isStrongCage(1, 4, 0)).toBe(false);
     });
@@ -609,8 +609,8 @@ describe("strong cage tests", function() {
         setForsythe("r1n1kb1r/pppppp1p/6p1/3n4/1NP1P3/3P1P2/PP4PP/R2QKBN1");
         setRetract("w");
         expect(errorText[startPlay()]).toBe(errorText[error_ok]);
-        undoStack.changeFrozenFlag(A8.mFile, A8.mRank, true);
-        undoStack.changeFrozenFlag(E8.mFile, E8.mRank, true);
+        setFrozenFlag(A8.mFile, A8.mRank, true);
+        setFrozenFlag(E8.mFile, E8.mRank, true);
         expect(isStrongCage(0, 4, 1)).toBe(true);
         expect(isStrongCage(4, 8, 1)).toBe(false);
     });
@@ -620,6 +620,55 @@ describe("strong cage tests", function() {
         setRetract("b");
         expect(errorText[startPlay()]).toBe(errorText[error_ok]);
         expect(isStrongCage(-1, 8, 1)).toBe(true);
+    });
+});
+
+function regionEquality(r1, r2) {
+    if (!(Array.isArray(r1) && Array.isArray(r2))) {
+        return undefined;
+    }
+
+    if (r1.length != r2.length) {
+        return false;
+    }
+
+    return r1.every(r1square => r2.some(r2square => r1square[0] == r2square[0] && r1square[1] == r2square[1]));
+}
+
+describe("strong cage region tests", function() {
+    beforeAll(function() {
+        initializeBoard();
+    });
+
+    beforeEach(function() {
+        clearBoard();
+        jasmine.addCustomEqualityTester(regionEquality);
+    });
+
+    it("white strong cage region test", function() {
+        setForsythe("r2qkb1r/p1p2p1p/1pn3p1/3ppb2/8/7P/PPPPPPP1/R1K2B1R");
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        const leftRegion = getStrongCageRegion(-1, 5, 0);
+        const expectedLeftRegion = [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]];
+        expect(leftRegion).toEqual(expectedLeftRegion);
+
+        const rightRegion = getStrongCageRegion(5, 8, 0);
+        expect(rightRegion).toBe(null);
+    });
+
+    it("black strong cage region test", function() {
+        setForsythe("r1n1k2r/p1pppppp/8/1p1n4/1NP1P3/3P1P2/PP4PP/R2QKBN1");
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        setFrozenFlag(E8.mFile, E8.mRank, true);
+        setFrozenFlag(H8.mFile, H8.mRank, true);
+
+        const leftRegion = getStrongCageRegion(0, 4, 1);
+        expect(leftRegion).toBe(null);
+        const rightRegion = getStrongCageRegion(4, 7, 1);
+        const expectedRightRegion = [[5, 7], [6, 7]];
+        expect(rightRegion).toEqual(expectedRightRegion);
     });
 });
 
@@ -661,8 +710,8 @@ describe("illegalities related to strong cages", function() {
         it("white " + piece + " illegally placed in enemy cage", function() {
             setForsythe("r1" + piece + "nkb1r/ppppp2p/5p1n/6p1/1P1P4/2P1P3/P4PPP/4K3");
             setRetract("b");
-            undoStack.changeFrozenFlag(A8.mFile, A8.mRank, true);
-            undoStack.changeFrozenFlag(E8.mFile, E8.mRank, true);
+            setFrozenFlag(A8.mFile, A8.mRank, true);
+            setFrozenFlag(E8.mFile, E8.mRank, true);
             switch(piece) {
                 case "Q": expect(errorText[startPlay()]).toBe(errorText[error_illegallyPlacedWhiteQueen]); break;
                 case "R": expect(errorText[startPlay()]).toBe(errorText[error_illegallyPlacedWhiteRook]); break;
@@ -674,8 +723,8 @@ describe("illegalities related to strong cages", function() {
     it("white N in enemy cage ok", function() {
         setForsythe("r1Nnkb1r/ppppp2p/5p1n/6p1/1P1P4/2P1P3/P4PPP/4K3");
         setRetract("w");
-        undoStack.changeFrozenFlag(A8.mFile, A8.mRank, true);
-        undoStack.changeFrozenFlag(E8.mFile, E8.mRank, true);
+        setFrozenFlag(A8.mFile, A8.mRank, true);
+        setFrozenFlag(E8.mFile, E8.mRank, true);
         expect(errorText[startPlay()]).toBe(errorText[error_ok]);
     });
 
@@ -712,15 +761,15 @@ describe("illegalities related to strong cages", function() {
     it("queen in friendly cage cannot be promoted", function() {
         setForsythe("r1b1kbn1/1p1p1ppp/2p1q3/4p3/2N4R/8/1PPPPPPP/2B1Q1K1");
         setRetract("b");
-        tempUndoStack.changePromotedFlag(E1.mFile, E1.mRank, true);
+        setPromotedFlag(E1.mFile, E1.mRank, true);
         expect(errorText[startPlay()]).toBe(errorText[error_impossiblePromotedWhiteQueen]);
     });
 
     it("too many black queens in friendly cage 1", function() {
         setForsythe("rq1qk2r/ppppp3/2nb1ppn/6P1/2P1N3/1Q1P1P2/PP1KP2P/2R2B1R");
         setRetract("b");
-        undoStack.changeFrozenFlag(A8.mFile, A8.mRank, true);
-        undoStack.changeFrozenFlag(E8.mFile, E8.mRank, true);
+        setFrozenFlag(A8.mFile, A8.mRank, true);
+        setFrozenFlag(E8.mFile, E8.mRank, true);
         expect(errorText[startPlay()]).toBe(errorText[error_illegallyPlacedBlackQueen]);
     });
 
@@ -758,7 +807,7 @@ describe("illegalities related to strong cages", function() {
     it("rook in friendly cage cannot be promoted", function() {
         setForsythe("2br3k/1ppppppp/2n5/2N5/2P1BPN1/1R3K2/P2P2PP/7R");
         setRetract("b");
-        undoStack.changePromotedFlag(D8.mFile, D8.mRank, true);
+        setPromotedFlag(D8.mFile, D8.mRank, true);
         expect(errorText[startPlay()]).toBe(errorText[error_impossiblePromotedBlackRook]);
     });
 
@@ -895,8 +944,8 @@ describe("illegalities related to strong cages", function() {
 
     it("Friendly queens outside a strong cage containing the d-file should be marked promoted", function() {
         setForsythe("4k3/ppppp3/5qq1/8/3Q4/8/PPPPP3/Q3K3");
-        undoStack.changeFrozenFlag(E1.mFile, E1.mRank, true);
-        undoStack.changeFrozenFlag(E8.mFile, E8.mRank, true);
+        setFrozenFlag(E1.mFile, E1.mRank, true);
+        setFrozenFlag(E8.mFile, E8.mRank, true);
         expect(errorText[startPlay()]).toBe(errorText[error_ok]);
         expect(positionData.promotedCounts["wQ"]).toBe(1);
         expect(positionData.promotedCounts["bQ"]).toBe(2);
@@ -908,7 +957,7 @@ describe("illegalities related to strong cages", function() {
 
     it("Enemy queens outside a strong cage containing the d-file should not be marked promoted", function() {
         setForsythe("4k3/8/5q2/8/8/8/PPPPP3/4K3");
-        undoStack.changeFrozenFlag(E1.mFile, E1.mRank, true);
+        setFrozenFlag(E1.mFile, E1.mRank, true);
         expect(errorText[startPlay()]).toBe(errorText[error_ok]);
         expect(board[F6.mFile][F6.mRank].promoted).toBe(false);
     })
@@ -950,7 +999,7 @@ describe("weak cage tests", function() {
     it("white weak cage a2-b2-c3-d2-e1", function() {
         placeOnSquare(C5, BLACK_KING);
         placeOnSquare(E1, WHITE_KING);
-        undoStack.changeFrozenFlag(E1.mFile, E1.mRank, true);
+        setFrozenFlag(E1.mFile, E1.mRank, true);
         placeOnSquare(A2, WHITE_PAWN);
         placeOnSquare(B2, WHITE_PAWN);
         placeOnSquare(C3, WHITE_PAWN);
@@ -963,7 +1012,7 @@ describe("weak cage tests", function() {
     it("white weak cage a2-b2-c2-d3-e2-e1", function() {
         placeOnSquare(C5, BLACK_KING);
         placeOnSquare(E1, WHITE_KING);
-        undoStack.changeFrozenFlag(E1.mFile, E1.mRank, true);
+        setFrozenFlag(E1.mFile, E1.mRank, true);
         placeOnSquare(A2, WHITE_PAWN);
         placeOnSquare(B2, WHITE_PAWN);
         placeOnSquare(C2, WHITE_PAWN);
@@ -977,7 +1026,7 @@ describe("weak cage tests", function() {
     it("white weak non-cage a2-b2-c2-d3-e1", function() {
         placeOnSquare(C5, BLACK_KING);
         placeOnSquare(E1, WHITE_KING);
-        undoStack.changeFrozenFlag(E1.mFile, E1.mRank, true);
+        setFrozenFlag(E1.mFile, E1.mRank, true);
         placeOnSquare(A2, WHITE_PAWN);
         placeOnSquare(B2, WHITE_PAWN);
         placeOnSquare(C2, WHITE_PAWN);
@@ -990,7 +1039,7 @@ describe("weak cage tests", function() {
     it("white weak non-cage a2-b3-c3-d2-e1", function() {
         placeOnSquare(C5, BLACK_KING);
         placeOnSquare(E1, WHITE_KING);
-        undoStack.changeFrozenFlag(E1.mFile, E1.mRank, true);
+        setFrozenFlag(E1.mFile, E1.mRank, true);
         placeOnSquare(A2, WHITE_PAWN);
         placeOnSquare(B3, WHITE_PAWN);
         placeOnSquare(C3, WHITE_PAWN);
@@ -1003,7 +1052,7 @@ describe("weak cage tests", function() {
     it("white weak cage a2-b3-c3-d2-e1 (black has 15 pieces)", function() {
         setForsythe('rnbqkbnr/ppppppp1/8/8/8/8/8/8');
         placeOnSquare(E1, WHITE_KING);
-        undoStack.changeFrozenFlag(E1.mFile, E1.mRank, true);
+        setFrozenFlag(E1.mFile, E1.mRank, true);
         placeOnSquare(A3, WHITE_PAWN);
         placeOnSquare(B3, WHITE_PAWN);
         placeOnSquare(C3, WHITE_PAWN);
@@ -1016,7 +1065,7 @@ describe("weak cage tests", function() {
     it("white weak non-cage a2-b2-c2-d3-e3 (black has 15 pieces)", function() {
         setForsythe('rnbqkbnr/ppppppp1/8/8/8/8/8/8');
         placeOnSquare(E1, WHITE_KING);
-        undoStack.changeFrozenFlag(E1.mFile, E1.mRank, true);
+        setFrozenFlag(E1.mFile, E1.mRank, true);
         placeOnSquare(A2, WHITE_PAWN);
         placeOnSquare(B2, WHITE_PAWN);
         placeOnSquare(C2, WHITE_PAWN);
@@ -1108,7 +1157,7 @@ describe("weak cage tests", function() {
         placeOnSquare(C7, BLACK_PAWN);
         placeOnSquare(D7, BLACK_PAWN);
         placeOnSquare(E8, BLACK_KING);
-        undoStack.changeFrozenFlag(E8.mFile, E8.mRank, true);
+        setFrozenFlag(E8.mFile, E8.mRank, true);
         setRetract("b");
         expect(errorText[startPlay()]).toBe(errorText[error_ok]);
         expect(isWeakCage(-1, 4, 1)).toBe(true);
@@ -1120,8 +1169,8 @@ describe("weak cage tests", function() {
         placeOnSquare(F7, BLACK_PAWN);
         placeOnSquare(G7, BLACK_PAWN);
         placeOnSquare(H8, BLACK_ROOK);
-        undoStack.changeFrozenFlag(E8.mFile, E8.mRank, true);
-        undoStack.changeFrozenFlag(H8.mFile, H8.mRank, true);
+        setFrozenFlag(E8.mFile, E8.mRank, true);
+        setFrozenFlag(H8.mFile, H8.mRank, true);
         setRetract("w");
         expect(errorText[startPlay()]).toBe(errorText[error_ok]);
         expect(isWeakCage(4, 7, 1)).toBe(true);
@@ -1133,11 +1182,81 @@ describe("weak cage tests", function() {
         placeOnSquare(F6, BLACK_PAWN);
         placeOnSquare(G7, BLACK_PAWN);
         placeOnSquare(H8, BLACK_ROOK);
-        undoStack.changeFrozenFlag(E8.mFile, E8.mRank, true);
-        undoStack.changeFrozenFlag(H8.mFile, H8.mRank, true);
+        setFrozenFlag(E8.mFile, E8.mRank, true);
+        setFrozenFlag(H8.mFile, H8.mRank, true);
         setRetract("w");
         expect(errorText[startPlay()]).toBe(errorText[error_ok]);
         expect(isWeakCage(4, 7, 1)).toBe(false);
+    });
+});
+
+describe("weak cage region tests", function() {
+    beforeAll(function () {
+        initializeBoard();
+    });
+
+    beforeEach(function () {
+        clearBoard();
+        jasmine.addCustomEqualityTester(regionEquality);
+    });
+
+    it("white weak cage region e2-f1-g2-h3", function() {
+        placeOnSquare(E5, WHITE_KING);
+        placeOnSquare(C5, BLACK_KING);
+        placeOnSquare(E2, WHITE_PAWN);
+        placeOnSquare(G2, WHITE_PAWN);
+        placeOnSquare(H3, WHITE_PAWN);
+        placeOnSquare(F1, WHITE_BISHOP);
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        const region = getWeakCageRegion(5, 8, 0);
+        const expectedRegion = [[6, 0], [7, 0], [7, 1]];
+        expect(region).toEqual(expectedRegion);
+    });
+
+    it("white weak non-cage region a2-b2-c2-d3-e1", function() {
+        placeOnSquare(C5, BLACK_KING);
+        placeOnSquare(E1, WHITE_KING);
+        setFrozenFlag(E1.mFile, E1.mRank, true);
+        placeOnSquare(A2, WHITE_PAWN);
+        placeOnSquare(B2, WHITE_PAWN);
+        placeOnSquare(C2, WHITE_PAWN);
+        placeOnSquare(D3, WHITE_PAWN);
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        const region = getWeakCageRegion(-1, 4, 0);
+        expect(region).toBe(null);
+    });
+
+    it("black weak cage region b7-c8-d7-e6-f7-g6-h7", function() {
+        placeOnSquare(E5, WHITE_KING);
+        placeOnSquare(C5, BLACK_KING);
+        placeOnSquare(B7, BLACK_PAWN);
+        placeOnSquare(C8, BLACK_BISHOP);
+        placeOnSquare(D7, BLACK_PAWN);
+        placeOnSquare(E6, BLACK_PAWN);
+        placeOnSquare(F7, BLACK_PAWN);
+        placeOnSquare(G6, BLACK_PAWN);
+        placeOnSquare(H7, BLACK_PAWN);
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        const region = getWeakCageRegion(2, 8, 1);
+        const expectedRegion = [[3, 7], [4, 7], [4, 6], [5, 7], [6, 7], [6, 6], [7, 7]];
+        expect(region).toEqual(expectedRegion);
+    });
+
+    it("black weak non-cage region e8-f6-g7-h8", function() {
+        placeOnSquare(E4, WHITE_KING);
+        placeOnSquare(E8, BLACK_KING);
+        placeOnSquare(F6, BLACK_PAWN);
+        placeOnSquare(G7, BLACK_PAWN);
+        placeOnSquare(H8, BLACK_ROOK);
+        setFrozenFlag(E8.mFile, E8.mRank, true);
+        setFrozenFlag(H8.mFile, H8.mRank, true);
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        const region = getWeakCageRegion(4, 7, 1);
+        expect(region).toBe(null);
     });
 });
 
@@ -1170,7 +1289,7 @@ describe("Illegalities related to weak cages", function() {
         placeOnSquare(C1, WHITE_BISHOP);
         placeOnSquare(D2, WHITE_PAWN);
         placeOnSquare(B1, WHITE_ROOK);
-        undoStack.changePromotedFlag(B1.mFile, B1.mRank, true);
+        setPromotedFlag(B1.mFile, B1.mRank, true);
         setRetract("b");
         expect(errorText[startPlay()]).toBe(errorText[error_impossiblePromotedWhiteRook]);
     });
@@ -1337,5 +1456,43 @@ describe("multiple cages", function() {
         setRetract("w");
         expect(errorText[startPlay()]).toBe(errorText[error_ok]);
         expect(positionData.promotedCounts["wR"]).toBe(3);
+    });
+});
+
+describe("promoted rooks from cages", function() {
+    beforeAll(function () {
+        initializeBoard();
+    });
+
+    beforeEach(function () {
+        clearBoard();
+    });
+
+    it("White has an a-rook strong cage and 2 outside rooks", function() {
+        setForsythe("4k3/8/8/8/8/5RR1/PPPP4/2B1K3");
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.promotedCounts["wR"]).toBe(1);
+    })
+
+    it("White has an a-rook weak cage and h-rook weak cage, and 2 outside rooks", function() {
+        setForsythe("3k4/8/8/3K4/8/P3RR1P/1P1PP1P1/2B2B2");
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.promotedCounts["wR"]).toBe(2);
+    });
+
+    it("Black has an h-rook strong cage, and 4 outside rooks", function() {
+        setForsythe("4k3/4pppp/8/rrrr4/8/8/8/4K3");
+        setFrozenFlag(E8.mFile, E8.mRank, true);
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.promotedCounts["bR"]).toBe(3);
+    });
+
+    it("Black has an a-rook weak cage and h-rook strong cage and 1 outside rook with 8 pawns", function() {
+        setForsythe("r1b2k2/1ppppppp/p7/8/4r3/8/8/3K4");
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_tooManyPromotedBlackRooks]);
     });
 });

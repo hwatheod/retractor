@@ -9,7 +9,7 @@
 
   Type    Solved     Unsolved     Total
   other   13          4           17
-  A       21         38           59
+  A       22         37           59
   B       30         29           59
   C       51          9           60
   D       69         92          161
@@ -285,8 +285,8 @@ describe("type A last move problems", function() {
     /* Keym, Werner */
     // This one needs extraDepth of 7
     testProblem("1Qn5/2PPpp2/kPKpp3/p1p5/8/8/8/8", "P-=Q", "w", 7);
-    /* Cross, Harold Holgate */ // just needs to detect rook promotion
-    xtestProblem("Q1n1Kb2/B1kppppp/1prp4/2p5/8/8/8/8", "PxQ=Q");
+    /* Cross, Harold Holgate */
+    testProblem("Q1n1Kb2/B1kppppp/1prp4/2p5/8/8/8/8", "PxQ=Q");
     /* Willcocks, Theophilus Harding */
     testProblem("4bKQ1/3prB2/4pRPk/5ppp/8/8/8/8", "PxR=Q");
     /* Willcocks, Theophilus Harding */

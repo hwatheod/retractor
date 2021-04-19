@@ -147,19 +147,20 @@ class UndoStack {
 	changeFrozenFlag(file, rank, newValue) {
 		const oldValue = board[file][rank].frozen;
 		this.pushUndoStack(CHANGE_FROZEN_FLAG, file, rank, oldValue, newValue);
-		board[file][rank].frozen = newValue;
+		setFrozenFlag(file, rank, newValue);
 	}
 
 	changePromotedFlag(file, rank, newValue) {
 		const oldValue = board[file][rank].promoted;
 		this.pushUndoStack(CHANGE_PROMOTED_FLAG, file, rank, oldValue, newValue);
 		board[file][rank].promoted = newValue;
+		setPromotedFlag(file, rank, newValue);
 	}
 
 	changeOriginalFlag(file, rank, newValue) {
 		const oldValue = board[file][rank].original;
 		this.pushUndoStack(CHANGE_ORIGINAL_FLAG, file, rank, oldValue, newValue);
-		board[file][rank].original = newValue;
+		setOriginalFlag(file, rank, newValue);
 	}
 
 	changePawnCaptureCount(color, newValue) {
@@ -300,9 +301,9 @@ class UndoStack {
 		const rank = undoItem.rank;
 		switch(undoItem.operation) {
 			case CHANGE_PIECE: placePieceAt(file,rank,undoItem.oldValue); break;
-			case CHANGE_ORIGINAL_FLAG: board[file][rank].original = undoItem.oldValue; break;
-			case CHANGE_PROMOTED_FLAG: board[file][rank].promoted = undoItem.oldValue; break;
-			case CHANGE_FROZEN_FLAG: board[file][rank].frozen = undoItem.oldValue; break;
+			case CHANGE_ORIGINAL_FLAG: setOriginalFlag(file, rank, undoItem.oldValue); break;
+			case CHANGE_PROMOTED_FLAG: setPromotedFlag(file, rank, undoItem.oldValue); break;
+			case CHANGE_FROZEN_FLAG: setFrozenFlag(file, rank, undoItem.oldValue); break;
 			case SET_EP_SQUARE: positionData.ep = -1; break;
 			case CLEAR_EP_SQUARE: positionData.ep = file; break;
 			case CHANGE_PAWN_CAPTURE_COUNT: positionData.pawnCaptureCounts[undoItem.oldValue[0]] = undoItem.oldValue[1]; break;
@@ -317,9 +318,9 @@ class UndoStack {
 		const rank = undoItem.rank;
 		switch(undoItem.operation) {
 			case CHANGE_PIECE: placePieceAt(file, rank, undoItem.newValue);	break;
-			case CHANGE_ORIGINAL_FLAG: board[file][rank].original = undoItem.newValue; break;
-			case CHANGE_PROMOTED_FLAG: board[file][rank].promoted = undoItem.newValue; break;
-			case CHANGE_FROZEN_FLAG: board[file][rank].frozen = undoItem.newValue; break;
+			case CHANGE_ORIGINAL_FLAG: setOriginalFlag(file, rank, undoItem.newValue); break;
+			case CHANGE_PROMOTED_FLAG: setPromotedFlag(file, rank, undoItem.newValue); break;
+			case CHANGE_FROZEN_FLAG: setFrozenFlag(file, rank, undoItem.newValue); break;
 			case SET_EP_SQUARE: positionData.ep = file; break;
 			case CLEAR_EP_SQUARE: positionData.ep = -1; break;
 			case CHANGE_PAWN_CAPTURE_COUNT: positionData.pawnCaptureCounts[undoItem.newValue[0]] = undoItem.newValue[1]; break;

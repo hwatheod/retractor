@@ -194,6 +194,18 @@ function stopPlay(clearFlags) {
 	}
 }
 
+function setFrozenFlag(file, rank, value) {
+	board[file][rank].frozen = value;
+}
+
+function setPromotedFlag(file, rank, value) {
+	board[file][rank].promoted = value;
+}
+
+function setOriginalFlag(file, rank, value) {
+	board[file][rank].original = value;
+}
+
 function setRetract(color) {
 	assert(color == "w" || color == "b", "Invalid color passed to setRetract");
 	currentRetract = color;

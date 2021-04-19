@@ -530,8 +530,31 @@ function isWeakCage(leftBoundary, rightBoundary, side) {
 	return true;
 }
 
+function getWeakCageRegion(leftBoundary, rightBoundary, side) {
+	// returns the interior squares of the weak cage region: those squares whose files are strictly between the
+	// boundaries and ranks are below the first pawn on that file
+
+	if (!isWeakCage(leftBoundary, rightBoundary, side)) {
+		return null;
+	}
+
+	const region = [];
+	const color = side == 0 ? "w" : "b";
+	const firstRank = side == 0 ? 0 : 7;
+	const secondRank = side == 0 ? 1 : 6;
+
+	for (let file = leftBoundary + 1; file <= rightBoundary - 1; file++) {
+		region.push([file, firstRank]);
+		if (!(board[file][secondRank].color == color && board[file][secondRank].unit == "P")) {
+			region.push([file, secondRank]);
+		}
+	}
+
+	return region;
+}
+
 // see documentation in checkIllegalCage function
-function validateWeakCage(leftBoundary, rightBoundary, side) {
+function validateWeakCage(leftBoundary, rightBoundary, side, region) {
 	const color = side == 0 ? "w" : "b";
 	const oppositeColor = side == 0 ? "b" : "w";
 	const firstRank = side == 0 ? 0 : 7;
@@ -542,14 +565,6 @@ function validateWeakCage(leftBoundary, rightBoundary, side) {
 	let enemyRookCount = 0;
 	let enemyPawnCount = 0;
 	let promotedEnemyBishopWithCaptureCount = 0;
-
-	const region = [];
-	for (let file = leftBoundary + 1; file <= rightBoundary - 1; file++) {
-		region.push([file, firstRank]);
-		if (!(board[file][secondRank].color == color && board[file][secondRank].unit == "P")) {
-			region.push([file, secondRank]);
-		}
-	}
 
 	for (let i = 0; i < region.length; i++) {
 		const square = region[i];
@@ -603,6 +618,22 @@ function isStrongCage(leftBoundary, rightBoundary, side) {
 		}
 	}
 	return true;
+}
+
+function getStrongCageRegion(leftBoundary, rightBoundary,side) {
+	// returns the interior squares of the strong cage region: those squares whose files are strictly between the
+	// boundaries and on the first rank.
+
+	if (!isStrongCage(leftBoundary, rightBoundary, side)) {
+		return null;
+	}
+
+	const region = [];
+	const firstRank = side == 0 ? 0 : 7;
+	for (let file = leftBoundary + 1; file <= rightBoundary - 1; file++) {
+		region.push([file, firstRank]);
+	}
+	return region;
 }
 
 // see documentation in checkIllegalCage function
@@ -730,8 +761,6 @@ function validateStrongCage(leftBoundary, rightBoundary, side) {
 	return error_ok;
 }
 
-// TODO: Count friendly rooks outside cages as promoted as appropriate
-
 function checkIllegalCage() {
 	/*
 	   1. Find all frozen pieces on first rank. This divides the first rank into "regions".  Each region
@@ -773,27 +802,62 @@ function checkIllegalCage() {
 	              captures in (d) minus enemy pawns in the region) - captures in (b)
 	 */
 
-	const regions = [[-1], [-1]];
+	const boundaries = [[-1], [-1]];
 	for (let side = 0; side < 2; side++) {
 		const color = side == 0 ? "w" : "b";
 		const firstRank = side == 0 ? 0 : 7;
+		const rookCageRegion = [];
+		let rookCageCount = 0;
 
 		for (let file = 0; file < 8; file++) {
 			if (board[file][firstRank].color == color && board[file][firstRank].frozen) {
-				regions[side].push(file);
+				boundaries[side].push(file);
 			}
 		}
-		regions[side].push(8);
+		boundaries[side].push(8);
 
-		for (let i = 0; i < regions[side].length - 1; i++) {
-			const leftBoundary = regions[side][i];
-			const rightBoundary = regions[side][i+1];
-			if (isStrongCage(leftBoundary, rightBoundary, side)) {
+		for (let i = 0; i < boundaries[side].length - 1; i++) {
+			const leftBoundary = boundaries[side][i];
+			const rightBoundary = boundaries[side][i+1];
+			const strongCageRegion = getStrongCageRegion(leftBoundary, rightBoundary, side);
+			if (strongCageRegion != null) {
 				const error = validateStrongCage(leftBoundary, rightBoundary, side);
 				if (error != error_ok) return error;
+				if ((leftBoundary <= 0 && 0 < rightBoundary) || (leftBoundary < 7 && 7 <= rightBoundary)) {
+					strongCageRegion.forEach(square => rookCageRegion.push(square));
+					rookCageRegion.push([leftBoundary, firstRank]);
+					rookCageRegion.push([rightBoundary, firstRank]);
+					rookCageCount++;
+				}
 			}
-			else if (isWeakCage(leftBoundary, rightBoundary, side)) {
-				const error = validateWeakCage(leftBoundary, rightBoundary, side);
+			else {
+				const weakCageRegion = getWeakCageRegion(leftBoundary, rightBoundary, side);
+				if (weakCageRegion != null) {
+					const error = validateWeakCage(leftBoundary, rightBoundary, side, weakCageRegion);
+					if (error != error_ok) return error;
+					if ((leftBoundary <= 0 && 0 < rightBoundary) || (leftBoundary < 7 && 7 <= rightBoundary)) {
+						weakCageRegion.forEach(square => rookCageRegion.push(square));
+						rookCageRegion.push([leftBoundary, firstRank]);
+						rookCageRegion.push([rightBoundary, firstRank]);
+						rookCageCount++;
+					}
+				}
+			}
+		}
+		assert(rookCageCount <= 2, 'There cannot be more than 2 rook cage regions for one side');
+		if (rookCageCount >= 1) {
+			let outsideRooks = 0;
+			for (let file = 0; file < 8; file++) {
+				for (let rank = 0; rank < 8; rank++) {
+					if (board[file][rank].color == color && board[file][rank].unit == "R" &&
+						!rookCageRegion.some(square => square[0] == file && square[1] == rank)) {
+						outsideRooks++;
+					}
+				}
+			}
+			const extraRookCount = outsideRooks - (2 - rookCageCount);
+			if (extraRookCount > 0) {
+				const error = updatePromotedCountWithMax(color + "R", extraRookCount);
 				if (error != error_ok) return error;
 			}
 		}
