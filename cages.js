@@ -486,3 +486,103 @@ function checkIllegalCage() {
 	}
 	return error_ok;
 }
+
+function getKingInaccessibleSquares(side) {
+	const color = side == 0 ? "w" : "b";
+	const enemyFirstRank = side == 0 ? 7 : 0;
+	const enemySecondRank = side == 0 ? 6 : 1;
+	const enemyThirdRank = side == 0 ? 5 : 2;
+
+	const kingInaccessibleSquares = [];
+
+	// Any enemy pawns on their second rank: the square itself and the two attacked squares are inaccessible by the king
+	// If a file has enemy pawns on the second and third rank of the same file, then the third rank square
+	// is also inaccessible by the king.
+	for (let file = 0; file < 8; file++) {
+		if (board[file][enemySecondRank].color == opposite(color) && board[file][enemySecondRank].unit == "P") {
+			kingInaccessibleSquares.push([file, enemySecondRank]);
+			[file - 1, file + 1].forEach(adjacentFile => {
+				if (adjacentFile >= 0 && adjacentFile <= 7) {
+					kingInaccessibleSquares.push([adjacentFile, enemyThirdRank]);
+				}
+			});
+
+			if (board[file][enemyThirdRank].color == opposite(color) && board[file][enemyThirdRank].unit == "P") {
+				kingInaccessibleSquares.push([file, enemyThirdRank]);
+			}
+		}
+	}
+
+	// any frozen pieces on the first rank: the square itself and any unblockable attacked squares are inaccessible
+	// (for line pieces, this means only adjacent squares since any further squares could be blocked)
+
+	const pieceVectorsLookup = {
+		'K': [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [-1, -1], [1, -1], [-1, 1]],
+		'Q': [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [-1, -1], [1, -1], [-1, 1]],
+		'R': [[0, 1], [0, -1], [1, 0], [-1, 0]],
+		'B': [[1, 1], [-1, -1], [1, -1], [-1, 1]],
+		'N': [[-1, -2], [1, 2], [1, -2], [-1, 2], [2, -1], [-2, 1], [2, 1], [-2, -1]]
+	}
+
+	for (let file = 0; file < 8; file++) {
+		if (board[file][enemyFirstRank].color == opposite(color) && board[file][enemyFirstRank].frozen) {
+			assert(board[file][enemyFirstRank].unit != 'P',
+				'There was a pawn on file ' + file + ' rank ' + enemyFirstRank);
+			kingInaccessibleSquares.push([file, enemyFirstRank]);
+			const pieceVectors = pieceVectorsLookup[board[file][enemyFirstRank].unit];
+			pieceVectors.forEach(pieceVector => {
+				const newFile = file + pieceVector[0];
+				const newRank = enemyFirstRank + pieceVector[1];
+				if (newFile >= 0 && newFile <= 7 && newRank >= 0 && newRank <= 7) {
+					kingInaccessibleSquares.push([newFile, newRank]);
+				}
+			});
+		}
+	}
+
+	return kingInaccessibleSquares;
+}
+
+function checkKingInEnemyPawnCage() {
+	const kingVectors = [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [-1, -1], [1, -1], [-1, 1]];
+
+	for (let side = 0; side < 2; side++) {
+		const color = side == 0 ? "w" : "b";
+		const firstRank = side == 0 ? 0 : 7;
+		const kingInaccessibleSquares = getKingInaccessibleSquares(side);
+		if (kingInaccessibleSquares.length == 0) continue;
+
+		// Check if there is a path from the king's current position to its original square that does
+		// not pass through any inaccessible squares.
+		const queue = [[positionData.kingPosition[color].mFile, positionData.kingPosition[color].mRank]];
+		if (queue[0][0] == 4 && queue[0][1] == firstRank) continue; // king on original square
+		let queuePosition = 0;
+		let kingOriginalSquareReachable = false;
+		while (queuePosition < queue.length && !kingOriginalSquareReachable) {
+			const file = queue[queuePosition][0];
+			const rank = queue[queuePosition][1];
+			for (let i = 0; i < kingVectors.length; i++) {
+				const kingVector = kingVectors[i];
+				const newFile = file + kingVector[0];
+				const newRank = rank + kingVector[1];
+				if (newFile == 4 && newRank == firstRank) { // king got to its original square
+					kingOriginalSquareReachable = true;
+					break;
+				} else {
+					if (newFile >= 0 && newFile <= 7 && newRank >= 0 && newRank <= 7 &&
+						!kingInaccessibleSquares.some(square => square[0] == newFile && square[1] == newRank) &&
+						!queue.some(square => square[0] == newFile && square[1] == newRank)) {
+						queue.push([newFile, newRank]);
+					}
+				}
+			}
+			queuePosition++;
+		}
+
+		if (!kingOriginalSquareReachable) {
+			return side == 0 ? error_illegallyPlacedWhiteKing : error_illegallyPlacedBlackKing;
+		}
+	}
+
+	return error_ok;
+}

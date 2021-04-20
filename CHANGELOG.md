@@ -1,6 +1,7 @@
 v2.1
 
 * Promoted rooks outside cages are now detected.
+* Some illegal king positions behind enemy pawn cages are now detected (see help text for more details).
 
 v2.0.1
 

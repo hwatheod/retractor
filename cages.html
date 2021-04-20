@@ -21,6 +21,7 @@
 <p>
 	Retractor detects cages and makes deductions based on them as follows.  The descriptions that follow will be from White’s point of view.
 </p>
+<h3>Strong and weak cages</h3>
 <p>
 	(In the following paragraph only, X,Y,Z are any 3 consecutive files.)  First, check for bishop cages by searching for white pawns on
     X2 and Z2. If there is a white bishop on Y1, then that is illegal unless Y1 is an original square of a bishop, in which case Y1 is
@@ -39,11 +40,26 @@
     a/h, d, or e files respectively.  The a-rook must be to the left of the queen, which must be to the left of the h-rook.  The
     queen must be to the left of the king.  If the e-file is in the cage, then the king must be in the cage.<br><br>
 	Weak cage: All pawns are on their second and third ranks on files X through Y, inclusive, with no two consecutive pawns on
-    their third rank*.  Any enemy rook inside such a cage is promoted; each such promotion requires at least one pawn capture.  A
+    their third rank.  Any enemy rook inside such a cage is promoted; each such promotion requires at least one pawn capture.  A
     friendly rook(s) is permitted if and only if the cage includes the a/h files.<br>
-<br><br>
-* The reason that two consecutive pawns cannot be on their third rank is because the cage then could have been opened by
+  <br>
+  The reason that two consecutive pawns cannot be on their third rank is because the cage then could have been opened by
     means of a cross-capture (e.g. fxe3 and exf3).  This entails 2 captures.  If Retractor can account for all captures or
     all but one capture from other sources for that side, then two consecutive pawns on the third rank will be considered
     for a cage.
+
+<h3>King behind an enemy pawn cage</h3>
+<p>
+    Unlike the previously discussed cages, this type of cage depends on the fact that the king is a special piece that
+    can be put "in check".
+</p>
+<p>
+    If a unit is frozen (this includes a pawn on its second rank), then the enemy king can never occupy any square that
+    is attacked by the frozen unit where the attack cannot be blocked by another unit. The square of a frozen
+    unit itself is, of course, also inaccessible to the enemy king. If there are pawns on their second and third rank
+    on the same file, then the square occupied by the third rank pawn is inaccessible to the enemy king.
+</p>
+<p> If the enemy king has no path back to its home square without passing through an inaccessible square, then the
+    position is illegal.
+</p>
 </html>

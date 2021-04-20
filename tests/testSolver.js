@@ -8,13 +8,13 @@
   describe, before committing.
 
   Type    Solved     Unsolved     Total
-  other   13          4           17
-  A       22         37           59
-  B       30         29           59
-  C       51          9           60
-  D       69         92          161
+  other   14          3           17
+  A       25         34           59
+  B       32         27           59
+  C       53          7           60
+  D       73         88          161
   ----------------------------------
-  total  184        172          356
+  total  197        159          356
  */
 
 const typeA = {testSolved: true, testUnsolved: false};
@@ -103,13 +103,10 @@ describe("some problems with unique solutions", function() {
     testProblem("B1kRN3/Pp6/2QK1R2/8/8/8/8/8", "w", ["c7xNd8=R+"]);
 
     // #20 - Leonid Borodatov, Krimskaja Pravda, 1970
-    // we can't solve this problem yet because we don't detect this type of cage after retracting Kg1-h2? O-O-O+
-    xtestProblem("8/8/8/8/8/6P1/3P2Pk/2KR3N", "b", ["Kg1xNh2"]);
+    testProblem("8/8/8/8/8/6P1/3P2Pk/2KR3N", "b", ["Kg1xNh2"]);
 
     // #25 - Werner Keym, Die Schwalbe, 1979
-    // we can't solve this problem yet because we can't rule out:
-    //   Bg8xRh7 - need to detect the new rook as promoted due to the a8-f8 cage
-    //   Bg8-h7  - after a further b7-b6, we don't detect the illegal white king position
+    // we can't solve this problem yet because we can't detect that the Bg8 must be promoted by hxg8=B at some point
     xtestProblem("4nb1k/p1pppKpB/1p3pp1/8/8/8/8/8", "w", ["Bg8xQh7"]);
 
     // #26 - N. Petrovic - Problem, 1954 - 1st/2nd Prize 4th Thematic Tourney
@@ -212,7 +209,7 @@ describe("type A last move problems", function() {
     /* Brandis, Albrecht */
     xtestProblem("8/8/8/8/8/1P6/1PkPP3/KR1b4", "K-");
     /* Ceriani, Luigi */
-    xtestProblem("3bkN1K/pppprp1p/4p1p1/8/8/8/8/8", "KxQ");
+    testProblem("3bkN1K/pppprp1p/4p1p1/8/8/8/8/8", "KxQ");
     /* Brandis, Albrecht; August, Hugo; Hoeg, Niels; Dawson, Thomas R.; Onitiu,
         Valerian */
     xtestProblem("8/8/8/8/8/1P1P4/1PPRP3/K1k5", "KxR");
@@ -237,7 +234,7 @@ describe("type A last move problems", function() {
     /* Fabel, Karl */
     testProblem("8/8/8/8/8/kPP5/b1PP4/KRb5", "R-");
     /* Gajdos, Istvan */
-    xtestProblem("1RK1kb2/1pRpppp1/b1p5/1p6/8/8/8/8", "RxQ");
+    testProblem("1RK1kb2/1pRpppp1/b1p5/1p6/8/8/8/8", "RxQ");
     /* Willcocks, Theophilus Harding */
     testProblem("3B2Rb/2p1pkPK/3ppp1p/8/8/8/8/8", "RxR");
     /* Cross, Harold Holgate */
@@ -316,7 +313,7 @@ describe("type A last move problems", function() {
     /* Vinje, Oskar E. */
     testProblem("Nrk1K3/1pp1prp1/5p2/8/8/8/8/8", "P-=N");
     /* Bartolovic, Vojko; Maslar, Zdravko */ // can solve as type B problem
-    xtestProblem("2bK1kN1/1pppprp1/5p1p/8/8/8/8/8", "PxQ=N");
+    testProblem("2bK1kN1/1pppprp1/5p1p/8/8/8/8/8", "PxQ=N");
     /* Willcocks, Theophilus Harding */ // can solve as type B problem
     xtestProblem("3BN1qk/2pRK1pp/3ppp2/8/8/8/8/8", "PxR=N");
     /* Ceriani, Luigi */
@@ -376,7 +373,7 @@ describe("type B last move problems", function() {
     /* Mortensen, Jan */
     testProblem("8/8/8/8/1k6/8/K7/bn6", "K-");
     /* Ceriani, Luigi */
-    xtestProblem("3bkN1K/pppprp1p/4p1p1/8/8/8/8/8", "KxQ");
+    testProblem("3bkN1K/pppprp1p/4p1p1/8/8/8/8/8", "KxQ");
     /* Mortensen, Jan */
     testProblem("8/8/8/8/1p6/bk6/8/nK6", "KxR");
     /* Mortensen, Jan and Borodatow Leonid N. */
@@ -400,7 +397,7 @@ describe("type B last move problems", function() {
     /* Hildebrand, Alexander */
     xtestProblem("8/8/8/6k1/8/5pKP/5PP1/6bR", "R-");
     /* Gajdos, Istvan */
-    xtestProblem("1RK1kb2/1pRpppp1/b1p5/1p6/8/8/8/8", "RxQ");
+    testProblem("1RK1kb2/1pRpppp1/b1p5/1p6/8/8/8/8", "RxQ");
     /* Willcocks, Theophilus Harding */
     testProblem("3B2Rb/2p1pkPK/3ppp1p/8/8/8/8/8", "RxR");
     /* Bartolovic, Vojko; Buljan, Rudolf */
@@ -538,8 +535,8 @@ describe("type C last move problems", function() {
 
     /* Stambuk, Sveto */
     testProblem("8/8/8/8/4k3/8/4pK2/5b1B", "K-");
-    /* Keym, Werner */ // we don't detect impossible king positions in the north
-    xtestProblem("n1k2Rn1/BppppKp1/1p3p1p/8/8/8/8/8", "KxQ");
+    /* Keym, Werner */
+    testProblem("n1k2Rn1/BppppKp1/1p3p1p/8/8/8/8/8", "KxQ");
     /* Pavlovic, Branko */
     testProblem("k7/8/1K6/8/b7/1p6/8/7B", "KxR");
     /* Pavlovic, Branko */
@@ -617,8 +614,7 @@ describe("type C last move problems", function() {
     /* Pavlovic, Branko */
     testProblem("6KQ/6p1/7k/8/8/8/8/8", "P-=Q");
     /* Fabel, Karl; Mortensen, Jan; Suboticanec, D.; Stambuk, Sveto */
-    // PxN=Q? c7-c6 we don't detect the illegal White king position
-    xtestProblem("kQK5/1p1ppppp/R1p5/p7/8/8/8/8", "PxQ=Q");
+    testProblem("kQK5/1p1ppppp/R1p5/p7/8/8/8/8", "PxQ=Q");
     /* Niemann, John; Bartolovic, Vojko; Slezinger, M.; Burbach, Johannes Jacob;
         Ceriani, Luigi */
     testProblem("Qk6/2N5/PKP5/8/8/8/8/8", "PxR=Q");
@@ -744,7 +740,7 @@ describe("type D last move problems", function() {
     /* Bernd Schwarzkopf, Werner Keym */
     xtestProblem("nnrNK2k/Bbrpp2p/ppp5/8/8/1P6/P1PPPPPP/N7", "KxQ", "KxQ");
     /* Andrew Buchanan,Bernd Schwarzkopf  */
-    xtestProblem("2bbk2K/pppprp1p/4p1p1/8/8/8/8/8", "KxQ", "KxN");
+    testProblem("2bbk2K/pppprp1p/4p1p1/8/8/8/8/8", "KxQ", "KxN");
     /* Jorge Lois & Roberto Osorio */
     xtestProblem("nBqb4/K1Bpp3/1ppp4/8/8/1PPP4/k1bPP3/NbQB4", "KxR", "KxR");
     /* Jorge Lois & Roberto Osorio */
@@ -756,7 +752,7 @@ describe("type D last move problems", function() {
     /* Mario Richter */
     testProblem("8/8/8/8/8/PP6/KPkPP3/R2b4", "KxB", "R-");
     /* Werner Keym */
-    xtestProblem("3B2qk/2ppKppp/p7/8/8/8/8/8", "KxB", "P-");
+    testProblem("3B2qk/2ppKppp/p7/8/8/8/8/8", "KxB", "P-");
     /* Mario Richter  */
     testProblem("8/8/8/8/8/P7/KPkPP1P1/2qb1b2", "KxB", "P-=B");
     /* Bernd Schwarzkopf */
@@ -770,7 +766,7 @@ describe("type D last move problems", function() {
     /* Bernd Schwarzkopf, Werner Keym */
     xtestProblem("2bk1bRK/1pppp1pR/5p1p/8/8/8/8/8", "KxN", "PxB=R");
     /* Werner Keym, Bernd Schwarzkopf */
-    xtestProblem("8/8/8/8/8/2P2P1P/PP1PPRP1/K1Brk3", "KxN", "PxN=R");
+    testProblem("8/8/8/8/8/2P2P1P/PP1PPRP1/K1Brk3", "KxN", "PxN=R");
     /* Hans Gruber, Bernd Schwarzkopf */
     testProblem("8/8/8/8/8/8/kPPP1P2/bRK1b3", "KxN", "P-=B");
     /* Bernd Schwarzkopf, Werner Keym */
@@ -926,7 +922,7 @@ describe("type D last move problems", function() {
     /* Werner Keym */
     testProblem("8/8/8/8/8/P1P1P3/pP1PrP2/bk1K4", "P-", "PxN");
     /* Werner Keym */
-    xtestProblem("8/8/8/8/P7/1PPP4/b1KRPPPP/q1N1kB2", "P-", "PxQ=Q");
+    testProblem("8/8/8/8/P7/1PPP4/b1KRPPPP/q1N1kB2", "P-", "PxQ=Q");
     /* Werner Keym */
     xtestProblem("8/8/8/8/1P6/4PPPP/1PPPrk1K/2BRrq1Q", "P-", "PxR=Q");
     /* Werner Keym */

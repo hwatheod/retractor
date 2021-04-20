@@ -597,6 +597,9 @@ function isPositionLegalInternal() {
 	error = checkIllegalCage();
 	if (error != error_ok) return error;
 
+	error = checkKingInEnemyPawnCage();
+	if (error != error_ok) return error;
+
 	const markedPromotions = {};
 	for (let file = 0; file < 8; file++) {
 		for (let rank = 0; rank < 8; rank++) {

@@ -1496,3 +1496,85 @@ describe("promoted rooks from cages", function() {
         expect(errorText[startPlay()]).toBe(errorText[error_tooManyPromotedBlackRooks]);
     });
 });
+
+describe("king in enemy pawn cage tests", function() {
+    beforeAll(function () {
+        initializeBoard();
+    });
+
+    beforeEach(function () {
+        clearBoard();
+    });
+
+    it("All black pawns on its second rank, white king behind them", function() {
+        setForsythe("2K1k3/pppppppp/8/8/8/8/8/8");
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_illegallyPlacedWhiteKing]);
+    });
+
+    it("White pawns on b2, c2, d2, f2, g2, black king behind pawns", function() {
+        setForsythe("8/8/8/8/8/P3P2P/1PPP1PP1/2k2K2");
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_illegallyPlacedBlackKing]);
+    });
+
+
+    it("All black pawns on its second rank, white king outside ok", function() {
+        setForsythe("4k3/pppppppp/8/5K2/8/8/8/8");
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+    });
+
+    it("White pawns on a2, b3, c2, d2, e2, f2, g2, h2, black king behind them ok", function() {
+        setForsythe("8/8/8/8/8/1P6/P1PPPPPP/1k2K3");
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+    });
+
+    it("Black pawns e7, f7, g7, h6; black bishop f8; white king h8", function() {
+        setForsythe("3k1b1K/4ppp1/7p/8/8/8/8/8");
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_illegallyPlacedWhiteKing]);
+    });
+
+    it("Frozen white king e1, white pawns g2, g3; black king h1", function() {
+        setForsythe("8/8/8/8/8/6P1/6P1/4K2k");
+        setFrozenFlag(E1.mFile, E1.mRank, true);
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_illegallyPlacedBlackKing]);
+    });
+
+    it("Not frozen white king e1, white pawns g2, g3; black king h1", function() {
+        setForsythe("8/8/8/8/8/6P1/6P1/4K2k");
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+    });
+
+    it("Frozen black bishop c8, black pawns a7, c7, d7, white king a8", function() {
+        setForsythe("K1b1k3/p1pp4/8/8/8/8/8/8");
+        setFrozenFlag(C8.mFile, C8.mRank, true);
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_illegallyPlacedWhiteKing]);
+    });
+
+    it("Frozen white bishop c1, white pawns a2, b2, d2, black king a1 ok", function() {
+        setForsythe("8/8/8/8/8/8/PP1P4/k1B1K3");
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+    });
+
+    it("Frozen white queen d1, white pawns d2, g2, h2, black king f2", function() {
+        setForsythe("8/8/8/6K1/8/8/3P1kPP/3Q4");
+        setFrozenFlag(D1.mFile, D1.mRank, true);
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_illegallyPlacedBlackKing]);
+    });
+
+    it("Frozen black knight g8, frozen black king e8, black pawn f7, white king g7", function() {
+        setForsythe("4k1n1/5pK1/8/8/8/8/8/8");
+        setFrozenFlag(G8.mFile, G8.mRank, true);
+        setFrozenFlag(E8.mFile, E8.mRank, true);
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_illegallyPlacedWhiteKing]);
+    });
+});
