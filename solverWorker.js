@@ -1,4 +1,4 @@
-importScripts('board.js', 'constants.js', 'error.js', 'legalityChecker.js', 'pawnCaptures.js',
+importScripts('board.js', 'cages.js', 'constants.js', 'error.js', 'legalityChecker.js', 'pawnCaptures.js',
     'piece.js', 'pseudoLegalityChecker.js', 'solver.js', 'undo.js');
 let undoStack = new UndoStack();
 

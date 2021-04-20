@@ -1,4 +1,4 @@
-importScripts('board.js', 'constants.js', 'error.js', 'legalityChecker.js', 'pawnCaptures.js',
+importScripts('board.js', 'cages.js', 'constants.js', 'error.js', 'legalityChecker.js', 'pawnCaptures.js',
 		'piece.js', 'pseudoLegalityChecker.js', 'undo.js');
 
 onmessage = function(e) {
