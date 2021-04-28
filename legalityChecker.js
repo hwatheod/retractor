@@ -358,7 +358,7 @@ function cannotBePromoted(file, rank) {
 			case 'Q': return error_impossiblePromotedWhiteQueen;
 			case 'R': return error_impossiblePromotedWhiteRook;
 			case 'B': return error_impossiblePromotedWhiteBishop;
-			case 'N': return error_impossiblePromotedWhiteKinght;
+			case 'N': return error_impossiblePromotedWhiteKnight;
 			default: assert(false, 'Unexpected promoted white piece ' + board[file][rank].unit + ' file ' +
 				file + ' rank ' + rank);
 		}
@@ -367,7 +367,7 @@ function cannotBePromoted(file, rank) {
 			case 'Q': return error_impossiblePromotedBlackQueen;
 			case 'R': return error_impossiblePromotedBlackRook;
 			case 'B': return error_impossiblePromotedBlackBishop;
-			case 'N': return error_impossiblePromotedBlackKinght;
+			case 'N': return error_impossiblePromotedBlackKnight;
 			default: assert(false, 'Unexpected promoted black piece ' + board[file][rank].unit + ' file ' +
 				file + ' rank ' + rank);
 		}
