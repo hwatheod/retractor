@@ -24,7 +24,7 @@ const typeD = {testSolved: true, testUnsolved: false};
 const otherProblems = {testSolved: true, testUnsolved: false};
 const otherTest = describe;
 
-otherTest("test max solutions", function() {
+otherTest("test solve parameters", function() {
     beforeAll(function() {
         initializeBoard();
     });
@@ -42,6 +42,27 @@ otherTest("test max solutions", function() {
         const solutions = solve(solveParameters);
         expect(solutions.length).toBe(10);
     });
+
+    it("no white uncaptures", function() {
+        placeOnSquare(A1, WHITE_KING);
+        placeOnSquare(C5, BLACK_KING);
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        const solveParameters = new SolveParameters(1, 3, 10, true, false);
+        const solutions = solve(solveParameters);
+        expect(solutions.length).toBe(3);
+    });
+
+    it("no black uncaptures", function() {
+        placeOnSquare(A1, WHITE_KING);
+        placeOnSquare(C5, BLACK_KING);
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        const solveParameters = new SolveParameters(1, 3, 10, false, true);
+        const solutions = solve(solveParameters);
+        expect(solutions.length).toBe(8);
+    });
+
 });
 
 describe("some problems with unique solutions", function() {

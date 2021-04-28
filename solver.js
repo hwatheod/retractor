@@ -1,8 +1,10 @@
 class SolveParameters {
-    constructor(solveDepth, extraDepth, maxSolutions) {
+    constructor(solveDepth, extraDepth, maxSolutions, noWhiteUncaptures, noBlackUncaptures) {
         this.solveDepth = solveDepth;
         this.extraDepth = extraDepth;
         this.maxSolutions = maxSolutions;
+        this.noWhiteUncaptures = noWhiteUncaptures == null ? false : noWhiteUncaptures;
+        this.noBlackUncaptures = noBlackUncaptures == null ? false : noBlackUncaptures;
     }
 }
 
@@ -193,18 +195,18 @@ function getPseudoLegalMovesKing(file, rank, color, moveList, includeNoUncapture
     }
 }
 
-function getPseudoLegalMovesSquare(file, rank, color, moveList) {
+function getPseudoLegalMovesSquare(file, rank, color, moveList, includeUncaptures) {
     switch(board[file][rank].unit) {
-        case 'K': getPseudoLegalMovesKing(file, rank, color, moveList, true, true); break;
-        case 'Q': getPseudoLegalMovesQueen(file, rank, color, moveList, true, true); break;
-        case 'R': getPseudoLegalMovesRook(file, rank, color, moveList, true, true); break;
-        case 'B': getPseudoLegalMovesBishop(file, rank, color, moveList, true, true); break;
-        case 'N': getPseudoLegalMovesKnight(file, rank, color, moveList, true, true); break;
-        case 'P': getPseudoLegalMovesPawn(file, rank, color, moveList, true, true); break;
+        case 'K': getPseudoLegalMovesKing(file, rank, color, moveList, true, includeUncaptures); break;
+        case 'Q': getPseudoLegalMovesQueen(file, rank, color, moveList, true, includeUncaptures); break;
+        case 'R': getPseudoLegalMovesRook(file, rank, color, moveList, true, includeUncaptures); break;
+        case 'B': getPseudoLegalMovesBishop(file, rank, color, moveList, true, includeUncaptures); break;
+        case 'N': getPseudoLegalMovesKnight(file, rank, color, moveList, true, includeUncaptures); break;
+        case 'P': getPseudoLegalMovesPawn(file, rank, color, moveList, true, includeUncaptures); break;
     }
 }
 
-function getPseudoLegalMovesNotInCheck(color) {
+function getPseudoLegalMovesNotInCheck(color, includeUncaptures) {
     const moveList = [];
     if (positionData.ep != -1) {
         const enPassantDoubleStepSourceRank = color == "w" ? 3 : 4;
@@ -222,7 +224,7 @@ function getPseudoLegalMovesNotInCheck(color) {
         for (let rank = 0; rank < 8; rank++) {
             if (board[file][rank].color == color) {
                 if (board[file][rank].frozen) continue;
-                getPseudoLegalMovesSquare(file, rank, color, moveList);
+                getPseudoLegalMovesSquare(file, rank, color, moveList, includeUncaptures);
             }
         }
     }
@@ -230,31 +232,35 @@ function getPseudoLegalMovesNotInCheck(color) {
 }
 
 // could improve this later
-function getPseudoLegalMovesInCheck(color, checkers) {
-    const result = getPseudoLegalMovesNotInCheck(color);
+function getPseudoLegalMovesInCheck(color, checkers, includeUncaptures) {
+    const result = getPseudoLegalMovesNotInCheck(color, includeUncaptures);
     result.forEach(move => {
         move.check = true;
     });
     return result;
 }
 
-function getPseudoLegalMoves(color) {
+function getPseudoLegalMoves(color, includeUncaptures) {
     const checkers = getCheckingUnits(opposite(color));
     if (checkers.length == 0) {
-        return getPseudoLegalMovesNotInCheck(color);
+        return getPseudoLegalMovesNotInCheck(color, includeUncaptures);
     } else {
-        return getPseudoLegalMovesInCheck(color, checkers);
+        return getPseudoLegalMovesInCheck(color, checkers, includeUncaptures);
     }
 }
 
-function legalToDepth(maxDepth, depth) {
-    if (depth == maxDepth) {
+function legalToExtraDepth(solveParameters, depth) {
+    if (depth == solveParameters.extraDepth) {
         return true;
     }
-    const pseudoLegalMoves = getPseudoLegalMoves(currentRetract);
+    let includeUncaptures = true;
+    if ((currentRetract == 'w' && solveParameters.noWhiteUncaptures) || (currentRetract == 'b' && solveParameters.noBlackUncaptures)) {
+        includeUncaptures = false;
+    }
+    const pseudoLegalMoves = getPseudoLegalMoves(currentRetract, includeUncaptures);
     return pseudoLegalMoves.some(pseudoLegalMove => {
         if (doRetraction(pseudoLegalMove.from, pseudoLegalMove.to, pseudoLegalMove.uncapturedUnit, pseudoLegalMove.unpromote, true, true) == error_ok) {
-            const result = legalToDepth(maxDepth, depth + 1);
+            const result = legalToExtraDepth(solveParameters, depth + 1);
             undo();
             return result;
         } else {
@@ -266,12 +272,16 @@ function legalToDepth(maxDepth, depth) {
 
 function solveHelper(solveParameters, depth, currentPath, outputSolutions) {
     if (depth == solveParameters.solveDepth) {
-        if (legalToDepth(solveParameters.extraDepth, 0)) {
+        if (legalToExtraDepth(solveParameters, 0)) {
             outputSolutions.push(currentPath.slice());
         }
         return;
     }
-    const pseudoLegalMoves = getPseudoLegalMoves(currentRetract);
+    let includeUncaptures = true;
+    if ((currentRetract == 'w' && solveParameters.noWhiteUncaptures) || (currentRetract == 'b' && solveParameters.noBlackUncaptures)) {
+        includeUncaptures = false;
+    }
+    const pseudoLegalMoves = getPseudoLegalMoves(currentRetract, includeUncaptures);
     for (let i = 0; i < pseudoLegalMoves.length; i++) {
         const pseudoLegalMove = pseudoLegalMoves[i];
         if (doRetraction(pseudoLegalMove.from, pseudoLegalMove.to, pseudoLegalMove.uncapturedUnit, pseudoLegalMove.unpromote, true, true) == error_ok) {

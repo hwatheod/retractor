@@ -660,8 +660,8 @@ describe("Full board test", function() {
     testPositions.forEach(position => {
         it(position.forsythe, function() {
             setForsythe(position.forsythe);
-            const whiteMoveList = getPseudoLegalMoves("w");
-            const blackMoveList = getPseudoLegalMoves("b");
+            const whiteMoveList = getPseudoLegalMoves("w", true);
+            const blackMoveList = getPseudoLegalMoves("b", true);
             let totalExpectedMoves = 0;
             position.expectedMoveCounts.forEach(expectedMoveCount => {
                 totalExpectedMoves += expectedMoveCount.noCapture + expectedMoveCount.capture;
@@ -671,6 +671,23 @@ describe("Full board test", function() {
                             move.from.mRank == expectedMoveCount.square.mRank);
                 expect(movesFound.filter(move => move.uncapturedUnit == "").length).toBe(expectedMoveCount.noCapture);
                 expect(movesFound.filter(move => move.uncapturedUnit != "").length).toBe(expectedMoveCount.capture);
+            });
+            expect(whiteMoveList.length + blackMoveList.length).toBe(totalExpectedMoves);
+        });
+
+        it(position.forsythe + " no uncaptures", function() {
+            setForsythe(position.forsythe);
+            const whiteMoveList = getPseudoLegalMoves("w", false);
+            const blackMoveList = getPseudoLegalMoves("b", false);
+            let totalExpectedMoves = 0;
+            position.expectedMoveCounts.forEach(expectedMoveCount => {
+                totalExpectedMoves += expectedMoveCount.noCapture;
+                const movesFound =
+                    (expectedMoveCount.color == "w" ? whiteMoveList : blackMoveList).filter(
+                        move => move.from.mFile == expectedMoveCount.square.mFile &&
+                            move.from.mRank == expectedMoveCount.square.mRank);
+                expect(movesFound.filter(move => move.uncapturedUnit == "").length).toBe(expectedMoveCount.noCapture);
+                expect(movesFound.filter(move => move.uncapturedUnit != "").length).toBe(0);
             });
             expect(whiteMoveList.length + blackMoveList.length).toBe(totalExpectedMoves);
         });

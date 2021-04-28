@@ -1,3 +1,6 @@
+v2.1.1
+* For solving, add option to specify that White or Black or both sides cannot uncapture. (Issue #4)
+
 v2.1
 
 * Promoted rooks outside cages are now detected.

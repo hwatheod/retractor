@@ -158,6 +158,8 @@ function solveGui() {
 		const solveDepth = parseInt(document.getElementById("solveDepth").value, 10);
 		const extraDepth = parseInt(document.getElementById("extraDepth").value, 10);
 		const maxSolutions = parseInt(document.getElementById("maxSolutions").value, 10);
+		const noWhiteUncaptures = document.getElementById("noWhiteUncaptures").checked;
+		const noBlackUncaptures = document.getElementById("noBlackUncaptures").checked;
 		if (isNaN(solveDepth) || isNaN(extraDepth) || isNaN(maxSolutions)) {
 			document.getElementById("solveErrorMessage").innerHTML = "Invalid parameters";
 			return;
@@ -166,7 +168,7 @@ function solveGui() {
 		document.getElementById("solveErrorMessage").innerHTML = "Solving, please wait...";
 		resetLegalityCheckerWorker();
 		solverDone = false;
-		solverWorker.postMessage([new SolveParameters(solveDepth, extraDepth, maxSolutions), board,
+		solverWorker.postMessage([new SolveParameters(solveDepth, extraDepth, maxSolutions, noWhiteUncaptures, noBlackUncaptures), board,
 			currentRetract, positionData.ep, getPawnCaptureCache()]);
 	} else { // cancel
 		resetSolver();
