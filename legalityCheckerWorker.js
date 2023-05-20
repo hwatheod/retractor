@@ -7,6 +7,7 @@ onmessage = function(e) {
 	positionData.set(e.data[1]);
     currentRetract = e.data[2];
 	getPawnCaptureCache().set(e.data[3]);
+	knownCages = e.data[4];
 	if (!tempUndoStack) {
 	    tempUndoStack = new UndoStack();
     }
@@ -15,5 +16,5 @@ onmessage = function(e) {
     const result = isPositionLegal();
 	flipRetract();
 
-    postMessage([result, tempUndoStack, getPawnCaptureCache()]);
+    postMessage([result, tempUndoStack, getPawnCaptureCache(), errorSquares]);
 }

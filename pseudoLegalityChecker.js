@@ -243,12 +243,12 @@ function isPseudoLegal(from, to, uncapturedUnit, unpromote) {
 			return checkUncastling(fromFile, fromRank, toFile, toRank, fromColor);
 		}
 
-		error = checkNonPawn(fromFile, fromRank, toFile, toRank, unit);
+		error = checkNonPawn(fromFile, fromRank, toFile, toRank, unit, false);
 		if (error != error_ok) {
 			return error;
 		}
 	} else if (!unpromote && unit != "P") {
-		error = checkNonPawn(fromFile, fromRank, toFile, toRank, unit);
+		error = checkNonPawn(fromFile, fromRank, toFile, toRank, unit, false);
 		if (error != error_ok) {
 			return error;
 		}
@@ -315,7 +315,7 @@ function checkUncastling(fromFile, fromRank, toFile, toRank, fromColor) {
 	return error_ok;
 }
 
-function checkNonPawn(fromFile, fromRank, toFile, toRank, unit) {
+function checkNonPawn(fromFile, fromRank, toFile, toRank, unit, unblockableOnly) {
 	// the checkOrthogonal and checkDiagonal functions do not care if the 'to' square itself is occupied.
 	// so this can be used both for pseudo-legality checking and for determining if king is in check
 
@@ -323,18 +323,18 @@ function checkNonPawn(fromFile, fromRank, toFile, toRank, unit) {
 	if (unit == 'K') {
 		if (Math.abs(fromRank - toRank) > 1 || Math.abs(fromFile - toFile) > 1) return error_badDirection;
 	} else if (unit == 'Q') {
-		error = checkOrthogonal(fromFile, fromRank, toFile, toRank);
+		error = checkOrthogonal(fromFile, fromRank, toFile, toRank, unblockableOnly);
 		if (error != error_ok) {
 			if (error == error_blocked) return error;
-			error = checkDiagonal(fromFile, fromRank, toFile, toRank);
+			error = checkDiagonal(fromFile, fromRank, toFile, toRank, unblockableOnly);
 
 			if (error != error_ok) return error;
 		}
 	} else if (unit == 'R') {
-		error = checkOrthogonal(fromFile, fromRank, toFile, toRank);
+		error = checkOrthogonal(fromFile, fromRank, toFile, toRank, unblockableOnly);
 		if (error != error_ok) return error;
 	} else if (unit == 'B') {
-		error = checkDiagonal(fromFile, fromRank, toFile, toRank);
+		error = checkDiagonal(fromFile, fromRank, toFile, toRank, unblockableOnly);
 		if (error != error_ok) return error;
 	} else if (unit == 'N') {
 		const rowDiff = Math.abs(fromRank - toRank);
@@ -348,7 +348,7 @@ function checkNonPawn(fromFile, fromRank, toFile, toRank, unit) {
 
 function unitAttacks(fromFile, fromRank, toFile, toRank, unit, attackingColor) {
 	if (unit != "P") {
-		return checkNonPawn(fromFile, fromRank, toFile, toRank, unit) == error_ok;
+		return checkNonPawn(fromFile, fromRank, toFile, toRank, unit, false) == error_ok;
 	}
 	const attackingPawnDirection = attackingColor == "w" ? 1 : -1;
 	return Math.abs(toFile - fromFile) == 1 && toRank - fromRank == attackingPawnDirection;
@@ -364,12 +364,15 @@ function unitAttacksOrMoves(fromFile, fromRank, toFile, toRank, unit, attackingC
 	return unit == "P" && toFile == fromFile && toRank - fromRank == attackingPawnDirection;
 }
 
-function checkOrthogonal(fromFile, fromRank, toFile, toRank) {
+function checkOrthogonal(fromFile, fromRank, toFile, toRank, unblockableOnly) {
 	// returns error_badDirection if 'from' to 'to is not horizontal or vertical
 	// returns error_blocked if horizontal or vertical path is blocked (up to but not including 'to' square)
 	// otherwise returns error_ok
 
 	if (fromRank != toRank && fromFile != toFile) {
+		return error_badDirection;
+	}
+	if (unblockableOnly && (Math.abs(fromFile - toFile) > 1 || Math.abs(fromRank - toRank) > 1)) {
 		return error_badDirection;
 	}
 	if (fromRank == toRank) { // vertical move
@@ -395,11 +398,14 @@ function checkOrthogonal(fromFile, fromRank, toFile, toRank) {
 	return error_badDirection;
 }
 
-function checkDiagonal(fromFile, fromRank, toFile, toRank) {
+function checkDiagonal(fromFile, fromRank, toFile, toRank, unblockableOnly) {
 	// returns error_badDirection if 'from' to 'to is not diagonal
 	// returns error_blocked if diagonal path is blocked (up to but not including 'to' square)
 	// otherwise returns error_ok
 
+	if (unblockableOnly && (Math.abs(fromFile - toFile) > 1 || Math.abs(fromRank - toRank) > 1)) {
+		return error_badDirection;
+	}
 	if (Math.abs(fromRank - toRank) == Math.abs(fromFile - toFile)) { // diagonal move
 		let rowDir, colDir;
 		if (fromRank < toRank) rowDir = 1; else rowDir = -1;
@@ -416,11 +422,11 @@ function checkDiagonal(fromFile, fromRank, toFile, toRank) {
 	else return error_badDirection;
 }
 
-function isSquareAttackingSquare(fromFile, fromRank, toFile, toRank) {
+function isSquareAttackingSquare(fromFile, fromRank, toFile, toRank, unblockableOnly) {
 	// Is the unit on square 'from' attacking square 'to' ?
 	const unit = board[fromFile][fromRank].unit;
 	if (unit != 'P') {
-		const error = checkNonPawn(fromFile, fromRank, toFile, toRank, unit);
+		const error = checkNonPawn(fromFile, fromRank, toFile, toRank, unit, unblockableOnly);
 		return error == error_ok;
 	} else {
 		const color = board[fromFile][fromRank].color;
@@ -433,7 +439,7 @@ function isSquareAttackingSquare(fromFile, fromRank, toFile, toRank) {
 function isSquareAttackedBy(targetFile, targetRank, color) { // the color is the color of the attacker
 	for (let file = 0; file < 8; file++) {
 		for (let rank = 0; rank < 8; rank++) {
-			if (board[file][rank].color == color && isSquareAttackingSquare(file, rank, targetFile, targetRank)) {
+			if (board[file][rank].color == color && isSquareAttackingSquare(file, rank, targetFile, targetRank, false)) {
 				return true;
 			}
 		}
@@ -441,15 +447,20 @@ function isSquareAttackedBy(targetFile, targetRank, color) { // the color is the
 	return false;
 }
 
-function getCheckingUnits(colorInCheck) {
+function getCheckingUnits(colorInCheck, unblockableOnly) {
+	const kingPosition = positionData.kingPosition[colorInCheck];
+	if (kingPosition == null) {
+		return []; // empty array
+	}
+
 	const checkers = [];
 	let count = 0;
-	const kingRank = positionData.kingPosition[colorInCheck].mRank;
-	const kingFile = positionData.kingPosition[colorInCheck].mFile;
+	const kingRank = kingPosition.mRank;
+	const kingFile = kingPosition.mFile;
 	const oppositeColor = opposite(colorInCheck);
 	for (let file = 0; file < 8; file++)
 		for (let rank = 0; rank < 8; rank++) {
-			if (board[file][rank].color == oppositeColor && isSquareAttackingSquare(file, rank, kingFile, kingRank)) {
+			if (board[file][rank].color == oppositeColor && isSquareAttackingSquare(file, rank, kingFile, kingRank, unblockableOnly)) {
 				checkers[count] = new Square(file, rank);
 				count++;
 			}
@@ -458,5 +469,10 @@ function getCheckingUnits(colorInCheck) {
 }
 
 function isInCheck(color) {
-	return isSquareAttackedBy(positionData.kingPosition[color].mFile, positionData.kingPosition[color].mRank, opposite(color));
+	const kingPosition = positionData.kingPosition[color];
+	if (kingPosition != null) {
+		return isSquareAttackedBy(kingPosition.mFile, kingPosition.mRank, opposite(color));
+	} else {
+		return false;
+	}
 }

@@ -21,6 +21,7 @@
 <script type="text/javascript" src="stateChanges.js"></script>
 <script type="text/javascript" src="pawnCaptures.js"></script>
 <script type="text/javascript" src="solver.js"></script>
+<script type="text/javascript" src="verifyCage.js"></script>
 
 <body>
 <div id="modalBackground" class="modal-background"></div>
@@ -128,6 +129,7 @@
             <input type="button" id="solve" value="Solve">
             <input type="button" id="copyGame" value="Copy" onclick="copyGameGui()">
             <input type="button" id="pasteGame" value="Paste" onclick="showModal('pasteGameModal')">
+            <input type="button" id="verifyCage" value="Cage" onclick="verifyCageGui()">
         </div>
         <div id="errorMessage" style="color:#FF0000; flex-grow: 0"></div>
         <div id="solveModal" class="modal-content">
@@ -159,6 +161,7 @@
             <div id="illegalPositionErrorMessage" style="color:#FF0000"></div>
             <input type="button" id="illegalPositionUndo" value="Go back">
             <input type="button" id="illegalPositionContinue" value="Continue anyway">
+            <input type="button" id="illegalPositionCage" value="Cage">
         </div>
         <div id="pasteGameModal" class="modal-content">
             <span id="pasteGameClose" class="close">&times;</span>
@@ -170,6 +173,20 @@
             <span id="copyGameClose" class="close">&times;</span>
             <label for="copyGameText">Copy game from here</label><br>
             <textarea id="copyGameText" cols=40 rows=5 readonly></textarea>
+        </div>
+        <div id="verifyCageModal" class="modal-content">
+            <span id="verifyCageClose" class="close">&times;</span>
+            <div class="modal-body">
+                <div id="verifyCageMessage"></div>
+                <br>
+                <input type="button" id="verifyCageSelectAll" value="Select All">
+                <input type="button" id="verifyCageUnselectAll" value="Unselect All">
+                <input type="button" id="verifyCageVerify" value="Verify">
+                <input type="button" id="verifyCageTryAnother" value="Try another cage">
+                <input type="button" id="verifyCageImport" value="Import">
+                <input type="button" id="verifyCageExport" value="Export">
+                <input type="file" id="verifyCageImportFile" style="visibility: hidden">
+            </div>
         </div>
     </div>
     <div class="right-inner-flex-container">
@@ -283,13 +300,10 @@
     });
 
     function openTutorialPosition(forsythe, toRetract, playMoves) {
-        updateMode(MODE_EDIT, true);
+        switchToEditMode(true);
         setForsythe(forsythe);
         setRetract(toRetract);
-        assert (updateMode(MODE_PLAY, true, false) == error_ok, 'Illegal position ' + forsythe + ' in tutorial');
-        currentMode = MODE_PLAY;
-        document.getElementById("modeEdit").checked = false;
-        document.getElementById("modePlay").checked = true;
+        switchToPlayMode();
         if (playMoves != null) {
             const [numMoves, illegalMove] = replayGame(playMoves);
             assert(illegalMove == null, 'Illegal move ' + illegalMove + ' in tutorial position ' + forsythe);
@@ -347,18 +361,21 @@
     const illegalPositionModal = document.getElementById("illegalPositionModal");
     const illegalPositionUndo = function() {
         if (!undoGui(true)) { // if we can't undo, then we need to switch back to edit mode
-            updateMode(MODE_EDIT, false); // don't clear flags since we haven't played any moves
-            document.getElementById("modePlay").checked = false;
-		    document.getElementById("modeEdit").checked = true;
-		    currentMode = MODE_EDIT;
+            switchToEditMode(false); // don't clear flags since we haven't played any moves
         }
         clearModal("illegalPositionModal");
+        updateVisualBoard();
     }
     document.getElementById("illegalPositionClose").onclick = illegalPositionUndo;
     document.getElementById("illegalPositionUndo").onclick = illegalPositionUndo;
     document.getElementById("illegalPositionContinue").onclick = function() {
         clearModal("illegalPositionModal");
         showError("Continuing on illegal position.");
+    }
+    document.getElementById("illegalPositionCage").onclick = function() {
+        clearModal("illegalPositionModal");
+        updateVisualBoard();
+        verifyCageGui();
     }
 
     // Setup paste game modal
@@ -373,6 +390,106 @@
     const copyGameModal = document.getElementById("copyGameModal");
     document.getElementById("copyGameClose").onclick = function() { clearModal("copyGameModal"); }
 
+    // Setup verify cage modal
+    const verifyCageModal = document.getElementById("verifyCageModal");
+    const verifyCageUndo = function() {
+        verifyCageSelectionMode = false;
+        verifyCageSelectedSquares = [];
+        clearModal('verifyCageModal');
+        document.getElementById("verifyCageVerify").value = 'Verify';
+        document.getElementById("board").style.zIndex = 'auto';
+        updateVisualBoard();
+    }
+    document.getElementById("verifyCageClose").onclick = verifyCageUndo;
+    document.getElementById("verifyCageSelectAll").onclick = function() {
+        verifyCageSelectedSquares = [];
+        for (let file = 0; file < 8; file++) {
+            for (let rank = 0; rank < 8; rank++) {
+                if (!isEmpty(board[file][rank])) {
+                    verifyCageSelectedSquares.push(new Square(file, rank));
+                    document.getElementById(file + ":" + rank).style.opacity = 0.5;
+                }
+            }
+        }
+    }
+    document.getElementById("verifyCageUnselectAll").onclick = function() {
+        verifyCageSelectedSquares.forEach(selectedSquare => {
+            document.getElementById(selectedSquare.mFile + ":" + selectedSquare.mRank).style.opacity = 1.0;
+        });
+        verifyCageSelectedSquares = [];
+    }
+
+    document.getElementById("verifyCageVerify").onclick = function() {
+        if (!verifyCageSelectionMode) { // verification process complete
+            verifyCageUndo();
+            return;
+        }
+    	document.getElementById("verifyCageSelectAll").style.visibility = "hidden";
+    	document.getElementById("verifyCageUnselectAll").style.visibility = "hidden";
+        document.getElementById("verifyCageImport").style.visibility = "hidden";
+        document.getElementById("verifyCageExport").style.visibility = "hidden";
+        document.getElementById("board").style.zIndex = 'auto';
+        verifyCageSelectionMode = false;
+        const cageVerificationResult = verifyCage(null, verifyCageSelectedSquares, true);
+        if (cageVerificationResult.isCageVerified) {
+            document.getElementById("verifyCageMessage").innerHTML = "The cage has been verified and saved.";
+        } else {
+            document.getElementById("verifyCageMessage").innerHTML =
+                "The cage could NOT be verified. Possible retraction sequence: <br>" +
+                cageVerificationResult.retractionSequence.map(moveToString).join(" ");
+        }
+        document.getElementById("verifyCageVerify").value = 'OK';
+    	document.getElementById("verifyCageTryAnother").style.visibility = "visible";
+    }
+
+    document.getElementById("verifyCageTryAnother").onclick = verifyCageGui;
+
+    document.getElementById("verifyCageImport").onclick = function() {
+        document.getElementById("verifyCageImportFile").click();
+    }
+
+    document.getElementById("verifyCageImportFile").addEventListener('change', function() {
+        const selectedFiles = document.getElementById("verifyCageImportFile").files;
+        if (selectedFiles.length > 0) {
+            const selectedFile = selectedFiles[0];
+            selectedFile.text().then(importCages).then(result => {
+                if (result.length == 1) { // some line has invalid forsythe notation
+                    verifyCageUndo();
+                    const lineNumber = result[0];
+                    showError("No cages imported. Imported file has invalid Forsythe notation on line " + lineNumber.toString());
+                } else {
+                    [badLineNumbers, successfulImportCount, duplicates] = result;
+                    verifyCageUndo();
+                    let message = "";
+                    if (badLineNumbers.length > 0) {
+                        message += "Could not verify cages on lines: " + badLineNumbers.join(",") + ". ";
+                    }
+                    message += "Imported " + successfulImportCount + " cages. ";
+                    if (duplicates > 0) {
+                        message += "Ignored " + duplicates + " duplicate cages.";
+                    }
+                    showError(message);
+                }
+            });
+        }
+    });
+
+    const fakeDownload = document.createElement('a');
+    fakeDownload.style.display = 'none';
+    document.getElementById("verifyCageExport").onclick = function() {
+        const data = new Blob([serializedRequestedCages.join("\n")]);
+        const url = window.URL.createObjectURL(data);
+        fakeDownload.href = url;
+        const currentTimeIsoString = new Date(Date.now()).toISOString();
+        const filenameSuffix = currentTimeIsoString.slice(0, -5).replaceAll(/[:-]/g, "");
+        fakeDownload.download = "retractor_cages_" + filenameSuffix + ".txt";
+        document.body.appendChild(fakeDownload);
+        fakeDownload.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(fakeDownload);
+        verifyCageUndo();
+    }
+
     // Take the "close" action if clicking on the outside for certain modals
     window.onclick = function(event) {
         if (event.target == document.getElementById("modalBackground")) {
@@ -382,6 +499,8 @@
                 clearModal("pasteGameModal");
             } else if (copyGameModal.style.display != "none" && copyGameModal.style.display != "") {
                 clearModal("copyGameModal");
+            } else if (verifyCageModal.style.display != "none" && verifyCageModal.style.display != "" && !verifyCageSelectionMode) {
+                verifyCageUndo();
             }
         }
     }
@@ -400,13 +519,13 @@
     initializeBoardGui();
 
     currentUncapturedUnit = "";
+    verifyCageSelectionMode = false;
+    verifyCageSelectedSquares = [];
 
     /* Gerald Ettl, Die Schwalbe Heft 157, Feb 1996, Problem 9129 - Last 30 single moves? */
     setForsythe('nBb2R1R/bqr5/kppp4/n3K2B/p1P1ppNN/rP2PPpp/P2P1QPP/8');
     setRetract("b");
-    currentMode = MODE_PLAY;
-    updateMode(MODE_PLAY, true, true);
-    document.getElementById('modePlay').checked = true;
+    switchToPlayMode();
 </script>
 
 

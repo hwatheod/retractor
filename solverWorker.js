@@ -10,6 +10,7 @@ onmessage = function(e) {
     positionData.initializeDataFromBoard(false); // solver assumes position is legal
     positionData.ep = e.data[3];
     getPawnCaptureCache().set(e.data[4]);
+    knownCages = e.data[5];
 	pieceLetters = "kqrbnp";
 	undoStack.reset();
 

@@ -41,6 +41,11 @@ function placePieceAt(file, rank, piece) {
 		positionData.detailedUnitCount[board[file][rank].color + detailedUnitType]--;
 	}
 
+	// during cage verification, it is possible for one or both kings to be missing.
+	if (positionData.detailedUnitCount[board[file][rank].color + 'K'] == 0) {
+		positionData.kingPosition[board[file][rank].color] = null;
+	}
+
 	if (piece.unit != "") {
 		const detailedUnitType = getDetailedUnitType(file, rank, piece.unit);
 		positionData.detailedUnitCount[piece.color + detailedUnitType]++;

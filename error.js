@@ -70,6 +70,7 @@ error_impossiblePromotedBlackQueen = 70;
 error_impossiblePromotedBlackRook = 71;
 error_impossiblePromotedBlackBishop = 72;
 error_impossiblePromotedBlackKnight = 73;
+error_impossibleKnownCage = 74;
 
 errorText = [];
 errorText[error_ok] = "ok";
@@ -144,3 +145,4 @@ errorText[error_impossiblePromotedBlackQueen] = "A black queen marked promoted c
 errorText[error_impossiblePromotedBlackRook] = "A black rook marked promoted cannot be.";
 errorText[error_impossiblePromotedBlackBishop] = "A black bishop marked promoted cannot be.";
 errorText[error_impossiblePromotedBlackKnight] = "A black knight marked promoted cannot be.";
+errorText[error_impossibleKnownCage] = "The position contains a known cage.";

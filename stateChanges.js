@@ -94,7 +94,9 @@ function replayGame(moveText) {
 		const move = stringToMove(moveSingleText, currentRetract);
 		if (move != null) {
 			const isPseudoLegal =
-				doRetraction(move.from, move.to, move.uncapturedUnit, move.unpromote, true, false) == error_ok;
+				board[move.from.mFile][move.from.mRank].color == currentRetract
+				&& board[move.from.mFile][move.from.mRank].unit == move.fromUnit
+				&& doRetraction(move.from, move.to, move.uncapturedUnit, move.unpromote, true, false) == error_ok;
 			if (isPseudoLegal) {
 				numMoves++;
 			} else {
@@ -113,36 +115,36 @@ function replayGame(moveText) {
 function processMoveText(moveText) {
 	const [numMoves, illegalMove] = replayGame(moveText);
 	let message;
+	message = numMoves.toString() + " move" + ((numMoves != 1) ? "s" : "") + " replayed.";
 	if (numMoves > 0) {
-		message = numMoves.toString() + " move" + ((numMoves > 1) ? "s" : "") + " replayed. Use 'forward' button to view.";
-		if (illegalMove != null) {
-			message += "  Stopped at illegal move " + illegalMove;
-		}
-	} else {
-		message = "No moves found on clipboard.";
+		message += "  Use 'forward' button to view.";
 	}
+	if (illegalMove != null) {
+		message += "  Stopped at illegal move " + illegalMove;
+	}
+
 	showError(message);
 }
 
 function resetSolver() {
-	if (solverWorker && !solverDone) {
+	if (solverWorker && solverActive) {
 		solverWorker.terminate();
 		solverWorker = null;
 	}
-	solverDone = true;
+	solverActive = false;
 	clearModal("solveModal");
 	document.getElementById("startSolve").value = "Solve";
 	document.getElementById("solveErrorMessage").innerHTML = "";
 }
 
 let solverWorker = null;
-let solverDone = true;
+let solverActive = false;
 let solutions;
 function solveGui() {
 	if (!solverWorker) {
 		solverWorker = new Worker("solverWorker.js");
 		solverWorker.onmessage = function(e) {
-			solverDone = true;
+			solverActive = false;
 			solutions = e.data[0];
 			getPawnCaptureCache().set(e.data[1]);
 			resetSolver();
@@ -154,7 +156,7 @@ function solveGui() {
 			updateVisualBoard();
 		}
 	}
-	if (solverDone) {
+	if (!solverActive) {
 		const solveDepth = parseInt(document.getElementById("solveDepth").value, 10);
 		const extraDepth = parseInt(document.getElementById("extraDepth").value, 10);
 		const maxSolutions = parseInt(document.getElementById("maxSolutions").value, 10);
@@ -167,9 +169,9 @@ function solveGui() {
 		document.getElementById("startSolve").value = "Cancel Solve";
 		document.getElementById("solveErrorMessage").innerHTML = "Solving, please wait...";
 		resetLegalityCheckerWorker();
-		solverDone = false;
+		solverActive = true;
 		solverWorker.postMessage([new SolveParameters(solveDepth, extraDepth, maxSolutions, noWhiteUncaptures, noBlackUncaptures), board,
-			currentRetract, positionData.ep, getPawnCaptureCache()]);
+			currentRetract, positionData.ep, getPawnCaptureCache(), knownCages]);
 	} else { // cancel
 		resetSolver();
 	}
@@ -181,64 +183,91 @@ function setRetractGui(event) {
 	}
 }
 
+function verifyCageGui() {
+	verifyCageSelectionMode = true;
+	document.getElementById("verifyCageSelectAll").style.visibility = "visible";
+	document.getElementById("verifyCageUnselectAll").style.visibility = "visible";
+	document.getElementById("verifyCageMessage").innerHTML = "Click the squares forming the cage to be verified.";
+	document.getElementById("verifyCageVerify").value = "Verify";
+	document.getElementById("verifyCageTryAnother").style.visibility = "hidden";
+	document.getElementById("verifyCageImport").style.visibility = "visible";
+	document.getElementById("verifyCageExport").style.visibility = "visible";
+	if (serializedRequestedCages.length > 0) {
+		document.getElementById("verifyCageExport").removeAttribute("disabled");
+	} else {
+		document.getElementById("verifyCageExport").setAttribute("disabled", "");
+	}
+
+	// We set the board's zIndex higher than the modal's so that we can click on the board squares.
+	document.getElementById("board").style.zIndex = 3;
+	showModal('verifyCageModal');
+}
+
 function showError(error) {
 	document.getElementById("errorMessage").innerHTML = error;
 }
 
 function setMode(event) {
 	const newMode = event.target.value == "edit" ? MODE_EDIT : MODE_PLAY;
-	currentMode = newMode;
-	updateMode(newMode, true, true);
+	if (newMode == MODE_EDIT) {
+		switchToEditMode(true);
+	} else { // play mode
+		switchToPlayMode();
+	}
 	return true;
 }
 
-function updateMode(mode, clearFlags, asyncMode) {
-	if (mode == MODE_PLAY) {
-		const result = startPlay(!asyncMode); // in asyncMode, we don't check legality here; we launch asyncLegalityCheck at the end
-		document.getElementById("none_and_ep").style.visibility = "visible";
-		document.getElementById("black_pieces").style.visibility = "hidden";
-		document.getElementById("retractRadioButtons").style.display = "none";
-		document.getElementById("retractColor").innerHTML = (currentRetract == "w" ? "White" : "Black");
-		document.getElementById("clearBoardGroup").style.display = "none";
-		document.getElementById("controlGroup").style.display = "block";
-		document.getElementById("setPositionButton").style.visibility = "hidden";
-		document.getElementById("pawnCapturesTable").hidden = false;
-		document.getElementById("promoteeTable").hidden = false;
-		document.getElementById("forsytheText").setAttribute("readonly", "");
-		document.getElementById("moves").style.display = "block";
+function switchToPlayMode() {
+	currentMode = MODE_PLAY;
+	startPlay(false);
 
-		solutions = null;
-		navigatedMoveIndex = null;
-		finalizeRetraction();
-		updateVisualBoard(mode);
-		if (asyncMode) {
-			asyncLegalityCheck();
-		}
-		return result;
-	} else { // edit mode
-		stopPlay(clearFlags);
-		resetSolver();
-		resetLegalityCheckerWorker();
-		solutions = null;
+	document.getElementById("modePlay").checked = true;
+	document.getElementById("modeEdit").checked = false;
+	document.getElementById("none_and_ep").style.visibility = "visible";
+	document.getElementById("black_pieces").style.visibility = "hidden";
+	document.getElementById("retractRadioButtons").style.display = "none";
+	document.getElementById("retractColor").innerHTML = (currentRetract == "w" ? "White" : "Black");
+	document.getElementById("clearBoardGroup").style.display = "none";
+	document.getElementById("controlGroup").style.display = "block";
+	document.getElementById("setPositionButton").style.visibility = "hidden";
+	document.getElementById("pawnCapturesTable").hidden = false;
+	document.getElementById("promoteeTable").hidden = false;
+	document.getElementById("forsytheText").setAttribute("readonly", "");
+	document.getElementById("moves").style.display = "block";
 
-		document.getElementById("none_and_ep").style.visibility = "hidden";
-		document.getElementById("pieceSelection_ep").style.visibility = "hidden";
-		document.getElementById("black_pieces").style.visibility = "visible";
-		document.getElementById("retractRadioButtons").style.display = "block";
-		document.getElementById("retractColor").innerHTML = "";
-		document.getElementById("retractWhite").checked = (currentRetract == "w");
-		document.getElementById("retractBlack").checked = (currentRetract == "b");
-		document.getElementById("clearBoardGroup").style.display = "block";
-		document.getElementById("controlGroup").style.display = "none";
-		document.getElementById("setPositionButton").style.visibility = "visible";
-		document.getElementById("forsytheText").removeAttribute("readonly");
-		document.getElementById("solutionDisplay").innerHTML = "";
-		document.getElementById("moves").style.display = "none";
-		document.getElementById("pawnCapturesTable").hidden = true;
-		document.getElementById("promoteeTable").hidden = true;
-		showError("");
-		updateEditModeData();
-	}
+	solutions = null;
+	navigatedMoveIndex = null;
+	finalizeRetraction();
+	updateVisualBoard();
+	asyncLegalityCheck();
+}
+
+function switchToEditMode(clearFlags) {
+	currentMode = MODE_EDIT;
+	stopPlay(clearFlags);
+	resetSolver();
+	resetLegalityCheckerWorker();
+	solutions = null;
+
+	document.getElementById("modePlay").checked = false;
+	document.getElementById("modeEdit").checked = true;
+	document.getElementById("none_and_ep").style.visibility = "hidden";
+	document.getElementById("pieceSelection_ep").style.visibility = "hidden";
+	document.getElementById("black_pieces").style.visibility = "visible";
+	document.getElementById("retractRadioButtons").style.display = "block";
+	document.getElementById("retractColor").innerHTML = "";
+	document.getElementById("retractWhite").checked = (currentRetract == "w");
+	document.getElementById("retractBlack").checked = (currentRetract == "b");
+	document.getElementById("clearBoardGroup").style.display = "block";
+	document.getElementById("controlGroup").style.display = "none";
+	document.getElementById("setPositionButton").style.visibility = "visible";
+	document.getElementById("forsytheText").removeAttribute("readonly");
+	document.getElementById("solutionDisplay").innerHTML = "";
+	document.getElementById("moves").style.display = "none";
+	document.getElementById("pawnCapturesTable").hidden = true;
+	document.getElementById("promoteeTable").hidden = true;
+	showError("");
+	updateEditModeData();
 }
 
 function setPosition() {

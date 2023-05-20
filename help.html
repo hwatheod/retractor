@@ -1,6 +1,6 @@
 <div class="helpPage" id="help_front">
 <p>
-    Welcome to <a href="https://github.com/hwatheod/retractor/blob/master/CHANGELOG.md" target="_blank">Retractor 2.1.1</a>! Retractor is a tool for working with retrograde analysis (retro) chess problems.
+    Welcome to <a href="https://github.com/hwatheod/retractor/blob/master/CHANGELOG.md" target="_blank">Retractor 2.2</a>! Retractor is a tool for working with retrograde analysis (retro) chess problems.
     <br>
     In a retro problem, you play chess backwards to learn about the history of a position.
         <a href="javascript:openHelpPage('help_tutorial_1')">Click here</a> for an introduction to retros.
@@ -20,11 +20,12 @@
     Retractor can also attempt to solve a position (find the last N moves).
     </p>
 
-    <a href="javascript:openHelpPage('help_edit')">Edit mode controls</a><br>
-    <a href="javascript:openHelpPage('help_play')">Play mode controls</a><br>
-    <a href="javascript:openHelpPage('help_play_2')">Play mode details</a><br>
+    <a href="javascript:openHelpPage('help_edit')">Edit mode controls</a>&nbsp;&nbsp;&nbsp;&nbsp;
+    <a href="javascript:openHelpPage('help_play')">Play mode controls</a>&nbsp;&nbsp;&nbsp;&nbsp;
+    <a href="javascript:openHelpPage('help_play_2')">Play mode details</a>&nbsp;&nbsp;&nbsp;&nbsp;
     <a href="javascript:openHelpPage('help_solve')">Solving a position</a><br>
-    <a href="javascript:openHelpPage('help_advanced')">Advanced features</a><br>
+    <a href="javascript:openHelpPage('help_piece_markings')">Frozen, promoted, original markings on pieces</a><br>
+    <a href="javascript:openHelpPage('help_cage')">Cages</a><br>
     <a href="detectedByRetractor.html" target="_blank">What illegal positions are detected by Retractor 2? (new tab)</a><br>
     <a href="javascript:openHelpPage('help_about')">About Retractor 2</a>
 </div>
@@ -47,7 +48,7 @@
     To retract a move, drag a piece from its square to an empty square.<br>
     To uncapture a piece, select it from the right panel, then perform the retraction. To uncapture en passant, select "e.p.". <br>
     To unpromote a piece, check the box "unpromote".<br>
-    To uncastle, retract the king move, then the rook will automatically move (if legal).<br><br>
+    To uncastle, retract the king move, then the rook will automatically move (if legal).<br>
 </p>
     <p>
     The &lt; button undoes a retraction.<br>
@@ -56,7 +57,8 @@
     The &gt;&gt; button replays all retractions previously undone.<br>
     The <a href="javascript:openHelpPage('help_solve')">Solve</a> button attempts to solve the current position.<br>
     The Copy button displays all moves in a text box which you can then copy to the clipboard.<br>
-    The Paste button allows you to paste a sequence of moves.
+    The Paste button allows you to paste a sequence of moves.<br>
+    The <a href="javascript:openHelpPage('help_cage')">Cage</a> button allows you to verify, import, and export cages.
     </p>
 </div>
 
@@ -81,7 +83,7 @@
     <p>
     In the "Promoted pieces" section, Retractor shows the number of promoted pieces of each color that it could
     detect. This includes excess pieces (for example, 2 queens or 3 rooks), pieces trapped in a cage (for example,
-    White pawns on a2 and c2 with a black bishop on b1), and <a href="javascript:openHelpPage('help_advanced')">
+    White pawns on a2 and c2 with a black bishop on b1), and <a href="javascript:openHelpPage('help_piece_markings')">
     marked promoted</a> pieces.
     </p>
 
@@ -131,7 +133,7 @@
     </p>
 </div>
 
-<div class="helpPage" id="help_advanced">
+<div class="helpPage" id="help_piece_markings">
     <p>
     In Edit mode, you can mark pieces as either <em>frozen</em> or <em>promoted</em>.  By shift-clicking on a piece
     (not a pawn), the piece will cycle through the possibilities: frozen, promoted, neither.  The current markings,
@@ -147,6 +149,52 @@
     Marking a piece as promoted indicates to Retractor that this piece is promoted. This is useful if there is a
     promoted piece on the board that Retractor cannot detect, or if there is a condition "piece X is promoted"
     given in a problem.
+    </p>
+</div>
+
+<div class="helpPage" id="help_cage">
+    <p>
+        We will explain cages via an example. Click to set up <a href="javascript:openTutorialPosition('8/8/8/8/8/1P6/1PkPP3/KR1b4', 'w')">this position</a>,
+        a last move problem by Brandis. Have Retractor 2 try to solve it by clicking "Solve" and then "Solve" again.
+        As it stands, Retractor 2 finds the correct answer Ka2-a1 but also several extraneous solutions a2xb3.
+        Click one of the extraneous solutions a2xQb3 to see the position after that retraction is made. Why is it
+        wrong? Because after a2xQb3, the arrangement of units in the lower left corner (the a1-e2 rectangle) is illegal,
+        no matter how what other units are uncaptured from this point. We say that the units in the a1-e2
+        rectangle form a <b>cage</b>.<br><br>
+        Retractor knows about some cages, but this is not one of them. However, you can teach Retractor new cages. Make
+        sure you are still on the position after retracting a2xQb3. Click on the "Cage" button, then "Select All", then click on
+        the black queen on b3 to unselect it (because it is not part of the cage). Now click "Verify". Retractor says
+        that it has verified that the selected squares do indeed form a cage.<br><br>
+        Now go back to the original position (click <<), and have Retractor solve the problem again. This time, Retractor
+        reports only the correct answer Ka2-a1, because it knows about this cage.<br><br>
+        Retractor only learns cages that it can verify. So it is not possible to teach Retractor a wrong cage. However,
+        there are some correct cages that Retractor cannot verify.<br><br>
+        The Export button will download a text file of the new cages Retractor has learned, and the Import button can
+        read these files. In ths way, new cages can be persisted between sessions, and shared with other people. On every
+        import, Retractor re-verifies all the cages in the file before it learns them.<br>
+        <a href="javascript:openHelpPage('help_cage_more')">Click here</a> for more examples of cages.<br>
+        For a more formal description of the algorithm used by Retractor to verify cages, see <a href="https://github.com/hwatheod/retractor-python/blob/main/doc/cages.pdf" target="_blank">
+        this document</a> (opens in a new tab).
+    </p>
+</div>
+<div class="helpPage" id="help_cage_more">
+    <p>
+        <a href="javascript:openTutorialPosition('8/8/8/8/8/P2P4/P1kPP3/K1Bb4', 'w')">Problem by Fabel. Last move?</a><br>
+        Similar to the previous example, we must rule out the move b2xa3. If <a href="javascript:openTutorialPosition('8/8/8/8/8/P2P4/P1kPP3/K1Bb4', 'w', 'b2xQa3')">
+        b2xQa3 is retracted</a>, we have a cage in the lower left (excluding the black Queen), which Retractor can verify and then solve the original problem.<br>
+        <a href="javascript:openTutorialPosition('4BQrk/3ppK1p/4p1p1/8/8/8/8/8', 'w')">Problem by Bartolovic, Gajdos, Maslar. Last move?</a><br>
+        Here we must rule out the retractions Qh6-f8 or Qh6xNf8 followed by g7-g6.  <a href="javascript:openTutorialPosition('4BQrk/3ppK1p/4p1p1/8/8/8/8/8', 'w', 'Qh6-f8 g7-g6')">After this 2 move sequence</a>, we have a cage
+        in the upper right, excluding the white Queen which has escaped. Retractor can verify this cage, then solve the original problem.
+        <br>
+        <a href="javascript:openTutorialPosition('8/8/8/8/1P6/kP6/2PP4/KBb5', 'w')">Problem by H&#xf8;eg. Last move?</a><br>
+        Here we have two incorrect moves to rule out. First one is <a href="javascript:openTutorialPosition('8/8/8/8/1P6/kP6/2PP4/KBb5', 'w', 'c3xQb4')">c3xb4</a>.
+        This produces a cage consisting of just the White bishop and pawns (note that both kings can escape via the bottom rank and then the Black bishop can escape too).
+        Then we must rule out <a href="javascript:openTutorialPosition('8/8/8/8/1P6/kP6/2PP4/KBb5', 'w', 'Ba2xRb1')">Ba2xRb1</a>. The entire position would become an
+        impossible cage. Retractor can verify both of these cages and then solve the original problem.
+        <br><br>
+        Hints on determining cages:<br>
+        1. Visualize which units are actually trapped in a cage.<br>
+        2. Do not include any pieces that have already escaped from the cage, or have an escape route.
     </p>
 </div>
 <div class="helpPage" id="help_ettl_solution">
@@ -174,7 +222,7 @@
     Retractor 2 is developed by Theodore Hwa. It is the successor to the original
     <a href="http://xenon.stanford.edu/~hwatheod/Retractor/" target="_blank">Retractor 1.0</a>, developed by Theodore Hwa and Chad Whipkey
     in 1998.<br><br>
-    Retractor 2 Copyright (C) 2021 Theodore Hwa.<br>
+    Retractor 2 Copyright (C) 2023 Theodore Hwa.<br>
     <a href="mailto:hwatheod@cs.stanford.edu">hwatheod@cs.stanford.edu</a>
     <br><br>
     Source code available at the <a href="https://github.com/hwatheod/retractor" target="_blank">Retractor 2 github repository</a>.

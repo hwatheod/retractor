@@ -116,12 +116,12 @@ function trySetPromoted(file, rank, piece) {
 }
 
 function clickSquare(event) {
-	if (currentMode == MODE_EDIT) {
-        const square = event.target;
-		if (square.className != "cell") { // off the board
-			return false;
-		}
+	const square = event.target;
+	if (square.className != "cell") { // off the board
+		return false;
+	}
 
+	if (currentMode == MODE_EDIT) {
 		if (event.button == 2) { // right button
 			if (board[square.mFile][square.mRank].unit != 'K') {
 				clearSquare(square);
@@ -164,10 +164,33 @@ function clickSquare(event) {
 		}
 	}
 
+	if (currentMode == MODE_PLAY && verifyCageSelectionMode) {
+		if (isEmpty(board[square.mFile][square.mRank])) {
+			return false;
+		}
+		const boardSquare = new Square(square.mFile, square.mRank);
+		let squareIndex = -1;
+		verifyCageSelectedSquares.forEach((selectedSquare, i) => {
+			if (selectedSquare.mFile == boardSquare.mFile && selectedSquare.mRank == boardSquare.mRank) {
+				squareIndex = i;
+			}
+		});
+		if (squareIndex == -1) { // new square, add it
+			square.style.opacity = 0.5;
+			verifyCageSelectedSquares.push(boardSquare);
+		} else { // existing square, remove it
+			square.style.opacity = 1.0;
+			verifyCageSelectedSquares.splice(squareIndex, 1);
+		}
+	}
+
 	return false;
 }
 
 dragSquare = function (event) {
+	if (verifyCageSelectionMode) {
+		return false;
+	}
     const square = event.target;
 	if (square.className != "cell") { // off the board
 		return false;
@@ -228,6 +251,9 @@ dragSquare = function (event) {
 }
 
 dragEnterSquare = function (event) {
+	if (verifyCageSelectionMode) {
+		return false;
+	}
 	if (!(isEmpty(pieceDragged))) {
         const square = event.target;
 		if (square.className != "cell") { // off the board
@@ -250,6 +276,9 @@ dragEnterSquare = function (event) {
 }
 
 dragEnd = function (event) {
+	if (verifyCageSelectionMode) {
+		return false;
+	}
 	if (isEmpty(pieceDragged)) {
 		return false;
 	}
@@ -262,6 +291,9 @@ dragOverSquare = function() {
 }
 
 dragLeaveSquare = function (event) {
+	if (verifyCageSelectionMode) {
+		return false;
+	}
 	if (!(isEmpty(pieceDragged))) {
         const square = event.target;
 		if (square.className != "cell") { // off the board
@@ -275,6 +307,9 @@ dragLeaveSquare = function (event) {
 }
 
 dragOntoSquare = function(event) {
+	if (verifyCageSelectionMode) {
+		return false;
+	}
 	if (isEmpty(pieceDragged)) {
 		return false;
 	}
@@ -330,13 +365,13 @@ dragOntoSquare = function(event) {
 }
 
 let legalityCheckerWorker = null;
-let legalityCheckingDone = true;
+let legalityCheckingActive = false;
 function resetLegalityCheckerWorker() {
-	if (legalityCheckerWorker && !legalityCheckingDone) {
+	if (legalityCheckerWorker && legalityCheckingActive) {
 		legalityCheckerWorker.terminate();
 		legalityCheckerWorker = null;
 	}
-	legalityCheckingDone = true;
+	legalityCheckingActive = false;
 	showError("");
 }
 
@@ -344,26 +379,30 @@ function asyncLegalityCheck() {
 	if (!legalityCheckerWorker) {
 		legalityCheckerWorker = new Worker("legalityCheckerWorker.js");
 		legalityCheckerWorker.onmessage = function(e) {
-			legalityCheckingDone = true;
+			legalityCheckingActive = false;
 			resetLegalityCheckerWorker();
 			const error = e.data[0];
 			const tempUndoStack = new UndoStack();
 			tempUndoStack.set(e.data[1]);
 			positionData.update(tempUndoStack);
 			getPawnCaptureCache().set(e.data[2]);
+			const errorSquares = e.data[3];
 			updateVisualBoard();
 			if (error != error_ok) {
 				document.getElementById("illegalPositionErrorMessage").innerHTML = errorText[error];
 				showModal("illegalPositionModal");
+				errorSquares.forEach(square => {
+					document.getElementById(square.mFile + ":" + square.mRank).style.opacity = 0.5;
+				});
 			} else {
 				showError("");
 			}
 		}
 	}
 
-	legalityCheckingDone = false;
-	legalityCheckerWorker.postMessage([board, positionData, currentRetract, getPawnCaptureCache()]);
-	setTimeout(function() { if (!legalityCheckingDone) showError("Checking legality..."); }, 500);
+	legalityCheckingActive = true;
+	legalityCheckerWorker.postMessage([board, positionData, currentRetract, getPawnCaptureCache(), knownCages]);
+	setTimeout(function() { if (legalityCheckingActive) showError("Checking legality..."); }, 500);
 }
 
 
@@ -405,7 +444,7 @@ function updatePieceCounts() {
 
 function updateEditModeData() {
 	updatePieceCounts();
-	document.getElementById("forsytheText").value = getForsythe();
+	document.getElementById("forsytheText").value = getForsythe(board);
 	updateFlags();
 }
 
@@ -431,11 +470,7 @@ function updateFlags() {
 	}
 }
 
-function updateVisualBoard(mode) {
-	if (mode == null) {
-		mode = currentMode;
-	}
-
+function updateVisualBoard() {
     for (let file = 0; file < 8; file++) {
 		for (let rank = 0; rank < 8; rank++) {
             const square = document.getElementById(file + ":" + rank);
@@ -444,13 +479,13 @@ function updateVisualBoard(mode) {
 		}
 	}
 
-    if (mode == MODE_EDIT) {
+    if (currentMode == MODE_EDIT) {
     	updateEditModeData();
 	}
 
-	if (mode == MODE_PLAY) {
+	if (currentMode == MODE_PLAY) {
 		updateRetractGui();
-		document.getElementById("forsytheText").value = getForsythe();
+		document.getElementById("forsytheText").value = getForsythe(board);
 
 		const [whiteUnitCount, blackUnitCount] = getUnitCounts();
 		const moveCount = getMoveCount();
@@ -512,8 +547,9 @@ function navigateToMove(event) {
 	const moveIndex = parseInt(idSplit[2]);
 	for (let i = 0; i < moveIndex; i++) {
 		const move = solutions[solutionIndex][i];
-		assert(doRetraction(move.from, move.to, move.uncapturedUnit, move.unpromote, true, true) == error_ok,
-			"Illegal move " + moveToString(move) + " found in solution");
+		// we only check for pseudo-legality here because a new cage might change a legal move to an illegal move
+		assert(doRetraction(move.from, move.to, move.uncapturedUnit, move.unpromote, true, false) == error_ok,
+			"Non-pseudolegal move " + moveToString(move) + " found in solution");
 	}
 	navigatedMoveIndex = moveIndex;
 	updateVisualBoard();

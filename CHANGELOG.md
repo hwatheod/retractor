@@ -1,3 +1,15 @@
+v2.2
+
+New feature: Cages
+* "Cage" feature added which allows users to specify a cage to be verified by Retractor.
+If verification succeeds, Retractor uses this cage for future solving.
+* Verified cages may be exported and imported.
+* For more details and examples, see the "Cages" link in the software.
+* For a more formal description of the cage verification algorithm, see [this document](https://github.com/hwatheod/retractor-python/blob/main/doc/cages.pdf). 
+
+Other changes
+* Minor fixes with illegal move detection and reporting when pasting a game.
+
 v2.1.1
 * For solving, add option to specify that White or Black or both sides cannot uncapture. (Issue #4)
 

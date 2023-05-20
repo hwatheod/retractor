@@ -7,14 +7,14 @@
   update the numbers in the table below. Reset all testSolved to true and testUnsolved to false, and otherTest to
   describe, before committing.
 
-  Type    Solved     Unsolved     Total
-  other   14          3           17
-  A       25         34           59
-  B       32         27           59
-  C       53          7           60
-  D       73         88          161
-  ----------------------------------
-  total  197        159          356
+  Type    Solved     Solved with cages     Unsolved     Total
+  other   14                                  3           17
+  A       25                23               11           59
+  B       32                24                3           59
+  C       53                 7                0           60
+  D       73                16               72          161
+  ----------------------------------------------------------
+  total  197                70               89          356
  */
 
 const typeA = {testSolved: true, testUnsolved: false};
@@ -179,9 +179,18 @@ describe("some problems with unique solutions", function() {
   https://www.janko.at/Retros/Records/EqualLastMove/index.htm  (equal last move)
  */
 
+function addCage(forsythe) {
+    console.log("Adding cage " + forsythe);
+    setForsythe(forsythe);
+    setRetract("w");
+    startPlay(false);
+    expect(verifyCageInternal(true).isCageVerified).toBe(true);
+    stopPlay(false);
+}
+
 describe("type A last move problems", function() {
     const defaultExtraDepth = 3;
-    function testProblem(forsythe, solution, toRetract, extraDepth, func) {
+    function testProblem(testPositionAndCages, solution, toRetract, extraDepth, func) {
         if (extraDepth == null) {
             extraDepth = defaultExtraDepth;
         }
@@ -191,7 +200,16 @@ describe("type A last move problems", function() {
         if (toRetract == null) {
             toRetract = "w";
         }
+        let forsythe;
+        if (typeof testPositionAndCages == 'string') {
+            forsythe = testPositionAndCages;
+        } else {
+            forsythe = testPositionAndCages[0];
+        }
         func(forsythe, function() {
+            if (typeof testPositionAndCages != 'string') {
+                testPositionAndCages.slice(1).forEach(addCage);
+            }
             setForsythe(forsythe);
             setRetract(toRetract);
             expect(errorText[startPlay()]).toBe(errorText[error_ok]);
@@ -208,14 +226,14 @@ describe("type A last move problems", function() {
         });
     }
 
-    function xtestProblem(forsythe, solution, toRetract, extraDepth) {
+    function xtestProblem(testPositionAndCages, solution, toRetract, extraDepth) {
         if (toRetract == null) {
             toRetract = "w";
         }
         if (extraDepth == null) {
             extraDepth = defaultExtraDepth;
         }
-        testProblem(forsythe, solution, toRetract, extraDepth, typeA.testUnsolved ? it : xit);
+        testProblem(testPositionAndCages, solution, toRetract, extraDepth, typeA.testUnsolved ? it : xit);
     }
 
     beforeAll(function() {
@@ -227,13 +245,17 @@ describe("type A last move problems", function() {
         jasmine.addCustomEqualityTester(matchMoveTypeWithMove);
     });
 
+    afterEach(function() {
+        clearCages();
+    });
+
     /* Brandis, Albrecht */
-    xtestProblem("8/8/8/8/8/1P6/1PkPP3/KR1b4", "K-");
+    testProblem(["8/8/8/8/8/1P6/1PkPP3/KR1b4", "8/8/8/8/8/8/PPkPP3/KR1b4"], "K-");
     /* Ceriani, Luigi */
     testProblem("3bkN1K/pppprp1p/4p1p1/8/8/8/8/8", "KxQ");
     /* Brandis, Albrecht; August, Hugo; Hoeg, Niels; Dawson, Thomas R.; Onitiu,
         Valerian */
-    xtestProblem("8/8/8/8/8/1P1P4/1PPRP3/K1k5", "KxR");
+    testProblem(["8/8/8/8/8/1P1P4/1PPRP3/K1k5", "8/8/8/8/8/3P4/PPPRP3/K1k5"], "KxR");
     /* Hoeg, Niels; August, Hugo */
     testProblem("8/8/8/8/8/P7/KPkPP3/2qb4", "KxB");
     /* August, Hugo; Brennert, Otto; Dawson, Thomas R.; Hoeg, Niels; Onitiu, Valerian */
@@ -243,11 +265,12 @@ describe("type A last move problems", function() {
     /* Ceriani, Luigi */
     testProblem("8/8/8/8/8/4PPPk/3PPprb/5KQ1", "Q-");
     /* Bartolovic, Vojko; Buljan, Rudolf */
-    xtestProblem("k1bQ2b1/ppKppp1B/2p3p1/8/8/8/8/8", "QxQ");
+    testProblem(["k1bQ2b1/ppKppp1B/2p3p1/8/8/8/8/8", "8/ppKpppp1/2p5/8/8/8/8/8", "k1br2b1/ppKppp1B/2p3p1/8/8/8/8/8"],
+        "QxQ");
     /* Willcocks, Theophilus Harding and Keym, Werner */
     testProblem("1qkB4/P1brp3/Kppp4/1p6/8/8/8/8", "QxR", "b");
     /* Bartolovic, Vojko; Gajdos, Istvan; Maslar, Zdravko */
-    xtestProblem("4BQrk/3ppK1p/4p1p1/8/8/8/8/8", "QxB");
+    testProblem(["4BQrk/3ppK1p/4p1p1/8/8/8/8/8", "4B1rk/3ppKpp/4p3/8/8/8/8/8"], "QxB");
     /* Fabel, Karl */
     testProblem("8/8/8/8/8/8/P1PPP1P1/k1KQ1B2", "QxN");
     /* Christiaans, Frank */
@@ -259,45 +282,49 @@ describe("type A last move problems", function() {
     /* Willcocks, Theophilus Harding */
     testProblem("3B2Rb/2p1pkPK/3ppp1p/8/8/8/8/8", "RxR");
     /* Cross, Harold Holgate */
-    xtestProblem("R1qk4/K1ppRppp/pp2p3/8/8/8/8/8", "RxB");
+    testProblem(["R1qk4/K1ppRppp/pp2p3/8/8/8/8/8", "1rqk4/K1ppRppp/pp2p3/8/8/8/8/8"], "RxB");
     /* Fabel, Karl and Willcocks, Theophilus Harding */
     testProblem("2b1RK1k/1p1ppp1p/8/8/8/8/8/8", "RxN");
     /* Keym, Werner and Christiaans, Frank */
     xtestProblem("8/1N2p1p1/K7/1RP5/k2P4/B3B3/PPPP4/8", "RxP");
     /* Fabel, Karl */
-    xtestProblem("8/8/8/8/8/P2P4/P1kPP3/K1Bb4", "B-");
+    testProblem(["8/8/8/8/8/P2P4/P1kPP3/K1Bb4", "8/8/8/8/8/3P4/PPkPP3/K1Bb4"], "B-");
     /* Keym, Werner */
+    // a cage can exclude B- but not BxQ vs BxR
     xtestProblem("4nb1k/p1pppKpB/1p3pp1/8/8/8/8/8", "BxQ");
     /* Willcocks, Theophilus Harding */
-    xtestProblem("5kb1/2pRRp2/3ppKpp/8/8/8/8/8", "BxR", "b");
+    testProblem(["5kb1/2pRRp2/3ppKpp/8/8/8/8/8", "8/5ppb/6p1/8/8/8/8/8"], "BxR", "b", 4);
     /* Bartolovic, Vojko; Gajdos, Istvan; Maslar, Zdravko */
-    xtestProblem("4BBrk/3ppK1p/4p1p1/8/8/8/8/8", "BxB");
+    testProblem(["4BBrk/3ppK1p/4p1p1/8/8/8/8/8", "4B1rk/3ppKpp/4p3/8/8/8/8/8"], "BxB");
     /* Hoeg, Niels */
-    xtestProblem("8/8/8/8/1P6/kP6/2PP4/KBb5", "BxN");
+    testProblem(["8/8/8/8/1P6/kP6/2PP4/KBb5", "8/8/8/8/8/1PP5/2PP4/1B6", "8/8/8/8/1P6/kP6/BrPP4/K1b5"], "BxN");
     /* Caillaud, Michel */
     testProblem("8/8/8/P7/RP6/K1PP4/1BqRP3/1kBB4", "BxP");
     /* Willcocks, Theophilus Harding */
     testProblem("8/8/8/8/8/3P4/PPkPP3/K1Nb4", "N-");
     /* Willcocks, Theophilus Harding */
-    xtestProblem("4BNNk/3ppKR1/4ppp1/8/8/8/8/8", "NxQ");
-    /* Fabel, Karl */ // can solve as type B problem
-    xtestProblem("8/8/8/8/8/1P1P4/1PkPP3/K1nb4", "NxR", "b");
+    testProblem(["4BNNk/3ppKR1/4ppp1/8/8/8/8/8", "4BN1k/3ppK1p/4pp2/8/8/8/8/8", "4BN1k/3ppKRb/4ppp1/8/8/8/8/8"],
+        "NxQ");
+    /* Fabel, Karl */ // can solve as type B problem without specifying cage
+    testProblem(["8/8/8/8/8/1P1P4/1PkPP3/K1nb4", "8/8/8/8/8/3P4/PPkPP3/K1nb4"], "NxR", "b");
     /* Willcocks, Theophilus Harding */
-    xtestProblem("4BNrk/3ppK1p/6pp/8/8/8/8/8", "NxB");
+    testProblem(["4BNrk/3ppK1p/6pp/8/8/8/8/8", "4B1rk/3ppKpp/6p1/8/8/8/8/8"], "NxB");
     /* August, Hugo; Brandis, Albrecht; Dawson, Thomas R. */
-    xtestProblem("8/8/8/8/8/8/PPkPP3/K1nb4", "NxN", "b");
+    testProblem(["8/8/8/8/8/8/PPkPP3/K1nb4", "8/8/8/8/8/8/PPkPP3/K1Rb4"], "NxN", "b");
     /* Bartolovic, Vojko; Maslar, Zdravko */
     testProblem("5k1K/3pRP2/4pRqN/5prb/6p1/8/8/8", "NxP");
     /* Fabel, Karl */
     testProblem("8/8/8/8/8/1P1P4/PPprP3/k1K5", "P-", "b");
     /* Keym, Werner */
-    xtestProblem("k1KB4/PpRpp1p1/b1p2p2/1p6/8/8/8/8", "PxQ");
+    testProblem(["k1KB4/PpRpp1p1/b1p2p2/1p6/8/8/8/8", "2K5/1p1pppp1/1pp5/8/8/8/8/8", "k1KB4/rpRpppp1/b1p5/1p6/8/8/8/8"],
+        "PxQ");
     /* Willcocks, Theophilus Harding */
-    xtestProblem("5kbK/3pRp1P/4pp1P/6p1/8/8/8/8", "PxR");
+    testProblem(["5kbK/3pRp1P/4pp1P/6p1/8/8/8/8", "5k1K/3pRpp1/4p3/8/8/8/8/8", "5kb1/3pRp2/4ppp1/8/8/8/8/8", "5kbK/3pRp2/4pp1p/8/8/8/8/8"],
+        "PxR");
     /* Dawson, Thomas R. */
     testProblem("k1Kb4/PpRpp3/b1p5/1p6/8/8/8/8", "PxB");
     /* Willcocks, Theophilus Harding */
-    xtestProblem("5k1K/3pRp1P/4p1pP/7p/8/8/8/8", "PxN");
+    testProblem(["5k1K/3pRp1P/4p1pP/7p/8/8/8/8", "5k1K/3pRpp1/4p3/8/8/8/8/8"], "PxN");
     /* Frolkin, Andrej; Keym, Werner */
     xtestProblem("7k/5BpP/6PP/5BK1/6BP/7P/6P1/8", "PxP");
     /* Keym, Werner */
@@ -308,17 +335,20 @@ describe("type A last move problems", function() {
     /* Willcocks, Theophilus Harding */
     testProblem("4bKQ1/3prB2/4pRPk/5ppp/8/8/8/8", "PxR=Q");
     /* Willcocks, Theophilus Harding */
-    xtestProblem("4BQrr/pp1ppK1k/2p1p1pp/8/8/8/8/8", "PxB=Q");
-    /* Willcocks, Theophilus Harding */ // can solve as type B problem
-    xtestProblem("4BQ1q/3ppK1k/4pp1p/8/8/8/8/8", "PxN=Q");
+    testProblem(["4BQrr/pp1ppK1k/2p1p1pp/8/8/8/8/8", "8/pppppKp1/4p1p1/8/8/8/8/8", "4Bnrr/pppppK1k/4p1pp/8/8/8/8/8"],
+        "PxB=Q");
+    /* Willcocks, Theophilus Harding */ // can solve as type B problem without specifying cage
+    testProblem(["4BQ1q/3ppK1k/4pp1p/8/8/8/8/8", "4BQ1q/3ppKpk/4p2p/8/8/8/8/8"], "PxN=Q");
     /* Keym, Werner */
     testProblem("bRr1B3/k1pKpp2/ppp5/8/8/8/8/8", "P-=R");
     /* Mortensen, Jan */
-    xtestProblem("k1KQRb2/ppppp1p1/5p2/7p/8/8/8/8", "PxQ=R");
+    testProblem(["k1KQRb2/ppppp1p1/5p2/7p/8/8/8/8", "k1KQrb2/ppppp1p1/5p2/8/8/8/8/8", "k1KQnb2/ppppp1p1/5p2/8/8/8/8/8"],
+        "PxQ=R");
     /* Keym, Werner */
     xtestProblem("1RbRRK1k/1p1ppppp/2p5/8/8/8/8/8", "PxR=R");
     /* Keym, Werner */
-    xtestProblem("RK1k4/r1ppRpp1/pp2p2p/8/8/8/8/8", "PxB=R");
+    testProblem(["RK1k4/r1ppRpp1/pp2p2p/8/8/8/8/8", "1K6/1ppp1ppp/p3p3/8/8/8/8/8", "1K6/1ppp1ppp/1p2p3/8/8/8/8/8", "nK1k4/r1ppRppp/pp2p3/8/8/8/8/8"],
+        "PxB=R");
     /* Fabel, Karl */
     testProblem("3BRK1k/2p1pp1p/8/8/8/8/8/8", "PxN=R");
     /* Røpke, Vilhelm */
@@ -326,7 +356,8 @@ describe("type A last move problems", function() {
     /* Keym, Werner */
     xtestProblem("kB1K4/1p1ppppp/pB1B4/1pB5/8/8/8/8", "PxQ=B");
     /* Willcocks, Theophilus Harding */
-    xtestProblem("kBRB4/1pKpp1p1/1pp5/7p/8/8/8/8", "PxR=B");
+    testProblem(["kBRB4/1pKpp1p1/1pp5/7p/8/8/8/8", "kBRB4/ppKpp3/2p5/8/8/8/8/8", "1nRB4/ppKpp3/2p5/8/8/8/8/8", "1nRB4/1pKpp3/1pp5/8/8/8/8/8"],
+        "PxR=B");
     /* Kuner, Hans Theo */
     xtestProblem("5BBK/1p1pp1p1/5pPk/7B/5P1P/5B2/8/8", "PxB=B");
     /* Darvall, Robert J. */
@@ -335,10 +366,11 @@ describe("type A last move problems", function() {
     testProblem("Nrk1K3/1pp1prp1/5p2/8/8/8/8/8", "P-=N");
     /* Bartolovic, Vojko; Maslar, Zdravko */ // can solve as type B problem
     testProblem("2bK1kN1/1pppprp1/5p1p/8/8/8/8/8", "PxQ=N");
-    /* Willcocks, Theophilus Harding */ // can solve as type B problem
-    xtestProblem("3BN1qk/2pRK1pp/3ppp2/8/8/8/8/8", "PxR=N");
+    /* Willcocks, Theophilus Harding */ // can solve as type B problem without specifying cages
+    testProblem(["3BN1qk/2pRK1pp/3ppp2/8/8/8/8/8", "3B1rqk/2pRKppp/3pp3/8/8/8/8/8", "3BN1qk/2pRKppp/3p1p2/8/8/8/8/8"],
+        "PxR=N");
     /* Ceriani, Luigi */
-    xtestProblem("2bk1K1N/1ppp1p1q/p5pp/8/8/8/8/8", "PxB=N");
+    testProblem(["2bk1K1N/1ppp1p1q/p5pp/8/8/8/8/8", "2bk1K1n/1ppp1p1q/6pp/8/8/8/8/8"], "PxB=N");
     /* Willcocks, Theophilus Harding */
     testProblem("K1krNB2/p1ppp1p1/5p2/8/8/8/8/8", "PxN=N");
     /* Willcocks, Theophilus Harding */
@@ -351,7 +383,7 @@ describe("type A last move problems", function() {
 
 describe("type B last move problems", function() {
     const defaultExtraDepth = 3;
-    function testProblem(forsythe, solution, toRetract, extraDepth, func) {
+    function testProblem(testPositionAndCages, solution, toRetract, extraDepth, func) {
         if (extraDepth == null) {
             extraDepth = defaultExtraDepth;
         }
@@ -361,7 +393,16 @@ describe("type B last move problems", function() {
         if (toRetract == null) {
             toRetract = "w";
         }
+        let forsythe;
+        if (typeof testPositionAndCages == 'string') {
+            forsythe = testPositionAndCages;
+        } else {
+            forsythe = testPositionAndCages[0];
+        }
         func(forsythe, function() {
+            if (typeof testPositionAndCages != 'string') {
+                testPositionAndCages.slice(1).forEach(addCage);
+            }
             setForsythe(forsythe);
             setRetract(toRetract);
             expect(errorText[startPlay()]).toBe(errorText[error_ok]);
@@ -372,14 +413,14 @@ describe("type B last move problems", function() {
         });
     }
 
-    function xtestProblem(forsythe, solution, toRetract, extraDepth) {
+    function xtestProblem(testPositionAndCages, solution, toRetract, extraDepth) {
         if (toRetract == null) {
             toRetract = "w";
         }
         if (extraDepth == null) {
             extraDepth = defaultExtraDepth;
         }
-        testProblem(forsythe, solution, toRetract, extraDepth, typeB.testUnsolved ? it : xit);
+        testProblem(testPositionAndCages, solution, toRetract, extraDepth, typeB.testUnsolved ? it : xit);
     }
 
     beforeAll(function() {
@@ -389,6 +430,10 @@ describe("type B last move problems", function() {
     beforeEach(function() {
         clearBoard();
         jasmine.addCustomEqualityTester(matchMoveTypeWithMove);
+    });
+
+    afterEach(function() {
+        clearCages();
     });
 
     /* Mortensen, Jan */
@@ -404,19 +449,21 @@ describe("type B last move problems", function() {
     /* Mortensen, Jan */
     testProblem("8/8/8/1q1r4/q7/2K5/8/2k5", "KxP");
     /* Buchanan, Andrew */
-    xtestProblem("Qb6/1rp5/ppK1k3/8/8/8/8/8", "Q-");
-    /* Bartolovic, Vojko; Buljan, Rudolf */
-    xtestProblem("k1bQ2b1/ppKppp1B/2p3p1/8/8/8/8/8", "QxQ");
+    testProblem(["Qb6/1rp5/ppK1k3/8/8/8/8/8", "qb6/Qrp5/pp6/8/8/8/8/8", "rb6/Qrp5/pp6/8/8/8/8/8",
+        "bb6/Qrp5/pp6/8/8/8/8/8", "nb6/Qrp5/pp6/8/8/8/8/8", "1b6/Prp5/pp6/8/8/8/8/8"], "Q-");
+    /* Bartolovic, Vojko; Buljan, Rudolf */ // duplicate of type A problem
+    testProblem(["k1bQ2b1/ppKppp1B/2p3p1/8/8/8/8/8", "8/ppKpppp1/2p5/8/8/8/8/8", "k1br2b1/ppKppp1B/2p3p1/8/8/8/8/8"],
+        "QxQ");
     /* Willcocks, Theophilus Harding and Keym, Werner */
     testProblem("1qkB4/P1brp3/Kppp4/1p6/8/8/8/8", "QxR", "b");
-    /* Bartolovic, Vojko; Gajdos, Istvan; Maslar, Zdravko */
-    xtestProblem("4BQrk/3ppK1p/4p1p1/8/8/8/8/8", "QxB");
+    /* Bartolovic, Vojko; Gajdos, Istvan; Maslar, Zdravko */ // duplicate of type A problem
+    testProblem(["4BQrk/3ppK1p/4p1p1/8/8/8/8/8", "4B1rk/3ppKpp/4p3/8/8/8/8/8"], "QxB");
     /* Mortensen, Jan */
     testProblem("qQK1k3/p1p5/1p6/8/8/8/8/8", "QxN");
     /* Bartolovic, Vojko; Buljan, Rudolf */
     xtestProblem("7r/pp1p2nQ/5k1K/p6n/4p3/p7/p6P/8", "QxP");
     /* Hildebrand, Alexander */
-    xtestProblem("8/8/8/6k1/8/5pKP/5PP1/6bR", "R-");
+    testProblem(["8/8/8/6k1/8/5pKP/5PP1/6bR", "8/8/8/8/8/7P/5PPR/6bq", "8/8/8/8/8/7P/5PPR/6br"], "R-");
     /* Gajdos, Istvan */
     testProblem("1RK1kb2/1pRpppp1/b1p5/1p6/8/8/8/8", "RxQ");
     /* Willcocks, Theophilus Harding */
@@ -425,78 +472,82 @@ describe("type B last move problems", function() {
     testProblem("8/8/8/8/6PP/5Prk/4Pr2/5bRK", "RxB");
     /* Mortensen, Jan */
     testProblem("qRK1k3/p1p5/1p6/8/8/8/8/8", "RxN");
-    /* Keym, Werner and Christiaans, Frank */
+    /* Keym, Werner and Christiaans, Frank */ // duplicate of type A problem
     xtestProblem("8/1N2p1p1/K7/1RP5/k2P4/B3B3/PPPP4/8", "RxP");
     /* Bartolovic, Vojko; Buljan, Rudolf; Maslar, Zdravko */
     testProblem("6kB/4pR1p/5ppK/8/8/8/8/8", "B-");
     /* Keym, Werner */
-    xtestProblem("4KBBk/2prpp2/3p2pp/8/8/8/8/8", "BxQ");
+    testProblem(["4KBBk/2prpp2/3p2pp/8/8/8/8/8", "5B2/4ppp1/8/8/8/8/8/8", "4KBrk/2prpp1B/3p2pp/8/8/8/8/8",
+            "4KB1k/2prpp1P/3p2pp/8/8/8/8/8"], "BxQ");
     /* Varnholt, Jörn */
     testProblem("4Bb1B/3ppK1k/5ppp/8/8/8/8/8", "BxR");
-    /* Bartolovic, Vojko; Gajdos, Istvan; Maslar, Zdravko */
-    xtestProblem("4BBrk/3ppK1p/4p1p1/8/8/8/8/8", "BxB");
+    /* Bartolovic, Vojko; Gajdos, Istvan; Maslar, Zdravko */ // duplicate of type A problem
+    testProblem(["4BBrk/3ppK1p/4p1p1/8/8/8/8/8", "4B1rk/3ppKpp/4p3/8/8/8/8/8"], "BxB");
     /* Bajtay, Jozsef; Hernitz, Zvonimir */
-    xtestProblem("8/8/8/8/8/6P1/5Pr1/3k1KBr", "BxN");
+    testProblem(["8/8/8/8/8/6P1/5Pr1/3k1KBr", "8/8/8/8/8/6P1/5PrB/6br"], "BxN");
     /* Caillaud, Michel */
     testProblem("8/8/8/P7/RP6/K1PP4/1BqRP3/1kBB4", "BxP");
     /* Uppström, Rolf */
     testProblem("8/8/8/8/8/1P6/kP1PP3/N1Kb4", "N-");
     /* Bartolovic, Vojko; Buljan, Rudolf */
-    xtestProblem("2bk2NR/1p1ppppK/7p/8/8/8/8/8", "NxQ");
+    testProblem(["2bk2NR/1p1ppppK/7p/8/8/8/8/8", "2b3rR/1p1ppppK/7p/8/8/8/8/8", "6nR/4pppK/7p/8/8/8/8/8"], "NxQ");
     /* Uppström, Rolf */
     testProblem("4bk1N/3pp1pK/6p1/8/8/8/8/8", "NxR");
-    /* Willcocks, Theophilus Harding */
-    xtestProblem("4BNrk/3ppK1p/6pp/8/8/8/8/8", "NxB");
-    /* August, Hugo; Brandis, Albrecht; Dawson, Thomas R. */
-    xtestProblem("8/8/8/8/8/8/PPkPP3/K1nb4", "NxN", "b");
+    /* Willcocks, Theophilus Harding */ // duplicate of type A problem
+    testProblem(["4BNrk/3ppK1p/6pp/8/8/8/8/8", "4B1rk/3ppKpp/6p1/8/8/8/8/8"], "NxB");
+    /* August, Hugo; Brandis, Albrecht; Dawson, Thomas R. */ // duplicate of type A problem
+    testProblem(["8/8/8/8/8/8/PPkPP3/K1nb4", "8/8/8/8/8/8/PPkPP3/K1Rb4"], "NxN", "b");
     /* Bartolovic, Vojko; Maslar, Zdravko */
     testProblem("5k1K/3pRP2/4pRqN/5prb/6p1/8/8/8", "NxP");
     /* Dawson, Thomas R. */
     testProblem("K7/P1k5/8/8/8/8/8/8", "P-");
     /* Bartolovic, Vojko; Grinblat, Uri */
     testProblem("BbK1k3/Pp2ppp1/p1p5/1p6/8/8/8/8", "PxQ");
-    /* Willcocks, Theophilus Harding */
-    xtestProblem("5kbK/3pRp1P/4pp1P/6p1/8/8/8/8", "PxR");
+    /* Willcocks, Theophilus Harding */ // duplicate of type A problem
+    testProblem(["5kbK/3pRp1P/4pp1P/6p1/8/8/8/8", "5k1K/3pRpp1/4p3/8/8/8/8/8", "5kb1/3pRp2/4ppp1/8/8/8/8/8", "5kbK/3pRp2/4pp1p/8/8/8/8/8"],
+        "PxR");
     /* Dawson, Thomas R. */
     testProblem("k1Kb4/PpRpp3/b1p5/1p6/8/8/8/8", "PxB");
     /* Mortensen, Jan */
     testProblem("BK1k4/Pp6/p7/8/8/8/8/8", "PxN");
-    /* Frolkin, Andrej; Keym, Werner */
+    /* Frolkin, Andrej; Keym, Werner */ // duplicate of type A problem
     xtestProblem("7k/5BpP/6PP/5BK1/6BP/7P/6P1/8", "PxP");
     /* Cate, Pieter; Egmont, S.; Fabel, Karl; Hernitz, Zvonimir; Hildebrand, Alexander;
         Vorgic, Veljko */
     testProblem("QKn5/1p6/1k6/8/p7/8/8/8", "P-=Q");
     /* Keym, Werner */
-    xtestProblem("nQr1B3/1ppKpp2/kp6/8/8/8/8/8", "PxQ=Q");
+    testProblem(["nQr1B3/1ppKpp2/kp6/8/8/8/8/8", "nrr1B3/1ppKpp2/1p6/8/8/8/8/8", "1b6/1pp5/1p6/8/8/8/8/8"],
+        "PxQ=Q");
     /* Mortensen, Jan; Keym, Werner */
-    xtestProblem("4n1QB/4p1pK/4pkpp/8/8/8/8/8", "PxR=Q");
+    testProblem(["4n1QB/4p1pK/4pkpp/8/8/8/8/8", "6nB/4p1pK/6pp/8/8/8/8/8"], "PxR=Q");
     /* Mortensen, Jan */
-    xtestProblem("KQb5/Rp1p4/p1pp4/k7/8/8/8/8", "PxB=Q");
+    testProblem(["KQb5/Rp1p4/p1pp4/k7/8/8/8/8", "Knb5/Rp1p4/p1p5/8/8/8/8/8"], "PxB=Q");
     /* Abdurahmanovic, Fadil; Bartolovic, Vojko; Birek, Vladimir; Buljan, Rudolf;
         Cate, Pieter; Ehrlich, Dov; Grinblat, Uri; Hernitz, Zvonimir; Hildebrand, Alexander;
         Maslar, Zdravko; Myllyniemi, Matti Arvo; Tucakov, Jozo */
-    xtestProblem("KQn5/1pp5/kp6/8/8/8/8/8", "PxN=Q");
+    testProblem(["KQn5/1pp5/kp6/8/8/8/8/8", "1b6/1pp5/1p6/8/8/8/8/8"], "PxN=Q");
     /* Abdurahmanovic, Fadil; Bartolovic, Vojko; Birek, Vladimir; Cate, Pieter;
         Egmont, S.; Ehrlich, Dov; Gajdos, Istvan; Grinblat, Uri; Hernitz, Zvonimir;
         Hillel, Yechezkel; Maslar, Zdravko; Myllyniemi, Matti Arvo; Ruppin, Rafi; Vorgic,
         Veljko */
     testProblem("4n1RK/5k1p/6p1/8/8/8/8/8", "P-=R");
     /* Keym, Werner */
-    xtestProblem("nRr1B3/1ppKpp2/kp6/8/8/8/8/8", "PxQ=R");
+    testProblem(["nRr1B3/1ppKpp2/kp6/8/8/8/8/8", "nrr1B3/1ppKpp2/1p6/8/8/8/8/8", "1b6/1pp5/1p6/8/8/8/8/8"],
+        "PxQ=R");
     /* Mortensen, Jan; Keym, Werner */
-    xtestProblem("k4BRB/4p1pK/6pp/8/8/8/8/8", "PxR=R");
+    testProblem(["k4BRB/4p1pK/6pp/8/8/8/8/8", "6nB/4p1pK/6pp/8/8/8/8/8"], "PxR=R");
     /* Mortensen, Jan */
-    xtestProblem("k4bRK/4p1pR/5p1p/8/8/8/8/8", "PxB=R");
+    testProblem(["k4bRK/4p1pR/5p1p/8/8/8/8/8", "5bnK/4p1pR/5p1p/8/8/8/8/8"], "PxB=R");
     /* Mortensen, Jan; Keym, Werner */
-    xtestProblem("KRn5/1pp5/kp6/8/8/8/8/8", "PxN=R");
+    testProblem(["KRn5/1pp5/kp6/8/8/8/8/8", "1b6/1pp5/1p6/8/8/8/8/8"], "PxN=R");
     /* Mortensen, Jan */
     testProblem("B7/1p6/8/8/8/8/5k1P/7K", "P-=B");
     /* Mortensen, Jan; Keym, Werner */
     testProblem("5nBK/ppppp1p1/4npkp/8/8/8/8/8", "PxQ=B");
     /* Bartolovic, Vojko */
-    xtestProblem("RBk5/Kp1p3p/pp1p3p/8/8/8/8/8", "PxR=B");
+    testProblem(["RBk5/Kp1p3p/pp1p3p/8/8/8/8/8", "Rn6/Kp1p4/pp6/8/8/8/8/8"], "PxR=B");
     /* Mortensen, Jan */
-    xtestProblem("KBb5/Rp1p4/p1pp4/k7/8/8/8/8", "PxB=B");
+    testProblem(["KBb5/Rp1p4/p1pp4/k7/8/8/8/8", "Knb5/Rp1p4/p1p5/8/8/8/8/8"], "PxB=B");
     /* Mortensen, Jan */
     testProblem("4nbBr/4pKp1/7p/5k2/8/8/8/8", "PxN=B");
     /* Bartolovic, Vojko; ten Cate, Pieter; Egmont, S. */
@@ -504,11 +555,11 @@ describe("type B last move problems", function() {
     /* Bartolovic, Vojko; Maslar, Zdravko */
     testProblem("2bK1kN1/1pppprp1/5p1p/8/8/8/8/8", "PxQ=N");
     /* Mortensen, Jan */
-    xtestProblem("BNk5/Kp1p4/ppb5/8/8/8/8/8", "PxR=N");
+    testProblem(["BNk5/Kp1p4/ppb5/8/8/8/8/8", "Bn6/Kp1p4/pp6/8/8/8/8/8"], "PxR=N");
     /* Mortensen, Jan */
-    xtestProblem("k4bNK/4p1pR/5p1p/8/8/8/8/8", "PxB=N");
+    testProblem(["k4bNK/4p1pR/5p1p/8/8/8/8/8", "5bnK/4p1pR/5p1p/8/8/8/8/8"], "PxB=N");
     /* Fabel, Karl */
-    xtestProblem("5KN1/3kppp1/6pn/8/8/8/8/8", "PxN=N");
+    testProblem(["5KN1/3kppp1/6pn/8/8/8/8/8", "6b1/5pp1/6p1/8/8/8/8/8"], "PxN=N");
     /* Mortensen, Jan */
     testProblem("8/8/8/8/Pk6/1q6/2q5/K7", "P--");
     /* Mortensen, Jan */
@@ -519,14 +570,23 @@ describe("type B last move problems", function() {
 
 describe("type C last move problems", function() {
     const defaultExtraDepth = 3;
-    function testProblem(forsythe, solution, extraDepth, func) {
+    function testProblem(testPositionAndCages, solution, extraDepth, func) {
         if (extraDepth == null) {
             extraDepth = defaultExtraDepth;
         }
         if (func == null) {
             func = typeC.testSolved ? it : xit;
         }
-        func(forsythe, function () {
+        let forsythe;
+        if (typeof testPositionAndCages == 'string') {
+            forsythe = testPositionAndCages;
+        } else {
+            forsythe = testPositionAndCages[0];
+        }
+        func(forsythe, function() {
+            if (typeof testPositionAndCages != 'string') {
+                testPositionAndCages.slice(1).forEach(addCage);
+            }
             setForsythe(forsythe);
             setRetract("w");
             expect(errorText[startPlay()]).toBe(errorText[error_ok]);
@@ -547,11 +607,15 @@ describe("type C last move problems", function() {
         jasmine.addCustomEqualityTester(matchMoveTypeWithMove);
     });
 
-    function xtestProblem(forsythe, solution, extraDepth) {
+    afterEach(function() {
+        clearCages();
+    });
+
+    function xtestProblem(testPositionAndCages, solution, extraDepth) {
         if (extraDepth == null) {
             extraDepth = defaultExtraDepth;
         }
-        testProblem(forsythe, solution, extraDepth, typeC.testUnsolved ? it : xit);
+        testProblem(testPositionAndCages, solution, extraDepth, typeC.testUnsolved ? it : xit);
     }
 
     /* Stambuk, Sveto */
@@ -568,8 +632,8 @@ describe("type C last move problems", function() {
     testProblem("8/8/8/4b1r1/7B/5K2/8/4k3", "KxP");
     /* Pavlovic, Branko and Borodatow, Leonid. N. */
     testProblem("8/8/8/8/4P3/7P/5P1k/5K1Q", "Q-");
-    /* Stambuk, Sveto */  // QxB? leads to a complex cage in the northwest corner.
-    xtestProblem("k7/QRp1K3/1p6/pP6/8/8/8/8", "QxQ");
+    /* Stambuk, Sveto */
+    testProblem(["k7/QRp1K3/1p6/pP6/8/8/8/8", "k7/bRp5/1p6/8/8/8/8/8"], "QxQ");
     /* Niemann, John; Ceriani, Luigi; Stambuk, Sveto */
     testProblem("Qk6/1PR5/1K6/p7/8/8/8/8", "QxR");
     /* Bartolovic, Vojko; Slezinger, M.; Mortensen, Jan; Slipcevic, Boris */
@@ -582,8 +646,8 @@ describe("type C last move problems", function() {
         Jozo; Mortensen, Jan; Slipcevic, Boris; Buljan, Rudolf; Suboticanec, D.; Stambuk,
         Sveto */
     testProblem("8/8/8/8/8/5P1P/5P1k/5K1R", "R-");
-    /* Mortensen, Jan; Stambuk, Sveto */ // RxB? leads to a complex cage in the northwest corner.
-    xtestProblem("k7/R1p1K3/Rp6/1P6/8/8/8/8", "RxQ");
+    /* Mortensen, Jan; Stambuk, Sveto */
+    testProblem(["k7/R1p1K3/Rp6/1P6/8/8/8/8", "k7/bRp5/1p6/8/8/8/8/8"], "RxQ");
     /* Stambuk, Sveto */
     testProblem("Rk6/1PR5/1K6/P7/8/8/8/8", "RxR");
     /* Cross, William */
@@ -595,8 +659,8 @@ describe("type C last move problems", function() {
     /* Niemann, John; Bartolovic, Vojko; Slezinger, M.; Mortensen, Jan; Slipcevic,
         Boris; Buljan, Rudolf; Skunca, I.; Stambuk, Sveto */
     testProblem("8/8/8/8/8/5R2/4NR1k/5K1B", "B-");
-    /* Keym, Werner */ // BxR? leads to a complex cage in the northeast corner.
-    xtestProblem("4R2k/4ppBB/6pp/7P/3K4/8/8/8", "BxQ");
+    /* Keym, Werner */
+    testProblem(["4R2k/4ppBB/6pp/7P/3K4/8/8/8", "5B1k/4pprB/6pp/8/8/8/8/8"], "BxQ");
     /* Bartolovic, Vojko; Slezinger, M. */
     testProblem("8/8/8/8/8/PPP5/k2R4/bBK5", "BxR");
     /* Stambuk, Sveto */
@@ -607,8 +671,8 @@ describe("type C last move problems", function() {
     testProblem("8/8/8/3K4/8/P7/BN1R4/R1k5", "BxP");
     /* Stambuk, Sveto and Keym, Werner */
     testProblem("3K3N/6pk/7P/8/8/8/B7/1B6", "N-");
-    /* Ceriani, Luigi */ // NxB? leads to illegal cluster bPb7,c7,b6 bBb8.
-    xtestProblem("BNN5/1ppp4/kp6/8/1K6/8/8/8", "NxQ");
+    /* Ceriani, Luigi */
+    testProblem(["BNN5/1ppp4/kp6/8/1K6/8/8/8", "1b6/1pp5/1p6/8/8/8/8/8"], "NxQ");
     /* Bartolovic, Vojko; Slezinger, M.; Ceriani, Luigi; Mortensen, Jan; Slipcevic,
         Boris; Buljan, Rudolf; Stambuk, Sveto */
     testProblem("8/8/8/8/8/8/5kPK/4RN1N", "NxR");
@@ -621,8 +685,8 @@ describe("type C last move problems", function() {
     testProblem("8/8/4K3/8/7P/4B1PN/6BN/6k1", "NxP");
     /* Hoeg, Niels */
     testProblem("8/8/6k1/7P/6K1/8/8/8", "P-");
-    /* Willcocks, Theophilus Harding */ // PxR? leads to a complex cage in the northeast corner.
-    xtestProblem("5B1k/2K1ppPB/6pp/5P1P/8/8/8/8", "PxQ");
+    /* Willcocks, Theophilus Harding */
+    testProblem(["5B1k/2K1ppPB/6pp/5P1P/8/8/8/8", "5B1k/4pprB/6pp/8/8/8/8/8"], "PxQ");
     /* Pavlovic, Branko */
     testProblem("5Nkn/5p1P/5K1P/6P1/8/8/8/8", "PxR");
     /* Stambuk, Sveto */
@@ -646,8 +710,9 @@ describe("type C last move problems", function() {
     testProblem("Qk6/N7/2K5/8/8/8/8/8", "PxN=Q");
     /* Pavlovic, Branko */
     testProblem("6KR/6p1/7k/8/8/8/8/8", "P-=R");
-    /* Frolkin, Andrej */ // PxR=R? or PxB=R? lead to a complex cage in the northwest corner.
-    xtestProblem("bRk5/1RbRp3/ppKp4/8/8/8/8/8", "PxQ=R");
+    /* Frolkin, Andrej */
+    testProblem(["bRk5/1RbRp3/ppKp4/8/8/8/8/8", "3b4/2p1p3/8/8/8/8/8/8", "brk5/PRbRp3/pp1p4/8/8/8/8/8", "bbk5/PRbRp3/pp1p4/8/8/8/8/8"],
+        "PxQ=R");
     /* Ceriani, Luigi */
     testProblem("6KR/5p2/6Pk/6R1/6P1/8/8/8", "PxR=R");
     /* Skunca, I.; Stambuk, Sveto */
@@ -661,8 +726,8 @@ describe("type C last move problems", function() {
     testProblem("2BR1b2/p1prp1p1/kp1p4/8/K7/8/8/8", "PxQ=B");
     /* Keym, Werner */
     testProblem("BK6/2NR4/BPk5/2P5/8/8/8/8", "PxR=B");
-    /* Bartolovic, Vojko; Slezinger, M. */ // PxN=B? leads to an impossible White king position.
-    xtestProblem("5bBK/4p1pR/5p1p/3k4/8/8/8/8", "PxB=B");
+    /* Bartolovic, Vojko; Slezinger, M. */
+    testProblem(["5bBK/4p1pR/5p1p/3k4/8/8/8/8", "5bnK/4p1pR/5p1p/8/8/8/8/8"], "PxB=B");
     /* Stambuk, Sveto */
     testProblem("6BB/7p/8/8/8/8/P7/k1K5", "PxN=B");
     /* Pavlovic, Branko */
@@ -687,14 +752,23 @@ describe("type C last move problems", function() {
 
 describe("type D last move problems", function() {
     const defaultExtraDepth = 3;
-    function testProblem(forsythe, solution1, solution2, extraDepth, func) {
+    function testProblem(testPositionAndCages, solution1, solution2, extraDepth, func) {
         if (extraDepth == null) {
             extraDepth = defaultExtraDepth;
         }
         if (func == null) {
             func = typeD.testSolved ? it : xit;
         }
-        func(forsythe, function () {
+        let forsythe;
+        if (typeof testPositionAndCages == 'string') {
+            forsythe = testPositionAndCages;
+        } else {
+            forsythe = testPositionAndCages[0];
+        }
+        func(forsythe, function() {
+            if (typeof testPositionAndCages != 'string') {
+                testPositionAndCages.slice(1).forEach(addCage);
+            }
             const solveParameters = new SolveParameters(1, extraDepth, 2);
 
             setForsythe(forsythe);
@@ -718,12 +792,16 @@ describe("type D last move problems", function() {
         clearBoard();
     });
 
+    afterEach(function() {
+        clearCages();
+    });
+
     // to test all problems, including current unsolved, change xit to it in the function below.
-    function xtestProblem(forsythe, solution1, solution2, extraDepth) {
+    function xtestProblem(testPositionAndCages, solution1, solution2, extraDepth) {
         if (extraDepth == null) {
             extraDepth = defaultExtraDepth;
         }
-        testProblem(forsythe, solution1, solution2, extraDepth, typeD.testUnsolved ? it : xit);
+        testProblem(testPositionAndCages, solution1, solution2, extraDepth, typeD.testUnsolved ? it : xit);
     }
 
     /* Andrew Buchanan */
@@ -747,7 +825,7 @@ describe("type D last move problems", function() {
     /* Mario Richter */
     testProblem("8/8/8/8/8/1PPP4/KpPRP3/Bnk5", "K-", "PxN");
     /* Werner Keym */
-    xtestProblem("8/8/8/8/7P/5PPR/3PPk1K/4bqr1", "K-", "PxN=Q");
+    testProblem(["8/8/8/8/7P/5PPR/3PPk1K/4bqr1", "8/8/8/8/7P/6PR/3PPkPK/4bqr1"], "K-", "PxN=Q");
     /* Andrew Buchanan, Werner Keym */
     xtestProblem("5bKR/4p1pR/5p1p/8/7P/6P1/4P1Pk/5Brr", "K-", "PxN=R");
     /* Werner Keym */
@@ -769,7 +847,8 @@ describe("type D last move problems", function() {
     /* Werner Keym */
     testProblem("4B2q/3ppKpp/8/8/8/8/PPkPP3/Q2b4", "KxB", "KxB");
     /* Bernd Schwarzkopf */
-    xtestProblem("8/8/8/8/8/3P1P2/1PPRPrPP/2B1k2K", "KxB", "KxN");
+    testProblem(["8/8/8/8/8/3P1P2/1PPRPrPP/2B1k2K", "8/8/8/8/8/5P2/1PPPP1PP/5k2", "8/8/8/8/8/3P1P2/1PP1PrPP/4Nk1K"],
+        "KxB", "KxN");
     /* Mario Richter */
     testProblem("8/8/8/8/8/PP6/KPkPP3/R2b4", "KxB", "R-");
     /* Werner Keym */
@@ -779,19 +858,19 @@ describe("type D last move problems", function() {
     /* Bernd Schwarzkopf */
     testProblem("8/8/8/8/8/4P3/2PPRPPP/3BK2k", "KxN", "KxN");
     /* Bernd Schwarzkopf */
-    xtestProblem("rk2NRB1/prpppKpp/1p3p2/8/8/8/8/8", "KxN", "NxQ");
+    testProblem(["rk2NRB1/prpppKpp/1p3p2/8/8/8/8/8", "4nRB1/2pppKpp/5p2/8/8/8/8/8"], "KxN", "NxQ");
     /* U. Grinblat */
-    xtestProblem("RNk5/Kppp4/p7/8/8/8/8/8", "KxN", "NxR");
+    testProblem(["RNk5/Kppp4/p7/8/8/8/8/8", "Rnk5/Kppp4/p7/8/8/8/8/8"], "KxN", "NxR");
     /* Bernd Schwarzkopf  */
-    xtestProblem("8/8/8/8/6PP/5PRQ/1P1PPRRB/4Knrk", "KxN", "NxN");
+    testProblem(["8/8/8/8/6PP/5PRQ/1P1PPRRB/4Knrk", "8/8/8/8/6PP/5PRQ/4PRRB/5Brk"], "KxN", "NxN");
     /* Bernd Schwarzkopf, Werner Keym */
-    xtestProblem("2bk1bRK/1pppp1pR/5p1p/8/8/8/8/8", "KxN", "PxB=R");
+    testProblem(["2bk1bRK/1pppp1pR/5p1p/8/8/8/8/8", "5bnK/4p1pR/5p1p/8/8/8/8/8"], "KxN", "PxB=R");
     /* Werner Keym, Bernd Schwarzkopf */
     testProblem("8/8/8/8/8/2P2P1P/PP1PPRP1/K1Brk3", "KxN", "PxN=R");
     /* Hans Gruber, Bernd Schwarzkopf */
     testProblem("8/8/8/8/8/8/kPPP1P2/bRK1b3", "KxN", "P-=B");
     /* Bernd Schwarzkopf, Werner Keym */
-    xtestProblem("2bk1bNK/1pppp1pR/5p1p/8/8/8/8/8", "KxN", "PxB=N");
+    testProblem(["2bk1bNK/1pppp1pR/5p1p/8/8/8/8/8", "5bnK/4p1pR/5p1p/8/8/8/8/8"], "KxN", "PxB=N");
     /* Werner Keym */
     xtestProblem("4bb2/2pppkpP/6Rb/6rQ/5KRp/4PbB1/1P2PrPN/5B2", "KxP", "KxP");
     /* Thierry LE GLEUHER */
@@ -867,10 +946,11 @@ describe("type D last move problems", function() {
     /* Mario Richter */
     testProblem("bRr1B3/k1pKpp2/ppp5/8/8/P7/1P6/8", "B-", "P-=R");
     /* Werner Keym */
-    xtestProblem("8/8/8/8/8/P2P4/P1kPP1P1/K1Bb1b2", "B-", "P-=B");
+    testProblem(["8/8/8/8/8/P2P4/P1kPP1P1/K1Bb1b2", "8/8/8/8/8/3P4/PPkPP3/K1Bb4", "8/8/8/8/8/P2P4/P1kPP3/K1bb4",
+        "8/8/8/8/8/P2P4/P1kPP3/K1nb4"], "B-", "P-=B");
     /* Werner Keym, Bernd Schwarzkopf */
     xtestProblem("8/p7/8/8/5P2/1PPPkrb1/bPPR1RPN/2KR1QB1", "B-", "O-O-O");
-    /* Werner Keym */
+    /* Werner Keym */ // so close... white O-O is okay but need to rule out Black's BxQ? due to a cage involving uncapturing on e2
     xtestProblem("8/8/8/8/6P1/2PPkPPB/1PrR1RPr/2Bb1RK1", "B-", "O-O");
     /* Roberto Osorio, Jorge Lois, Werner Keym */
     xtestProblem("8/1p2p2p/8/8/7P/P1PP1PPR/P1PkpKpp/B1brnRnr", "BxQ", "BxQ");
@@ -883,7 +963,7 @@ describe("type D last move problems", function() {
     /* Roberto Osorio & Jorge Lois */
     xtestProblem("7n/ppp1pp1p/2p3p1/8/8/2PPPP2/1PRQqrP1/kBRNnrbK", "BxB", "BxB");
     /* Mario Richter */
-    xtestProblem("4BbnB/3ppK1k/4pp1p/8/8/8/8/8", "BxN", "BxN");
+    testProblem(["4BbnB/3ppK1k/4pp1p/8/8/8/8/8", "4Bb1B/3ppKpk/4p2p/8/8/8/8/8"], "BxN", "BxN");
     /* Mario Richter */
     testProblem("8/8/8/8/8/PP1P4/1PkrP3/KbNb4", "BxN", "N-");
     /* Mario Richter */
@@ -895,7 +975,7 @@ describe("type D last move problems", function() {
     /* Mario Richter */
     testProblem("8/8/8/8/8/3P1P1P/2PrPP1k/4KRbB", "BxN", "P-=B");
     /* Mario Richter */
-    xtestProblem("4BbNr/3ppK1k/4pp1p/8/8/8/8/8", "BxN", "P-=N");
+    testProblem(["4BbNr/3ppK1k/4pp1p/8/8/8/8/8", "4BbNr/3ppKpk/4p2p/8/8/8/8/8"], "BxN", "P-=N");
     /* Werner Keym */
     xtestProblem("8/1p6/8/8/5PP1/1PPPkrrB/brPR1RPN/2KR1QB1", "BxN", "O-O-O");
     /* Werner Keym */
@@ -903,13 +983,15 @@ describe("type D last move problems", function() {
     /* Andrew Buchanan */
     testProblem("8/8/8/8/8/P2P4/KPkPP3/nnNb4", "N-", "N-");
     /* Werner Keym */
-    xtestProblem("8/1p6/p7/8/8/3P4/PPkPP3/K1Nb4", "N-", "P-");
+    testProblem(["8/1p6/p7/8/8/3P4/PPkPP3/K1Nb4", "8/8/8/8/8/8/PPkPP3/K1bb4", "8/8/8/8/8/3P4/PPkPP3/K1nb4"],
+        "N-", "P-");
     /* Werner Keym */
     testProblem("8/8/8/8/8/P2P4/pPkPP3/K1Nb4", "N-", "PxN");
     /* Werner Keym */
     testProblem("8/8/8/8/8/4P1P1/2P1PkPP/3brN1K", "N-", "PxN=R");
     /* Werner Keym */
-    xtestProblem("8/8/8/8/8/3P4/PPkPP1P1/K1Nb1b2", "N-", "P-=B");
+    testProblem(["8/8/8/8/8/3P4/PPkPP1P1/K1Nb1b2", "8/8/8/8/8/8/PPkPP3/K1bb4", "8/8/8/8/8/3P4/PPkPP3/K1nb4"],
+        "N-", "P-=B");
     /* Bernd Schwarzkopf  */
     testProblem("6bN/1P3p1k/BrPPPP2/1ppppppK/7p/8/1PP5/8", "N-", "P--");
     /* Werner Keym, Bernd Schwarzkopf */
@@ -921,7 +1003,7 @@ describe("type D last move problems", function() {
     /* Mario Richter */
     testProblem("2brn1Nb/1ppRKpkB/3pp1pp/8/8/8/8/8", "NxR", "NxR");
     /* Werner Keym */
-    xtestProblem("8/8/8/8/8/6PP/1P1PP1PK/2BRrk1N", "NxR", "PxN=R");
+    testProblem(["8/8/8/8/8/6PP/1P1PP1PK/2BRrk1N", "8/8/8/8/8/7P/1P1PPPP1/2BRrk2"], "NxR", "PxN=R");
     /* Mario Richter */
     testProblem("8/8/8/8/8/1PPP4/nPKP1P2/k1NRb3", "NxR", "P-=B");
     /* Roberto Osorio & Jorge Lois */
@@ -947,18 +1029,19 @@ describe("type D last move problems", function() {
     /* Werner Keym */
     xtestProblem("8/8/8/8/1P6/4PPPP/1PPPrk1K/2BRrq1Q", "P-", "PxR=Q");
     /* Werner Keym */
-    xtestProblem("8/8/8/8/7P/5PPR/3PPk1K/4bq1n", "P-", "PxN=Q");
+    testProblem(["8/8/8/8/7P/5PPR/3PPk1K/4bq1n", "8/8/8/8/7P/6PR/3PPkPK/4bq1n"], "P-", "PxN=Q");
     /* Mario Richter */
     // This one needs extraDepth of 4
     testProblem("bRr1B3/k1pKpp1p/ppp3p1/8/8/8/8/8", "P-", "P-=R", 4);
     /* Werner Keym */
-    xtestProblem("8/8/8/8/7P/5PPR/3PPk1K/4brnn", "P-", "PxN=R");
+    testProblem(["8/8/8/8/7P/5PPR/3PPk1K/4brnn", "8/8/8/8/7P/6PR/3PPkPK/4brnn"], "P-", "PxN=R");
     /* Bernd Schwarzkopf */
     testProblem("8/8/8/8/8/6P1/2P1PP1P/3bRK1k", "P-", "P-=B");
     /* Bernd Schwarzkopf */
     testProblem("8/8/8/8/8/5P1P/1PP1PRP1/nRK1k3", "P-", "P-=N");
     /* Werner Keym */
-    xtestProblem("8/8/8/8/8/P4P1P/1PPPPRP1/2Bk1Kn1", "P-", "PxQ=N");
+    testProblem(["8/8/8/8/8/P4P1P/1PPPPRP1/2Bk1Kn1", "8/8/8/8/8/5P2/1PPPP1PP/3k4", "8/8/8/8/8/5P1P/1PPPPRP1/2Bk1KN1"],
+        "P-", "PxQ=N");
     /* Werner Keym */
     testProblem("8/8/8/8/8/5P2/P1PPP1P1/k1KRnB2", "P-", "PxN=N");
     /* Bernd Schwarzkopf */

@@ -5,12 +5,25 @@ class Square {
 	}
 }
 
+class GlobalState {
+	constructor(board, positionData, undoStack, currentRetract) {
+		this.board = board;
+		this.positionData = positionData;
+		this.undoStack = undoStack;
+		this.currentRetract = currentRetract;
+	}
+}
+
 function getCoordsAlgNotation(file, rank) {
 	return "abcdefgh".charAt(file) + ((rank + 1) + '');
 }
 
 function getSquareAlgNotation(square) {
 	return getCoordsAlgNotation(square.mFile, square.mRank);
+}
+
+function squareEquals(square1, square2) {
+	return square1.mFile == square2.mFile && square1.mRank == square2.mRank;
 }
 
 function initializeBoard() {
@@ -29,6 +42,7 @@ function initializeBoard() {
 	pieceLetters = "kqrbnp";
 
     undoStack = new UndoStack();
+    currentRetract = '';
 }
 
 function clearBoard() {
@@ -38,6 +52,88 @@ function clearBoard() {
 		}
 	}
 	getPawnCaptureCache().clear();
+}
+
+function printBoard(boardToPrint) {
+	// used for debugging
+	for (let rank = 7; rank >= 0; rank--) {
+		let row = (rank+1).toString() + " ";
+		for (let file = 0; file < 8; file++) {
+			const piece = boardToPrint[file][rank];
+			let symbol;
+			if (isEmpty(piece)) {
+				symbol = '.';
+			} else {
+				symbol = piece.color == 'w' ? piece.unit : piece.unit.toLowerCase();
+			}
+			row += symbol + ' ';
+		}
+		console.log(row);
+	}
+	console.log("  a b c d e f g h");
+}
+
+function copyBoard() {
+    const newBoard = new Array(8);
+    for (let i = 0; i < 8; i++) {
+        newBoard[i] = new Array(8);
+    }
+
+    for (let rank = 7; rank >= 0; rank--) {
+		for (let file = 0; file <= 7; file++) {
+			newBoard[file][rank] = new Piece("", "");
+			copyPiece(newBoard[file][rank], board[file][rank]);
+		}
+	}
+    return newBoard;
+}
+
+function restoreBoard(originalBoard) {
+    for (let rank = 7; rank >= 0; rank--) {
+		for (let file = 0; file <= 7; file++) {
+			copyPiece(board[file][rank], originalBoard[file][rank]);
+		}
+	}
+}
+
+function containsBoard(boardArray, targetBoard) {
+	for (let i = 0; i < boardArray.length; i++) {
+		const currentBoard = boardArray[i];
+		let found = true;
+		for (let file = 0; file < 8; file++) {
+			for (let rank = 0; rank < 8; rank++) {
+				if (!(currentBoard[file][rank].color == targetBoard[file][rank].color &&
+					  currentBoard[file][rank].unit == targetBoard[file][rank].unit &&
+					  currentBoard[file][rank].frozen == targetBoard[file][rank].frozen)) {
+					found = false;
+					break;
+				}
+			}
+			if (!found) {
+				break;
+			}
+		}
+		if (found) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function boardContainsCage(currentBoard, cage) {
+	for (let file = 0; file < 8; file++) {
+		for (let rank = 0; rank < 8; rank++) {
+			if (cage[file][rank].unit != "") {
+				if (!(currentBoard[file][rank].color == cage[file][rank].color &&
+					  currentBoard[file][rank].unit == cage[file][rank].unit &&
+					  // if it is frozen in the cage, it must be frozen on the board.
+ 					  (!cage[file][rank].frozen || currentBoard[file][rank].frozen))) {
+					return false;
+				}
+			}
+		}
+	}
+	return true;
 }
 
 function validateForsythe(forsythe) {
@@ -104,8 +200,8 @@ function setForsythe(forsythe) {
 		}
         let file = 0;
         for (let j = 0; j < rowArray[i].length; j++) {
-            const piece = rowArray[i].charAt(j);
-            if (piece.match(/[12345678]/)) {
+            const symbol = rowArray[i].charAt(j);
+            if (symbol.match(/[12345678]/)) {
                 const empties = parseInt(rowArray[i].charAt(j));
                 for (let k = 0; k < empties; k++) {
 					emptyPieceAt(file, rank);
@@ -113,13 +209,14 @@ function setForsythe(forsythe) {
 				}
 			}
 			else {
-				const index = pieceLetters.indexOf(piece.toLowerCase());
+				const index = pieceLetters.indexOf(symbol.toLowerCase());
 				if (index != -1) {
-					placePieceAt(file, rank, new Piece(piece.toUpperCase() == piece ? "w" : "b",
-						"KQRBNP".charAt(index)));
+					const piece = new Piece(symbol.toUpperCase() == symbol ? "w" : "b", "KQRBNP".charAt(index));
+					setDefaultPieceParameters(file, rank, piece);
+					placePieceAt(file, rank, piece);
 					file++;
 				} else {
-					assert(false, "Invalid piece letter " + piece + " in forsythe " + forsythe +
+					assert(false, "Invalid symbol " + symbol + " in forsythe notation " + forsythe +
 						" - piece letters are " + pieceLetters);
 				}
 			}
@@ -133,13 +230,13 @@ function setForsythe(forsythe) {
 	return true;
 }
 
-function getForsythe() {
+function getForsythe(currentBoard) {
 	let forsythe = "";
 	for (let rank = 7; rank >= 0; rank--) {
 		let forsytheRow = "";
 		let empties = 0;
 		for (let file = 0; file < 8; file++) {
-			if (board[file][rank].unit == "") {
+			if (currentBoard[file][rank].unit == "") {
 				empties++;
 				continue;
 			}
@@ -147,8 +244,8 @@ function getForsythe() {
 				forsytheRow += empties.toString();
 				empties = 0;
 			}
-			const pieceLetter = pieceLetters["KQRBNP".indexOf(board[file][rank].unit.toUpperCase())];
-			if (board[file][rank].color == "w") {
+			const pieceLetter = pieceLetters["KQRBNP".indexOf(currentBoard[file][rank].unit.toUpperCase())];
+			if (currentBoard[file][rank].color == "w") {
 				forsytheRow += pieceLetter.toUpperCase();
 			} else {
 				forsytheRow += pieceLetter.toLowerCase();
@@ -167,6 +264,8 @@ function getForsythe() {
 
 function startPlay(checkLegal) {
 	if (checkLegal == null) {
+		// checkLegal == true is only used in unit tests to immediately check if a position is legal.
+		// In normal usage, the legality check is done asynchronously via asyncLegalityCheck().
 		checkLegal = true;
 	}
 	const error = positionData.initializeDataFromBoard(checkLegal);
@@ -241,4 +340,15 @@ function redo() {
 		return true;
 	}
 	return false;
+}
+
+function saveGlobalState() {
+	return new GlobalState(copyBoard(), positionData, undoStack, currentRetract);
+}
+
+function restoreGlobalState(globalState) {
+    restoreBoard(globalState.board);
+    positionData = globalState.positionData;
+    undoStack = globalState.undoStack;
+    currentRetract = globalState.currentRetract;
 }

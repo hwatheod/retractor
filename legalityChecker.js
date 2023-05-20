@@ -90,6 +90,8 @@ class PositionData {
 	}
 
 	initializeDataFromBoard(checkLegal) {
+		// checkLegal == true is only used in unit tests to immediately check if a position is legal.
+		// In normal usage, the legality check is done asynchronously via asyncLegalityCheck().
 		this.reset();
 
 		for (let file = 0; file < 8; file++) {
@@ -111,10 +113,10 @@ class PositionData {
 				}
 			}
 		}
-		if (this.kingPosition["w"] == null) {
+		if (checkLegal && this.kingPosition["w"] == null) {
 			return error_noWhiteKing;
 		}
-		if (this.kingPosition["b"] == null) {
+		if (checkLegal && this.kingPosition["b"] == null) {
 			return error_noBlackKing;
 		}
 
@@ -564,7 +566,7 @@ function isPositionLegalInternal() {
 	if (isInCheck(oppositeRetract)) return error_oppositeSideInCheck;
 
 	// check by more than > 2 units
-	const currentCheckers = getCheckingUnits(currentRetract);
+	const currentCheckers = getCheckingUnits(currentRetract, false);
 	if (currentCheckers.length > 2) return error_moreThanTwoCheckers;
 
 	// check by pawn on original rank
@@ -620,10 +622,25 @@ function isPositionLegalInternal() {
 		}
 	}
 
+	for (let i = 0; i < knownCages.length; i++) {
+		const cage = knownCages[i];
+		if (boardContainsCage(board, cage)) {
+			for (let file = 0; file < 8; file++) {
+				for (let rank = 0; rank < 8; rank++) {
+					if (!isEmpty(cage[file][rank])) {
+						errorSquares.push(new Square(file, rank));
+					}
+				}
+			}
+			return error_impossibleKnownCage;
+		}
+	}
+
 	return error_ok;
 }
 
 function isPositionLegal() {
+	errorSquares = [];
 	const error = isPositionLegalInternal();
 	updateRealCounts();
 	clearTempCounts();

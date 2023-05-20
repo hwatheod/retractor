@@ -8,7 +8,6 @@ class SolveParameters {
     }
 }
 
-
 /*
  We have to define these as functions so that each time, we get a new instance of the move, because
  these are not immutable after creation; the check indicator can be modified.
@@ -89,52 +88,52 @@ function getPseudoLegalMovesDiagonal(file, rank, color, moveList, once, includeN
     getPseudoLegalMovesVector(file, rank, color, moveList, [1, 1], once, includeNoUncapture, includeUncaptures, false, fromUnit);
 }
 
-function getPseudoLegalMovesUnpromotion(file, rank, color, moveList, includeNoUncapture, includeUncaptures, fromUnit) {
+function getPseudoLegalMovesUnpromotion(file, rank, color, moveList, includeNoUncapture, includeUncaptures, fromUnit, cageVerify) {
     const pawnDir = color == "w" ? -1 : 1;
 
     if (includeNoUncapture) {
         getPseudoLegalMovesVector(file, rank, color, moveList, [0, pawnDir], true, true, false, true, fromUnit);
     }
 
-    if (includeUncaptures) {
-        getPseudoLegalMovesVector(file, rank, color, moveList, [-1, pawnDir], true, false, true, true, fromUnit);
-        getPseudoLegalMovesVector(file, rank, color, moveList, [1, pawnDir], true, false, true, true, fromUnit);
+    if (includeUncaptures || cageVerify) {
+        getPseudoLegalMovesVector(file, rank, color, moveList, [-1, pawnDir], true, cageVerify, !cageVerify, true, fromUnit);
+        getPseudoLegalMovesVector(file, rank, color, moveList, [1, pawnDir], true, cageVerify, !cageVerify, true, fromUnit);
     }
 }
 
-function getPseudoLegalMovesQueen(file, rank, color, moveList, includeNoUncapture, includeUncaptures) {
+function getPseudoLegalMovesQueen(file, rank, color, moveList, includeNoUncapture, includeUncaptures, cageVerify) {
     getPseudoLegalMovesDiagonal(file, rank, color, moveList, false, includeNoUncapture, includeUncaptures, "Q");
     getPseudoLegalMovesOrthogonal(file, rank, color, moveList, false, includeNoUncapture, includeUncaptures, "Q");
     if ((color == "w" && rank == 7) || (color == "b" && rank == 0)) {
-        getPseudoLegalMovesUnpromotion(file, rank, color, moveList, includeNoUncapture, includeUncaptures, "Q");
+        getPseudoLegalMovesUnpromotion(file, rank, color, moveList, includeNoUncapture, includeUncaptures, "Q", cageVerify);
     }
 }
 
-function getPseudoLegalMovesRook(file, rank, color, moveList, includeNoUncapture, includeUncaptures) {
+function getPseudoLegalMovesRook(file, rank, color, moveList, includeNoUncapture, includeUncaptures, cageVerify) {
     getPseudoLegalMovesOrthogonal(file, rank, color, moveList, false, includeNoUncapture, includeUncaptures, "R");
     if ((color == "w" && rank == 7) || (color == "b" && rank == 0)) {
-        getPseudoLegalMovesUnpromotion(file, rank, color, moveList, includeNoUncapture, includeUncaptures, "R");
+        getPseudoLegalMovesUnpromotion(file, rank, color, moveList, includeNoUncapture, includeUncaptures, "R", cageVerify);
     }
 }
 
-function getPseudoLegalMovesBishop(file, rank, color, moveList, includeNoUncapture, includeUncaptures) {
+function getPseudoLegalMovesBishop(file, rank, color, moveList, includeNoUncapture, includeUncaptures, cageVerify) {
     getPseudoLegalMovesDiagonal(file, rank, color, moveList, false, includeNoUncapture, includeUncaptures, "B");
     if ((color == "w" && rank == 7) || (color == "b" && rank == 0)) {
-        getPseudoLegalMovesUnpromotion(file, rank, color, moveList, includeNoUncapture, includeUncaptures, "B");
+        getPseudoLegalMovesUnpromotion(file, rank, color, moveList, includeNoUncapture, includeUncaptures, "B", cageVerify);
     }
 }
 
-function getPseudoLegalMovesKnight(file, rank, color, moveList, includeNoUncapture, includeUncaptures) {
+function getPseudoLegalMovesKnight(file, rank, color, moveList, includeNoUncapture, includeUncaptures, cageVerify) {
     const knightVectors = [[-1, -2], [1, 2], [1, -2], [-1, 2], [2, -1], [-2, 1], [2, 1], [-2, -1]];
     knightVectors.forEach(knightVector => {
         getPseudoLegalMovesVector(file, rank, color, moveList, knightVector, true, includeNoUncapture, includeUncaptures, false, "N");
     });
     if ((color == "w" && rank == 7) || (color == "b" && rank == 0)) {
-        getPseudoLegalMovesUnpromotion(file, rank, color, moveList, includeNoUncapture, includeUncaptures, "N");
+        getPseudoLegalMovesUnpromotion(file, rank, color, moveList, includeNoUncapture, includeUncaptures, "N", cageVerify);
     }
 }
 
-function getPseudoLegalMovesPawn(file, rank, color, moveList, includeNoUncapture, includeUncaptures) {
+function getPseudoLegalMovesPawn(file, rank, color, moveList, includeNoUncapture, includeUncaptures, cageVerify) {
     const pawnDir = color == "w" ? -1 : 1;
     const originalRank = color == "w" ? 1 : 6;
     const doubleStepRank = color == "w" ? 3 : 4;
@@ -148,9 +147,9 @@ function getPseudoLegalMovesPawn(file, rank, color, moveList, includeNoUncapture
         }
     }
 
-    if (includeUncaptures) {
-        getPseudoLegalMovesVector(file, rank, color, moveList, [-1, pawnDir], true, false, true, false, "P");
-        getPseudoLegalMovesVector(file, rank, color, moveList, [1, pawnDir], true, false, true, false, "P");
+    if (includeUncaptures || cageVerify) {
+        getPseudoLegalMovesVector(file, rank, color, moveList, [-1, pawnDir], true, cageVerify, !cageVerify, false, "P");
+        getPseudoLegalMovesVector(file, rank, color, moveList, [1, pawnDir], true, cageVerify, !cageVerify, false, "P");
 
         // en passant
         const enPassantSourceRank = color == "w" ? 5 : 2;
@@ -195,18 +194,18 @@ function getPseudoLegalMovesKing(file, rank, color, moveList, includeNoUncapture
     }
 }
 
-function getPseudoLegalMovesSquare(file, rank, color, moveList, includeUncaptures) {
+function getPseudoLegalMovesSquare(file, rank, color, moveList, includeUncaptures, cageVerify) {
     switch(board[file][rank].unit) {
         case 'K': getPseudoLegalMovesKing(file, rank, color, moveList, true, includeUncaptures); break;
-        case 'Q': getPseudoLegalMovesQueen(file, rank, color, moveList, true, includeUncaptures); break;
-        case 'R': getPseudoLegalMovesRook(file, rank, color, moveList, true, includeUncaptures); break;
-        case 'B': getPseudoLegalMovesBishop(file, rank, color, moveList, true, includeUncaptures); break;
-        case 'N': getPseudoLegalMovesKnight(file, rank, color, moveList, true, includeUncaptures); break;
-        case 'P': getPseudoLegalMovesPawn(file, rank, color, moveList, true, includeUncaptures); break;
+        case 'Q': getPseudoLegalMovesQueen(file, rank, color, moveList, true, includeUncaptures, cageVerify); break;
+        case 'R': getPseudoLegalMovesRook(file, rank, color, moveList, true, includeUncaptures, cageVerify); break;
+        case 'B': getPseudoLegalMovesBishop(file, rank, color, moveList, true, includeUncaptures, cageVerify); break;
+        case 'N': getPseudoLegalMovesKnight(file, rank, color, moveList, true, includeUncaptures, cageVerify); break;
+        case 'P': getPseudoLegalMovesPawn(file, rank, color, moveList, true, includeUncaptures, cageVerify); break;
     }
 }
 
-function getPseudoLegalMovesNotInCheck(color, includeUncaptures) {
+function getPseudoLegalMovesNotInCheck(color, includeUncaptures, cageVerify) {
     const moveList = [];
     if (positionData.ep != -1) {
         const enPassantDoubleStepSourceRank = color == "w" ? 3 : 4;
@@ -224,7 +223,7 @@ function getPseudoLegalMovesNotInCheck(color, includeUncaptures) {
         for (let rank = 0; rank < 8; rank++) {
             if (board[file][rank].color == color) {
                 if (board[file][rank].frozen) continue;
-                getPseudoLegalMovesSquare(file, rank, color, moveList, includeUncaptures);
+                getPseudoLegalMovesSquare(file, rank, color, moveList, includeUncaptures, cageVerify);
             }
         }
     }
@@ -232,20 +231,20 @@ function getPseudoLegalMovesNotInCheck(color, includeUncaptures) {
 }
 
 // could improve this later
-function getPseudoLegalMovesInCheck(color, checkers, includeUncaptures) {
-    const result = getPseudoLegalMovesNotInCheck(color, includeUncaptures);
+function getPseudoLegalMovesInCheck(color, checkers, includeUncaptures, cageVerify) {
+    const result = getPseudoLegalMovesNotInCheck(color, includeUncaptures, cageVerify);
     result.forEach(move => {
         move.check = true;
     });
     return result;
 }
 
-function getPseudoLegalMoves(color, includeUncaptures) {
-    const checkers = getCheckingUnits(opposite(color));
+function getPseudoLegalMoves(color, includeUncaptures, cageVerify) {
+    const checkers = getCheckingUnits(opposite(color), cageVerify); // if cageVerify then unblockable checks only
     if (checkers.length == 0) {
-        return getPseudoLegalMovesNotInCheck(color, includeUncaptures);
+        return getPseudoLegalMovesNotInCheck(color, includeUncaptures, cageVerify);
     } else {
-        return getPseudoLegalMovesInCheck(color, checkers, includeUncaptures);
+        return getPseudoLegalMovesInCheck(color, checkers, includeUncaptures, cageVerify);
     }
 }
 
@@ -257,7 +256,7 @@ function legalToExtraDepth(solveParameters, depth) {
     if ((currentRetract == 'w' && solveParameters.noWhiteUncaptures) || (currentRetract == 'b' && solveParameters.noBlackUncaptures)) {
         includeUncaptures = false;
     }
-    const pseudoLegalMoves = getPseudoLegalMoves(currentRetract, includeUncaptures);
+    const pseudoLegalMoves = getPseudoLegalMoves(currentRetract, includeUncaptures, false);
     return pseudoLegalMoves.some(pseudoLegalMove => {
         if (doRetraction(pseudoLegalMove.from, pseudoLegalMove.to, pseudoLegalMove.uncapturedUnit, pseudoLegalMove.unpromote, true, true) == error_ok) {
             const result = legalToExtraDepth(solveParameters, depth + 1);
@@ -281,7 +280,7 @@ function solveHelper(solveParameters, depth, currentPath, outputSolutions) {
     if ((currentRetract == 'w' && solveParameters.noWhiteUncaptures) || (currentRetract == 'b' && solveParameters.noBlackUncaptures)) {
         includeUncaptures = false;
     }
-    const pseudoLegalMoves = getPseudoLegalMoves(currentRetract, includeUncaptures);
+    const pseudoLegalMoves = getPseudoLegalMoves(currentRetract, includeUncaptures, false);
     for (let i = 0; i < pseudoLegalMoves.length; i++) {
         const pseudoLegalMove = pseudoLegalMoves[i];
         if (doRetraction(pseudoLegalMove.from, pseudoLegalMove.to, pseudoLegalMove.uncapturedUnit, pseudoLegalMove.unpromote, true, true) == error_ok) {
@@ -301,4 +300,3 @@ function solve(solveParameters) {
     solveHelper(solveParameters, 0, [], outputSolutions);
     return outputSolutions;
 }
-

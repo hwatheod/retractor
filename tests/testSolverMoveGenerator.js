@@ -660,8 +660,8 @@ describe("Full board test", function() {
     testPositions.forEach(position => {
         it(position.forsythe, function() {
             setForsythe(position.forsythe);
-            const whiteMoveList = getPseudoLegalMoves("w", true);
-            const blackMoveList = getPseudoLegalMoves("b", true);
+            const whiteMoveList = getPseudoLegalMoves("w", true, false);
+            const blackMoveList = getPseudoLegalMoves("b", true, false);
             let totalExpectedMoves = 0;
             position.expectedMoveCounts.forEach(expectedMoveCount => {
                 totalExpectedMoves += expectedMoveCount.noCapture + expectedMoveCount.capture;
@@ -677,8 +677,8 @@ describe("Full board test", function() {
 
         it(position.forsythe + " no uncaptures", function() {
             setForsythe(position.forsythe);
-            const whiteMoveList = getPseudoLegalMoves("w", false);
-            const blackMoveList = getPseudoLegalMoves("b", false);
+            const whiteMoveList = getPseudoLegalMoves("w", false, false);
+            const blackMoveList = getPseudoLegalMoves("b", false, false);
             let totalExpectedMoves = 0;
             position.expectedMoveCounts.forEach(expectedMoveCount => {
                 totalExpectedMoves += expectedMoveCount.noCapture;

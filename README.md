@@ -18,4 +18,4 @@ to disable such restrictions in your browser, but this is not recommended.
 If you want to run the tests, you should install [Jasmine](https://jasmine.github.io/). You want the standalone version
 that can be run in a browser. Place the Jasmine installation in a directory called `jasmine` in the root directory of 
 the repository. Then `http://localhost:8000/tests/test.html` will run the tests. The latest version of Jasmine that has
-been verified to run the tests is 3.6.0. 
+been verified to run the tests is 4.5.0. 
