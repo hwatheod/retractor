@@ -527,12 +527,12 @@ function updateVisualBoard() {
 	}
 }
 
+let navigatedSolutionIndex = 0;
 let navigatedMoveIndex = 0;
 const solutionIdPrefix = 'solution';
 const copySolutionIdPrefix = 'copy';
 
-function navigateToMove(event) {
-	const clickedButtonId = event.target.id;
+function navigateToOriginalSolvePosition() {
 	if (navigatedMoveIndex >= 0) {
 		for (let i = 0; i < navigatedMoveIndex; i++) {
 			assert(undo(), 'Could not undo move in navigateToMove, navigatedMoveIndex = ' + navigatedMoveIndex);
@@ -542,16 +542,27 @@ function navigateToMove(event) {
 			assert(redo(), 'Could not redo move in navigateToMove, navigatedMoveIndex = ' + navigatedMoveIndex);
 		}
 	}
-	const idSplit = clickedButtonId.split("_");
-	const solutionIndex = parseInt(idSplit[1]);
-	const moveIndex = parseInt(idSplit[2]);
+	navigatedMoveIndex = 0;
+}
+
+function navigateToSolutionPosition(solutionIndex, moveIndex) {
+	navigateToOriginalSolvePosition();
 	for (let i = 0; i < moveIndex; i++) {
 		const move = solutions[solutionIndex][i];
 		// we only check for pseudo-legality here because a new cage might change a legal move to an illegal move
 		assert(doRetraction(move.from, move.to, move.uncapturedUnit, move.unpromote, true, false) == error_ok,
 			"Non-pseudolegal move " + moveToString(move) + " found in solution");
 	}
+	navigatedSolutionIndex = solutionIndex;
 	navigatedMoveIndex = moveIndex;
+}
+
+function navigateToMove(event) {
+	const clickedButtonId = event.target.id;
+	const idSplit = clickedButtonId.split("_");
+	const solutionIndex = parseInt(idSplit[1]);
+	const moveIndex = parseInt(idSplit[2]);
+	navigateToSolutionPosition(solutionIndex, moveIndex);
 	updateVisualBoard();
 	finalizeRetraction();
 }
@@ -574,6 +585,7 @@ function disableSolutionButtons() {
 	solutionButtons.forEach(solutionButton => {
 		solutionButton.disabled = true;
 	});
+	document.getElementById("exportSolutionsSpan").style.visibility = "hidden";
 	navigatedMoveIndex = null;
 }
 
@@ -590,6 +602,7 @@ function createSolutionButton(solutionCount, moveCount, value) {
 function showSolutions(maybeTruncated) {
 	navigatedMoveIndex = null;
 	const solutionDisplay = document.getElementById("solutionDisplay");
+	document.getElementById("exportSolutionsSpan").style.visibility = "visible";
 	solutionDisplay.innerHTML = "";
 	if (maybeTruncated) {
 		solutionDisplay.innerHTML = "<b>Maximum solution limit reached; not all solutions may have been found.</b><br>";
@@ -628,4 +641,32 @@ function showSolutions(maybeTruncated) {
 		solutionDisplay.appendChild(table);
 		navigatedMoveIndex = 0;
 	}
+}
+
+function exportSolutions() {
+	if (solutions == null || solutions.length == 0) {
+		return null;
+	}
+	const originalNavigatedSolutionIndex = navigatedSolutionIndex;
+	const originalNavigatedMoveIndex = navigatedMoveIndex;
+	const exportedSolutions = [];
+	for (let i = 0; i < solutions.length; i++) {
+		const solution = solutions[i];
+		navigateToSolutionPosition(i, solution.length);
+		exportedSolutions.push(getForsythe(board));
+	}
+
+	// restore original position
+	if (originalNavigatedMoveIndex >= 0) {
+		navigateToSolutionPosition(originalNavigatedSolutionIndex, originalNavigatedMoveIndex);
+	} else {
+		navigateToOriginalSolvePosition();
+		navigatedSolutionIndex = originalNavigatedSolutionIndex;
+		navigatedMoveIndex = originalNavigatedMoveIndex;
+		for (let i = 0; i < -navigatedMoveIndex; i++) {
+			assert(undo(), 'Could not undo move in exportSolutions, navigatedMoveIndex = ' + navigatedMoveIndex);
+		}
+	}
+
+	return exportedSolutions;
 }

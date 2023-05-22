@@ -142,7 +142,7 @@
                 <input id="extraDepth" type="number" min="0" max="100" size="3" value="3">
                 <br>
                 <label for="maxSolutions">Max solutions:</label>
-                <input id="maxSolutions" type="number" min="1" max="100" size="3" value="5">
+                <input id="maxSolutions" type="number" min="1" max="10000" size="5" value="5">
                 <br>
                 <label for="noWhiteUncaptures">No white uncaptures</label>
                 <input type="checkbox" id="noWhiteUncaptures" />
@@ -252,6 +252,11 @@
     <div id="solutions" class="solution-flex-container">
         <div id="positionDataDisplay"></div>
         Solutions will appear here
+        <span id="exportSolutionsSpan" style="visibility: hidden">
+            <label for="exportSolutionsFilename">Export filename:</label>
+            <input id="exportSolutionsFilename" type="text">
+            <input type="button" id="exportSolutions" value="Export Solutions">
+        </span>
         <div id="solutionDisplay"></div>
     </div>
 </div>
@@ -478,16 +483,26 @@
     fakeDownload.style.display = 'none';
     document.getElementById("verifyCageExport").onclick = function() {
         const data = new Blob([serializedRequestedCages.join("\n")]);
-        const url = window.URL.createObjectURL(data);
-        fakeDownload.href = url;
         const currentTimeIsoString = new Date(Date.now()).toISOString();
         const filenameSuffix = currentTimeIsoString.slice(0, -5).replaceAll(/[:-]/g, "");
-        fakeDownload.download = "retractor_cages_" + filenameSuffix + ".txt";
-        document.body.appendChild(fakeDownload);
-        fakeDownload.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(fakeDownload);
+        const filename = "retractor_cages_" + filenameSuffix + ".txt";
+        download(data, filename);
         verifyCageUndo();
+    }
+
+    document.getElementById("exportSolutions").onclick = function() {
+        const exportedSolutions = exportSolutions();
+        if (exportedSolutions == null) {
+            return;
+        }
+        const data = new Blob([exportedSolutions.join("\n")]);
+        let filename = document.getElementById("exportSolutionsFilename").value;
+        if (!filename) {
+            const currentTimeIsoString = new Date(Date.now()).toISOString();
+            const filenameSuffix = currentTimeIsoString.slice(0, -5).replaceAll(/[:-]/g, "");
+            filename = "exported_solutions_" + filenameSuffix + ".txt";
+        }
+        download(data, filename);
     }
 
     // Take the "close" action if clicking on the outside for certain modals

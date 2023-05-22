@@ -262,6 +262,7 @@ function switchToEditMode(clearFlags) {
 	document.getElementById("controlGroup").style.display = "none";
 	document.getElementById("setPositionButton").style.visibility = "visible";
 	document.getElementById("forsytheText").removeAttribute("readonly");
+	document.getElementById("exportSolutionsSpan").style.visibility = "hidden";
 	document.getElementById("solutionDisplay").innerHTML = "";
 	document.getElementById("moves").style.display = "none";
 	document.getElementById("pawnCapturesTable").hidden = true;
@@ -281,4 +282,14 @@ function setPosition() {
 		}
 		else showError("Invalid Forsythe notation: " + err);
 	}
+}
+
+function download(data, filename) {
+	const url = window.URL.createObjectURL(data);
+	fakeDownload.href = url;
+	fakeDownload.download = filename;
+	document.body.appendChild(fakeDownload);
+	fakeDownload.click();
+	window.URL.revokeObjectURL(url);
+	document.body.removeChild(fakeDownload);
 }

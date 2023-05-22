@@ -1,3 +1,8 @@
+v2.2.1
+
+* Solutions can now be exported (Issue #6)
+* Maximum number of solutions bumped to 10000.
+
 v2.2
 
 New feature: Cages
