@@ -1,3 +1,7 @@
+v2.2.2
+
+* "None" button is now available in edit mode to clear a square.
+
 v2.2.1
 
 * Solutions can now be exported (Issue #6)
