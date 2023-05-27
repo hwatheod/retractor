@@ -223,7 +223,7 @@ function switchToPlayMode() {
 
 	document.getElementById("modePlay").checked = true;
 	document.getElementById("modeEdit").checked = false;
-	document.getElementById("none_and_ep").style.visibility = "visible";
+	document.getElementById("ep_and_unpromote").style.visibility = "visible";
 	document.getElementById("black_pieces").style.visibility = "hidden";
 	document.getElementById("retractRadioButtons").style.display = "none";
 	document.getElementById("retractColor").innerHTML = (currentRetract == "w" ? "White" : "Black");
@@ -251,7 +251,7 @@ function switchToEditMode(clearFlags) {
 
 	document.getElementById("modePlay").checked = false;
 	document.getElementById("modeEdit").checked = true;
-	document.getElementById("none_and_ep").style.visibility = "hidden";
+	document.getElementById("ep_and_unpromote").style.visibility = "hidden";
 	document.getElementById("pieceSelection_ep").style.visibility = "hidden";
 	document.getElementById("black_pieces").style.visibility = "visible";
 	document.getElementById("retractRadioButtons").style.display = "block";
@@ -267,6 +267,7 @@ function switchToEditMode(clearFlags) {
 	document.getElementById("moves").style.display = "none";
 	document.getElementById("pawnCapturesTable").hidden = true;
 	document.getElementById("promoteeTable").hidden = true;
+	resetUncapturedPiece();
 	showError("");
 	updateEditModeData();
 }

@@ -150,6 +150,9 @@ function clickSquare(event) {
 				}
 			} else {
         		if (currentUncapturedUnit == "") {
+					if (board[square.mFile][square.mRank].unit != 'K') {
+						clearSquare(square);
+					}
 					return false;
 				}
 				if ((currentUncapturedUnit == "P" || currentUncapturedUnit == "p") && (square.mRank == 0 || square.mRank == 7)) {
