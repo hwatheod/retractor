@@ -451,6 +451,10 @@ function checkIllegalCage() {
 					rookCageRegion.push([rightBoundary, firstRank]);
 					rookCageCount++;
 				}
+				// if the region takes up the whole back rank, then the single region is 2 rook cages.
+				if ((leftBoundary <= 0 && 0 < rightBoundary) && (leftBoundary < 7 && 7 <= rightBoundary)) {
+					rookCageCount++;
+				}
 			}
 			else {
 				const weakCageRegion = getWeakCageRegion(leftBoundary, rightBoundary, side);
@@ -461,6 +465,10 @@ function checkIllegalCage() {
 						weakCageRegion.forEach(square => rookCageRegion.push(square));
 						rookCageRegion.push([leftBoundary, firstRank]);
 						rookCageRegion.push([rightBoundary, firstRank]);
+						rookCageCount++;
+					}
+					// if the region takes up the whole back rank, then the single region is 2 rook cages.
+					if ((leftBoundary <= 0 && 0 < rightBoundary) && (leftBoundary < 7 && 7 <= rightBoundary)) {
 						rookCageCount++;
 					}
 				}

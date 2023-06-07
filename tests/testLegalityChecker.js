@@ -1495,6 +1495,62 @@ describe("promoted rooks from cages", function() {
         setRetract("w");
         expect(errorText[startPlay()]).toBe(errorText[error_tooManyPromotedBlackRooks]);
     });
+
+    it("Entire white first rank is a strong cage for both rooks", function() {
+        setForsythe("4k3/8/8/6R1/8/8/PPPPPPPP/4K3");
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_tooManyPromotedWhiteRooks]);
+    });
+
+    it("Entire white first rank is a weak cage for both rooks", function() {
+        setForsythe("4k3/8/7R/8/8/1P6/P1PPPPPP/4K3");
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_tooManyPromotedWhiteRooks]);
+    });
+
+    it("Entire black first rank is a strong cage for both rooks", function() {
+        setForsythe("4k3/pppppppp/8/3r4/8/8/8/4K3");
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_tooManyPromotedBlackRooks]);
+    });
+
+    it("Entire black first rank is a weak cage for both rooks", function() {
+        setForsythe("4k3/pp1p1p1p/2p1p1p1/3r4/8/8/8/4K3");
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_tooManyPromotedBlackRooks]);
+    });
+
+    it("Frozen white rook on a1 with rest of first rank as cage", function() {
+        setForsythe("4k3/8/8/3R4/8/2P1P2P/1P1P1PP1/R3K3");
+        setFrozenFlag(A1.mFile, A1.mRank, true);
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.promotedCounts["wR"]).toBe(1);
+    });
+
+    it("Frozen white rook on h1 with rest of first rank as cage", function() {
+        setForsythe("4k3/8/8/R7/8/1P2P3/P1PP1PP1/4K2R");
+        setFrozenFlag(H1.mFile, H1.mRank, true);
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.promotedCounts["wR"]).toBe(1);
+    });
+
+    it("Frozen black rook on a8 with rest of first rank as cage", function() {
+        setForsythe("r3k3/1pp1ppp1/3p3p/8/3r4/8/8/4K3");
+        setFrozenFlag(A8.mFile, A8.mRank, true);
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.promotedCounts["bR"]).toBe(1);
+    });
+
+    it("Frozen black rook on h8 with rest of first rank as cage", function() {
+        setForsythe("4k2r/1pp1ppp1/p2p4/8/3r4/8/8/4K3");
+        setFrozenFlag(H8.mFile, H8.mRank, true);
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.promotedCounts["bR"]).toBe(1);
+    });
 });
 
 describe("king in enemy pawn cage tests", function() {

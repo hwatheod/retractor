@@ -1,3 +1,8 @@
+v2.2.3
+
+* Fixed a bug where promoted rooks weren't detected properly when a cage 
+took up the entire first rank.
+
 v2.2.2
 
 * "None" button is now available in edit mode to clear a square.
