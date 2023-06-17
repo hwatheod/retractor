@@ -17,8 +17,7 @@ function checkIllegalBishops() {
 
         Case 4:
 	    P . P
-	      b         ok if b can be promoted. If there is a friendly pawn
-	                on the third rank above the bishop, count an enemy capture.
+	      b         ok if b can be promoted.
 
 	 */
 
@@ -35,6 +34,10 @@ function checkIllegalBishops() {
 				(bishopFile == 7 || (board[bishopFile + 1][secondRank].color == color &&
 				board[bishopFile + 1][secondRank].unit == "P"))
 			) { // found two unmoved pawns two files apart
+				// exclude outside enemy bishop promotions
+				const detailedUnitType = getDetailedUnitType(bishopFile, firstRank, "B");
+				addExcludedPromotionFiles(opposite(color), detailedUnitType, [bishopFile, bishopFile]);
+
 				if (originalBishopFiles.indexOf(bishopFile) != -1) {
 					if (!(board[bishopFile][firstRank].color == color && board[bishopFile][firstRank].unit == "B")) {
 						// a bishop was captured on its original square. Increase the enemy capture count.
@@ -91,13 +94,49 @@ function checkIllegalBishops() {
 					}
 
 					// Case 4
-					const detailedUnit = opposite(color) + getDetailedUnitType(bishopFile, firstRank, "B");
 					tempUndoStack.changePromotedFlag(bishopFile, firstRank, true);
-					if (board[bishopFile][thirdRank].color == color &&
-					    board[bishopFile][thirdRank].unit == "P") {
-						const error = incrementTotalCaptureCount(opposite(color), 1);
-						if (error != error_ok) return error;
-					}
+					const detailedUnitType = getDetailedUnitType(bishopFile, firstRank, "B");
+					addPossiblePromotionFiles(opposite(color), detailedUnitType, [bishopFile, bishopFile]);
+				}
+			}
+		}
+	}
+
+	/*
+		Check for white promoted bishops on b1/a2, g1/h2 or black promoted bishops on b8/a7, g8/h7, trapped
+		behind pawns like this:
+
+		  P
+		. P P
+		  b
+	 */
+	for (let knightFile of [1, 6]) {
+		for (let color of ["w", "b"]) {
+			const firstRank = color == "w" ? 0 : 7;
+			const secondRank = color == "w" ? 1 : 6;
+			const thirdRank = color == "w" ? 2 : 5;
+			const rookFile = knightFile == 1 ? 0 : 7;
+			const bishopFile = knightFile == 1 ? 2 : 5;
+			const oppositeColor = opposite(color);
+			let bishopFound = false;
+			if (board[knightFile][secondRank].color == color && board[knightFile][secondRank].unit == "P" &&
+				board[knightFile][thirdRank].color == color && board[knightFile][thirdRank].unit == "P" &&
+				board[bishopFile][secondRank].color == color && board[bishopFile][secondRank].unit == "P") {
+				if (board[knightFile][firstRank].color == oppositeColor && board[knightFile][firstRank].unit == "B" &&
+				 board[rookFile][secondRank].color == oppositeColor && board[rookFile][secondRank].unit == "B") {
+					return error_illegalBishopAndPawnInCorner;
+				}
+				if (board[knightFile][firstRank].color == oppositeColor && board[knightFile][firstRank].unit == "B") {
+					tempUndoStack.changePromotedFlag(knightFile, firstRank, true);
+					bishopFound = true;
+				} else if (board[rookFile][secondRank].color == oppositeColor && board[rookFile][secondRank].unit == "B") {
+					tempUndoStack.changePromotedFlag(rookFile, secondRank, true);
+					bishopFound = true;
+				}
+				if (bishopFound) {
+					const detailedUnitType = getDetailedUnitType(knightFile, firstRank, "B");
+					addPossiblePromotionFiles(opposite(color), detailedUnitType, [knightFile, knightFile]);
+					addExcludedPromotionFiles(opposite(color), detailedUnitType, [knightFile, knightFile]);
 				}
 			}
 		}
@@ -179,14 +218,12 @@ function getWeakCageRegion(leftBoundary, rightBoundary, side) {
 function validateWeakCage(leftBoundary, rightBoundary, side, region) {
 	const color = side == 0 ? "w" : "b";
 	const oppositeColor = side == 0 ? "b" : "w";
-	const firstRank = side == 0 ? 0 : 7;
-	const secondRank = side == 0 ? 1 : 6;
-	const thirdRank = side == 0 ? 2 : 5;
 
 	let friendlyRookCount = 0;
-	let enemyRookCount = 0;
 	let enemyPawnCount = 0;
-	let promotedEnemyBishopWithCaptureCount = 0;
+
+	// exclude outside enemy rook promotions
+	addExcludedPromotionFiles(oppositeColor, "R", [leftBoundary + 1, rightBoundary - 1]);
 
 	for (let i = 0; i < region.length; i++) {
 		const square = region[i];
@@ -198,14 +235,9 @@ function validateWeakCage(leftBoundary, rightBoundary, side, region) {
 			friendlyRookCount++;
 		} else if (board[file][rank].color != color && board[file][rank].unit == "R") {
 			tempUndoStack.changePromotedFlag(file, rank, true);
-			enemyRookCount++;
+			addPossiblePromotionFiles(oppositeColor, "R", [leftBoundary + 1, rightBoundary - 1]);
 		} else if (board[file][rank].color != color && board[file][rank].unit == "P") {
 			enemyPawnCount++;
-		} else if (rank == firstRank && board[file][rank].color != color && board[file][rank].unit == "B" &&
-			(file == 0 || (board[file - 1][secondRank].color == color && board[file - 1][secondRank].unit == "P")) &&
-			(board[file][thirdRank].color == color && board[file][thirdRank].unit == "P") &&
-			(file == 7 || (board[file + 1][secondRank].color == color && board[file + 1][secondRank].unit == "P"))) {
-			promotedEnemyBishopWithCaptureCount++;
 		}
 	}
 
@@ -222,11 +254,11 @@ function validateWeakCage(leftBoundary, rightBoundary, side, region) {
 		return side == 0 ? error_illegallyPlacedWhiteRook : error_illegallyPlacedBlackRook;
 	}
 
-	let error = incrementTotalCaptureCount(oppositeColor,
-		Math.max(enemyRookCount + promotedEnemyBishopWithCaptureCount,
-				missingFriendlyRookCount - enemyPawnCount
-		 ) - promotedEnemyBishopWithCaptureCount);
-	if (error != error_ok) return error;
+	const promotionCapturesForMissingFriendlyRooks = missingFriendlyRookCount - enemyPawnCount;
+	if (promotionCapturesForMissingFriendlyRooks > 0) {
+		assert(promotionCapturesForMissingFriendlyRooks <= 2, "There can be at most 2 missing friendly rooks");
+		tempMissingFriendlyRookData.push([side, promotionCapturesForMissingFriendlyRooks, leftBoundary + 1, rightBoundary - 1]);
+	}
 
 	return error_ok;
 }
@@ -262,6 +294,13 @@ function getStrongCageRegion(leftBoundary, rightBoundary,side) {
 function validateStrongCage(leftBoundary, rightBoundary, side) {
 	const color = side == 0 ? "w" : "b";
 	const firstRank = side == 0 ? 0 : 7;
+
+	// exclude outside enemy promotions
+	DETAILED_UNIT_TYPES.forEach(detailedUnitType => {
+		if (detailedUnitType != "K" && detailedUnitType != "P") {
+			addExcludedPromotionFiles(opposite(color), detailedUnitType, [leftBoundary + 1, rightBoundary - 1]);
+		}
+	});
 
 	// if e-file in the strong cage, the king must be there.
 	if (leftBoundary < 4 && 4 < rightBoundary &&
@@ -411,17 +450,19 @@ function checkIllegalCage() {
 	              rook < queen < king < rook
 	              rook < queen < rook < king
 	   4. If there is a weak cage:
-	      (a) Any enemy rook is promoted. A capture is required for this promotion.
-	      (b) An enemy bishop on e.g. e1 with pawns on d2, f2, e3 also requires a capture
-	          for the promotion. These have already been counted in checkIllegalBishops()
-	          but we need to track them here so we don't count captures in the cage twice.
-	          See the formula at the end.
-	      (c) A friendly rook is allowed only if it started in that region.
-	      (d) A missing friendly rook was captured in that region.
+	      (a) A friendly rook is allowed only if it started in that region.
+	      (b) A missing friendly rook was captured in that region.
+	      (c) Any enemy rook is promoted, and the promotion square must be in the region.
 
-	      The number of enemy captures should be incremented by:
-	         max( captures in (a) plus captures in (b),
-	              captures in (d) minus enemy pawns in the region) - captures in (b)
+          In this case, we must be careful not to double count captures in (b) with pawn captures. For that
+          reason, we don't count any pawn captures here, but simply pass in the relevant data to the pawn
+          capture module for further analysis. For each weak cage, we add an array of this form to
+          tempMissingFriendlyRookData: [side, count, left, right], where
+
+          side: the side that the cage belongs to
+          count: missing friendly rooks in the cage, minus enemy pawns in the cage
+          left: the leftmost interior file of the cage (leftBoundary + 1)
+          right: the rightmost interior file of the cage (rightBoundary - 1)
 	 */
 
 	const boundaries = [[-1], [-1]];

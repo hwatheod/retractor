@@ -39,7 +39,6 @@ function initializeBoard() {
 	}
 
     positionData = new PositionData(); // data about the position, computed during legality testing after each retraction
-	pieceLetters = "kqrbnp";
 
     undoStack = new UndoStack();
     currentRetract = '';
@@ -52,6 +51,7 @@ function clearBoard() {
 		}
 	}
 	getPawnCaptureCache().clear();
+    clearTempCounts();
 }
 
 function printBoard(boardToPrint) {

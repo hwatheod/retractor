@@ -2,6 +2,9 @@ let tempUndoStack;
 let tempPawnCaptureCounts = {};
 let tempTotalCaptureCounts = {};
 let tempPromotedCounts = {};
+let tempPossiblePromotionFiles = {};
+let tempExcludedPromotionFiles = {};
+let tempMissingFriendlyRookData = [];
 
 class PositionData {
 	constructor() {
@@ -64,8 +67,6 @@ class PositionData {
 				if (detailedUnitType != "K" && detailedUnitType != "P") {
 					this.promotedCounts["w" + detailedUnitType] = 0;
 					this.promotedCounts["b" + detailedUnitType] = 0;
-					tempPromotedCounts["w" + detailedUnitType] = 0;
-					tempPromotedCounts["b" + detailedUnitType] = 0;
 				}
 			}
 		)
@@ -76,16 +77,10 @@ class PositionData {
 		this.pawnCaptureCounts["b"] = 0;
 		this.pawnCaptureCounts["t"] = 0;
 
-		tempPawnCaptureCounts["w"] = 0;
-		tempPawnCaptureCounts["b"] = 0;
-		tempPawnCaptureCounts["t"] = 0;
-
 		this.totalCaptureCounts["w"] = 0;
 		this.totalCaptureCounts["b"] = 0;
 
-		tempTotalCaptureCounts["w"] = 0;
-		tempTotalCaptureCounts["b"] = 0;
-
+		clearTempCounts();
 		this.isInitialPositionFinalized = false;
 	}
 
@@ -235,23 +230,27 @@ function updateRealCounts() {
 }
 
 function clearTempCounts() {
-	for (const color in tempPawnCaptureCounts) {
-		if (tempPawnCaptureCounts.hasOwnProperty(color)) {
-			tempPawnCaptureCounts[color] = 0;
+	DETAILED_UNIT_TYPES.forEach(
+		detailedUnitType => {
+			if (detailedUnitType != "K" && detailedUnitType != "P") {
+				tempPromotedCounts["w" + detailedUnitType] = 0;
+				tempPromotedCounts["b" + detailedUnitType] = 0;
+				tempPossiblePromotionFiles["w" + detailedUnitType] = [];
+				tempPossiblePromotionFiles["b" + detailedUnitType] = [];
+				tempExcludedPromotionFiles["w" + detailedUnitType] = [];
+				tempExcludedPromotionFiles["b" + detailedUnitType] = [];
+			}
 		}
-	}
+	);
 
-	for (const color in tempTotalCaptureCounts) {
-		if (tempTotalCaptureCounts.hasOwnProperty(color)) {
-			tempTotalCaptureCounts[color] = 0;
-		}
-	}
+	tempPawnCaptureCounts["w"] = 0;
+	tempPawnCaptureCounts["b"] = 0;
+	tempPawnCaptureCounts["t"] = 0;
 
-	for (const detailedUnit in tempPromotedCounts) {
-		if (tempPromotedCounts.hasOwnProperty(detailedUnit)) {
-			tempPromotedCounts[detailedUnit] = 0;
-		}
-	}
+	tempTotalCaptureCounts["w"] = 0;
+	tempTotalCaptureCounts["b"] = 0;
+
+	tempMissingFriendlyRookData = [];
 }
 
 function updatePromotedCount(detailedUnit, newValue) {
@@ -307,6 +306,115 @@ function updatePromotedCount(detailedUnit, newValue) {
 function updatePromotedCountWithMax(detailedUnit, newValue) {
 	return updatePromotedCount(detailedUnit,
 		Math.max(tempPromotedCounts[detailedUnit], newValue));
+}
+
+function addPossiblePromotionFiles(color, detailedUnit, range) {
+	const files = [];
+	for (let file = range[0]; file <= range[1]; file++) {
+		files.push(file);
+	}
+	tempPossiblePromotionFiles[color + detailedUnit].push(files);
+}
+
+function addExcludedPromotionFiles(color, detailedUnit, range) {
+	for (let file = range[0]; file <= range[1]; file++) {
+		tempExcludedPromotionFiles[color + detailedUnit].push(file);
+	}
+}
+
+function getNoPromotionSquaresError(color, detailedUnitType) {
+	assert(color == "w" || color == "b", "Unexpected color: " + color);
+	switch(detailedUnitType) {
+		case 'Q': return color == "w" ? error_noWhitePromotionSquaresForQueen : error_noBlackPromotionSquaresForQueen;
+		case 'R': return color == "w" ? error_noWhitePromotionSquaresForRook : error_noBlackPromotionSquaresForRook;
+		case 'BL':
+		case 'BD': return color == "w" ? error_noWhitePromotionSquaresForBishop : error_noBlackPromotionSquaresForBishop;
+		case 'N': return color == "w" ? error_noWhitePromotionSquaresForKnight : error_noBlackPromotionSquaresForKnight;
+		default: assert(false, "Unexpected detailed unit type " + detailedUnitType);
+	}
+}
+
+function finalizePossiblePromotionFiles() {
+	const allFiles = [0, 1, 2, 3, 4, 5, 6, 7];
+	const darkSquareFilesFirstRank = [0, 2, 4, 6];
+	const lightSquareFilesFirstRank = [1, 3, 5, 7];
+
+	let impossiblePromotionFiles = {};
+	["w", "b"].forEach(color => {
+		impossiblePromotionFiles[color] = [];
+		const lastRank = color == "w" ? 7 : 0;
+		const secondLastRank = color == "w" ? 6 : 1;
+		for (let file = 0; file < 8; file++) {
+			// no promotion is possible on square with a frozen piece
+			if (board[file][lastRank].frozen) {
+				impossiblePromotionFiles[color].push(file);
+			}
+
+			// no promotion is possible if all the escape squares are occupied by enemy pawns
+			if (board[file][secondLastRank].color == opposite(color) &&
+				board[file][secondLastRank].unit == "P" &&
+				(file == 0 ||
+					(board[file - 1][secondLastRank].color == opposite(color) &&
+					 board[file - 1][secondLastRank].unit == "P")) &&
+				(file == 7 ||
+					(board[file + 1][secondLastRank].color == opposite(color) &&
+					 board[file + 1][secondLastRank].unit == "P"))) {
+				impossiblePromotionFiles[color].push(file);
+			}
+		}
+	});
+
+	for (const color of ["w", "b"]) {
+		for (const detailedUnitType of DETAILED_UNIT_TYPES) {
+			if (detailedUnitType != "K" && detailedUnitType != "P") {
+				const key = color + detailedUnitType;
+
+				// add promotion files for any "outside" promoted pieces already assigned from a cage
+				const unassignedPromotedCount = tempPromotedCounts[key] - tempPossiblePromotionFiles[key].length;
+				assert(unassignedPromotedCount >= 0,
+					"tempPromotedCounts for " + key + " is " + tempPromotedCounts[key] + " which is less than "
+					+ " number of assigned promotion files " + tempPossiblePromotionFiles[key].length);
+				if (unassignedPromotedCount > 0) {
+					let unexcludedPromotionFiles;
+					if (detailedUnitType == "BL") {
+						if (color == "b") {
+							unexcludedPromotionFiles = lightSquareFilesFirstRank;
+						} else {
+							unexcludedPromotionFiles = darkSquareFilesFirstRank;
+						}
+					}
+					else if (detailedUnitType == "BD") {
+						if (color == "b") {
+							unexcludedPromotionFiles = darkSquareFilesFirstRank;
+						} else {
+							unexcludedPromotionFiles = lightSquareFilesFirstRank;
+						}
+					} else {
+						unexcludedPromotionFiles = allFiles;
+					}
+					unexcludedPromotionFiles = unexcludedPromotionFiles.filter(
+						file => !tempExcludedPromotionFiles[key].includes(file));
+					if (unexcludedPromotionFiles.length == 0) {
+						return getNoPromotionSquaresError(color, detailedUnitType);
+					}
+					for (let i = 0; i < unassignedPromotedCount; i++) {
+						tempPossiblePromotionFiles[key].push(unexcludedPromotionFiles);
+					}
+				}
+
+				// remove impossible files from all the promotion files
+				for (let i = 0; i < tempPossiblePromotionFiles[key].length; i++) {
+					tempPossiblePromotionFiles[key][i] = tempPossiblePromotionFiles[key][i].filter(
+						file => !impossiblePromotionFiles[color].includes(file));
+					if (tempPossiblePromotionFiles[key][i].length == 0) {
+						return getNoPromotionSquaresError(color, detailedUnitType);
+					}
+				}
+			}
+		}
+	}
+
+	return error_ok;
 }
 
 function getUnitCounts() {
@@ -580,19 +688,7 @@ function isPositionLegalInternal() {
 		if (error != error_ok) return error;
 	}
 
-	tempPawnCaptureCounts["w"] = getWhitePawnCaptures(board);
-	if (tempPawnCaptureCounts["w"] == IMPOSSIBLE) {
-		return error_impossiblePawnStructure;
-	}
-	tempPawnCaptureCounts["b"] = getBlackPawnCaptures(board);
-	tempPawnCaptureCounts["t"] = getTotalPawnCaptures(board);
-	tempTotalCaptureCounts["w"] = tempPawnCaptureCounts["w"];
-	tempTotalCaptureCounts["b"] = tempPawnCaptureCounts["b"];
-
 	let error;
-	error = checkTooManyCaptures();
-	if (error != error_ok) return error;
-
 	error = checkIllegalBishops();
 	if (error != error_ok) return error;
 
@@ -635,6 +731,21 @@ function isPositionLegalInternal() {
 			return error_impossibleKnownCage;
 		}
 	}
+
+	error = finalizePossiblePromotionFiles();
+	if (error != error_ok) return error;
+
+	tempPawnCaptureCounts["w"] = getWhitePawnCaptures(board, tempPossiblePromotionFiles, tempMissingFriendlyRookData);
+	if (tempPawnCaptureCounts["w"] == IMPOSSIBLE) {
+		return error_impossiblePawnStructure;
+	}
+	tempPawnCaptureCounts["b"] = getBlackPawnCaptures(board, tempPossiblePromotionFiles, tempMissingFriendlyRookData);
+	tempPawnCaptureCounts["t"] = getTotalPawnCaptures(board, tempPossiblePromotionFiles, tempMissingFriendlyRookData);
+	tempTotalCaptureCounts["w"] += tempPawnCaptureCounts["w"];
+	tempTotalCaptureCounts["b"] += tempPawnCaptureCounts["b"];
+
+	error = checkTooManyCaptures();
+	if (error != error_ok) return error;
 
 	return error_ok;
 }

@@ -70,7 +70,7 @@
                     <th>T</th>
                 </tr>
                 <tr>
-                    <td>Pawn</td>
+                    <td>Pawn<sup><a href="javascript:openHelpPage('help_pawn_captures')">?</a></sup></td>
                     <td style="text-align:center" class="positionData" id="pawnCapturesWhite"></td>
                     <td style="text-align:center" class="positionData" id="pawnCapturesBlack"></td>
                     <td style="text-align:center" class="positionData" id="pawnCapturesTotal"></td>
@@ -109,6 +109,9 @@
                     <td style="text-align:center" class="positionData" id="promoted_bN"></td>
                 </tr>
             </table>
+        </div>
+        <div id="configSection">
+            <input type="button" id="config" value="Config" onclick="showModal('configModal')">
         </div>
     </div>
     <div class="center-flex-container">
@@ -153,6 +156,19 @@
                 <div id="solveErrorMessage" style="color:#FF0000"></div>
                 <br>
                 <input id="startSolve" type="button" value="Solve" onclick="solveGui()">
+            </div>
+        </div>
+        <div id="configModal" class="modal-content">
+            <span id="configClose" class="close">&times;</span>
+            <div class="modal-body">
+                <label for="promotionSearchThreshold">Promotion search threshold:</label>
+                <input id="promotionSearchThreshold" type="number" min="1" max="1000000" size="6" value="1000">
+                <br>
+                <label for="separateCaptureTracking">Separate capture tracking</label>
+                <input type="checkbox" id="separateCaptureTracking" />
+                <br>
+                <input id="configOk" type="button" value="Ok">
+                <input id="configCancel" type="button" value="Cancel" onclick="clearModal('configModal')">
             </div>
         </div>
 
@@ -351,6 +367,28 @@
     // Setup modals
     const modalBackground = document.getElementById("modalBackground");
 
+    // Setup config modal
+    const configButton = document.getElementById("config");
+    const configModal = document.getElementById("configModal");
+    const configCloseSpan = document.getElementById("configClose");
+    const configOk = document.getElementById("configOk");
+    const configPromotionSearchThreshold = document.getElementById("promotionSearchThreshold");
+    const configSeparateCaptureTracking = document.getElementById("separateCaptureTracking");
+    configButton.onclick = function() {
+        configPromotionSearchThreshold.value = getPromotionSearchThreshold();
+        configSeparateCaptureTracking.checked = getEnableSeparateCaptureTracking();
+        showModal("configModal");
+    }
+    configCloseSpan.onclick = function() {
+        clearModal("configModal");
+    }
+    configOk.onclick = function() {
+        setPromotionSearchThreshold(parseInt(configPromotionSearchThreshold.value, 10));
+        setEnableSeparateCaptureTracking(configSeparateCaptureTracking.checked);
+        getPawnCaptureCache().clear();
+        clearModal("configModal");
+    }
+
     // Setup solve modal
     const solveModal = document.getElementById("solveModal");
     const solveButton = document.getElementById("solve");
@@ -516,6 +554,8 @@
                 clearModal("copyGameModal");
             } else if (verifyCageModal.style.display != "none" && verifyCageModal.style.display != "" && !verifyCageSelectionMode) {
                 verifyCageUndo();
+            } else if (configModal.style.display != "none" && configModal.style.display != "") {
+                clearModal("configModal");
             }
         }
     }

@@ -11,7 +11,7 @@ onmessage = function(e) {
     positionData.ep = e.data[3];
     getPawnCaptureCache().set(e.data[4]);
     knownCages = e.data[5];
-	pieceLetters = "kqrbnp";
+    getPawnCaptureConfig().set(e.data[6]);
 	undoStack.reset();
 
     const result = solve(solveParameters);

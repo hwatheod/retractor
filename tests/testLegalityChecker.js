@@ -559,6 +559,17 @@ describe("illegalities related to bishops", function() {
         expect(board[E5.mFile][E5.mRank].promoted).toBe(false);
     });
 
+    it("Illegal bishop configuration in corner - white", function() {
+        setForsythe("4k3/8/8/8/8/1P6/bPP5/1b2K3");
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_illegalBishopAndPawnInCorner]);
+    });
+
+    it("Illegal bishop configuration in corner - black", function() {
+        setForsythe("4k1B1/5ppB/6p1/8/8/8/8/4K3");
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_illegalBishopAndPawnInCorner]);
+    });
 });
 
 describe("strong cage tests", function() {
@@ -1359,7 +1370,7 @@ describe("Illegalities related to weak cages", function() {
         expect(board[G1.mFile][G1.mRank].promoted).toBe(true);
         expect(board[H1.mFile][H1.mRank].promoted).toBe(true);
         expect(positionData.promotedCounts["bR"]).toBe(2);
-        expect(positionData.totalCaptureCounts["b"]).toBe(2);
+        expect(positionData.totalCaptureCounts["b"]).toBe(3);
     });
 
     it("missing black rook in black cage counts as capture ok", function () {
@@ -1384,7 +1395,6 @@ describe("Illegalities related to weak cages", function() {
         placeOnSquare(A7, WHITE_PAWN);
         setRetract("w");
         expect(errorText[startPlay()]).toBe(errorText[error_ok]);
-        expect(positionData.pawnCaptureCounts["w"]).toBe(1);
         expect(positionData.totalCaptureCounts["w"]).toBe(1);
     });
 
@@ -1403,7 +1413,6 @@ describe("Illegalities related to weak cages", function() {
         setForsythe("8/8/8/4k3/8/1P1P2P1/P1PpPP1P/5K2");
         setRetract("w");
         expect(errorText[startPlay()]).toBe(errorText[error_ok]);
-        expect(positionData.pawnCaptureCounts["b"]).toBe(1);
         expect(positionData.totalCaptureCounts["b"]).toBe(2);
     });
 
@@ -1632,5 +1641,84 @@ describe("king in enemy pawn cage tests", function() {
         setFrozenFlag(E8.mFile, E8.mRank, true);
         setRetract("b");
         expect(errorText[startPlay()]).toBe(errorText[error_illegallyPlacedWhiteKing]);
+    });
+});
+
+describe("no available promotion squares", function() {
+    beforeAll(function () {
+        initializeBoard();
+    });
+
+    beforeEach(function () {
+        clearBoard();
+    });
+
+    it("white queen", function() {
+        setForsythe("4k3/pppppppp/8/8/2QQ4/8/8/4K3");
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_noWhitePromotionSquaresForQueen]);
+    });
+
+    it("white rook - with some frozen black pieces", function() {
+        setForsythe("4k3/p1pp1pp1/1p5p/8/8/1RRR4/8/4K3");
+        setFrozenFlag(E8.mFile, E8.mRank, true);
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_noWhitePromotionSquaresForRook]);
+    });
+
+    it("white light squared bishop - with some frozen black pieces", function() {
+        setForsythe("4k1n1/1p1p1p2/8/8/8/3B4/2B5/4K3");
+        setFrozenFlag(G8.mFile, G8.mRank, true);
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_noWhitePromotionSquaresForBishop]);
+    });
+
+    it("white dark squared bishop", function() {
+        setForsythe("4k3/p1p1p1p1/8/8/3B4/4B3/8/4K3");
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_noWhitePromotionSquaresForBishop]);
+    });
+
+    it("white knight", function() {
+        setForsythe("4k3/pppppppp/8/8/1NNN4/8/8/4K3");
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_noWhitePromotionSquaresForKnight]);
+    });
+
+    it("black queen - with some frozen white pieces", function() {
+        setForsythe("4k3/8/6q1/6q1/8/8/PPP2PPP/2BQKB2");
+        setFrozenFlag(C1.mFile, C1.mRank, true);
+        setFrozenFlag(D1.mFile, D1.mRank, true);
+        setFrozenFlag(E1.mFile, E1.mRank, true);
+        setFrozenFlag(F1.mFile, F1.mRank, true);
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_noBlackPromotionSquaresForQueen]);
+    });
+
+    it("black rook", function() {
+        setForsythe("4k3/8/3rr3/4r3/8/1P1P3P/P1P1PPP1/4K3");
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_noBlackPromotionSquaresForRook]);
+    });
+
+    it("black light squared bishop", function() {
+        setForsythe("4k3/8/2b5/3b4/8/8/P1P1P1P1/4K3");
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_noBlackPromotionSquaresForBishop]);
+    });
+
+    it("black dark squared bishop", function() {
+        setForsythe("4k3/8/3b4/2b5/8/8/1P1P1P1P/4K3");
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_noBlackPromotionSquaresForBishop]);
+    });
+
+    it("black knight - with some frozen white pieces", function() {
+        setForsythe("4k3/5n2/5n2/5n2/8/8/PP1PPPPP/1NBQ3K");
+        setFrozenFlag(B1.mFile, B1.mRank, true);
+        setFrozenFlag(C1.mFile, C1.mRank, true);
+        setFrozenFlag(D1.mFile, D1.mRank, true);
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_noBlackPromotionSquaresForKnight]);
     });
 });

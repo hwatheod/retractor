@@ -179,6 +179,323 @@ describe("Black pawns only", function() {
     });
 });
 
+describe("promoted bishops as pawns", function() {
+    beforeAll(function() {
+        initializeBoard();
+    });
+
+    beforeEach(function() {
+        clearBoard();
+        placeOnSquare(E4, WHITE_KING);
+        placeOnSquare(G5, BLACK_KING);
+        setRetract("b");
+    });
+
+    it("Promoted bishop on g8", function() {
+        placeOnSquare(G8, WHITE_BISHOP);
+        placeOnSquare(G7, WHITE_PAWN);
+        placeOnSquare(F7, BLACK_PAWN);
+        placeOnSquare(H7, BLACK_PAWN);
+        placeOnSquare(G6, BLACK_PAWN);
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.pawnCaptureCounts["w"]).toBe(2);
+        expect(positionData.pawnCaptureCounts["b"]).toBe(0);
+        expect(positionData.pawnCaptureCounts["t"]).toBe(2);
+    });
+
+    it("Promoted bishop on a1", function() {
+        placeOnSquare(A1, BLACK_BISHOP);
+        placeOnSquare(B2, WHITE_PAWN);
+        placeOnSquare(A4, WHITE_PAWN);
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.pawnCaptureCounts["w"]).toBe(0);
+        expect(positionData.pawnCaptureCounts["b"]).toBe(0);
+        expect(positionData.pawnCaptureCounts["t"]).toBe(1);
+    });
+
+    it("Promoted bishop on a7", function() {
+        placeOnSquare(A7, WHITE_BISHOP);
+        placeOnSquare(B7, BLACK_PAWN);
+        placeOnSquare(C7, BLACK_PAWN);
+        placeOnSquare(B6, BLACK_PAWN);
+        placeOnSquare(A6, WHITE_PAWN);
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.pawnCaptureCounts["w"]).toBe(2);
+        expect(positionData.pawnCaptureCounts["b"]).toBe(1);
+        expect(positionData.pawnCaptureCounts["t"]).toBe(3);
+    });
+
+    it("Promoted bishop on g1", function() {
+        placeOnSquare(G1, BLACK_BISHOP);
+        placeOnSquare(G2, WHITE_PAWN);
+        placeOnSquare(G3, WHITE_PAWN);
+        placeOnSquare(F2, WHITE_PAWN);
+        placeOnSquare(H2, BLACK_PAWN);
+        placeOnSquare(G4, BLACK_PAWN);
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.pawnCaptureCounts["w"]).toBe(1);
+        expect(positionData.pawnCaptureCounts["b"]).toBe(3);
+        expect(positionData.pawnCaptureCounts["t"]).toBe(4);
+    });
+
+    it("Promoted bishops on a1 and b1 with a7, b7, c7 black pawns", function() {
+        placeOnSquare(A1, BLACK_BISHOP);
+        placeOnSquare(B1, BLACK_BISHOP);
+        placeOnSquare(B2, WHITE_PAWN);
+        placeOnSquare(C2, WHITE_PAWN);
+        placeOnSquare(B3, WHITE_PAWN);
+        placeOnSquare(A7, BLACK_PAWN);
+        placeOnSquare(B7, BLACK_PAWN);
+        placeOnSquare(C7, BLACK_PAWN);
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.pawnCaptureCounts["w"]).toBe(1);
+        expect(positionData.pawnCaptureCounts["b"]).toBe(8);
+        expect(positionData.pawnCaptureCounts["t"]).toBe(9);
+    });
+});
+
+describe("pawn captures with promoted pieces", function() {
+    beforeAll(function() {
+        initializeBoard();
+    });
+
+    beforeEach(function() {
+        clearBoard();
+    });
+
+    it("White promoted bishop must have promoted on g8, test 1", function() {
+        setForsythe("4k3/1p1p1p2/8/8/8/5B2/4PPPP/4K3");
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.pawnCaptureCounts["w"]).toBe(3);
+        expect(positionData.pawnCaptureCounts["b"]).toBe(0);
+        expect(positionData.pawnCaptureCounts["t"]).toBe(3);
+    });
+
+    it("White promoted bishop must have promoted on g8, test 2", function() {
+        setForsythe("4k3/1p1p1pp1/8/8/8/5B2/4PPPP/4K3");
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.pawnCaptureCounts["w"]).toBe(5);
+        expect(positionData.pawnCaptureCounts["b"]).toBe(0);
+        expect(positionData.pawnCaptureCounts["t"]).toBe(5);
+    });
+
+    it("White promoted queen, shortest path b to f", function() {
+        setForsythe("4k3/ppppp3/8/8/8/QQ6/2PPPPPP/4K3");
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.pawnCaptureCounts["w"]).toBe(4);
+        expect(positionData.pawnCaptureCounts["b"]).toBe(0);
+        expect(positionData.pawnCaptureCounts["t"]).toBe(4);
+    });
+
+    it("Black promoted knight, shortest path g to b", function() {
+        setForsythe("4k3/pppppp2/8/8/3nnn2/8/2PPPPPP/4K3");
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.pawnCaptureCounts["w"]).toBe(0);
+        expect(positionData.pawnCaptureCounts["b"]).toBe(5);
+        expect(positionData.pawnCaptureCounts["t"]).toBe(5);
+    });
+
+    it("Black promoted knight with frozen white king, shortest path e-d", function() {
+        setForsythe("4k3/8/2n5/2nn4/8/8/PPPP4/4K3");
+        setFrozenFlag(E1.mFile, E1.mRank, true);
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.pawnCaptureCounts["w"]).toBe(0);
+        expect(positionData.pawnCaptureCounts["b"]).toBe(1);
+        expect(positionData.pawnCaptureCounts["t"]).toBe(1);
+    });
+
+    it("Black promoted rook and white promoted queen, shortest path White e-d and Black d-e", function() {
+        setForsythe("4k3/4pppp/8/5rr1/2QQ2r1/8/PPPP4/4K3");
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.pawnCaptureCounts["w"]).toBe(1);
+        expect(positionData.pawnCaptureCounts["b"]).toBe(1);
+        expect(positionData.pawnCaptureCounts["t"]).toBe(2);
+    });
+});
+
+describe("Pawn captures with one missing friendly rook cage", function() {
+    beforeAll(function() {
+        initializeBoard();
+    });
+
+    beforeEach(function() {
+        clearBoard();
+    });
+
+    it("Rook cage in a8 corner with possible bishop promotion on b8", function() {
+        setForsythe("2b1k3/pp1p4/8/8/3B4/2B5/8/4K3");
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.totalCaptureCounts["w"]).toBe(1);
+        expect(positionData.totalCaptureCounts["b"]).toBe(0);
+    });
+
+    it("Rook cage in a8 corner with bishop promotion outside cage", function() {
+        setForsythe("2b1k3/pp1p4/8/8/4B3/3B2P1/4PP1P/4K3");
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.totalCaptureCounts["w"]).toBe(2);
+        expect(positionData.totalCaptureCounts["b"]).toBe(0);
+    });
+
+    it("Rook cage in h8 corner with promoted rook inside cage, shortest path e-g", function() {
+        setForsythe("4kb2/4p1pR/5p1p/8/8/8/5PPP/4K3");
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.totalCaptureCounts["w"]).toBe(2);
+        expect(positionData.totalCaptureCounts["b"]).toBe(0);
+    });
+
+    it("Rook cage in h8 corner with promoted queen from 1 capture outside", function() {
+        setForsythe("4kb2/p1ppp1pp/8/8/8/6P1/1P2PP2/1QQ1K3");
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.totalCaptureCounts["w"]).toBe(2);
+        expect(positionData.totalCaptureCounts["b"]).toBe(0);
+    });
+
+    it("Rook cage in a1 corner with promoted rook inside cage plus an extra black pawn on c2", function() {
+        setForsythe("4k3/ppp5/8/8/8/P1P5/rPpP4/2B1K3");
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.totalCaptureCounts["w"]).toBe(0);
+        expect(positionData.totalCaptureCounts["b"]).toBe(4);
+    });
+
+    it("Rook cage in a1 corner two promoted rooks inside cage", function() {
+        setForsythe("4k3/8/8/8/8/P1P5/rP1P4/1rB1K3");
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.totalCaptureCounts["w"]).toBe(0);
+        expect(positionData.totalCaptureCounts["b"]).toBe(3);
+    });
+
+    it("Rook cage in h1 corner from frozen king", function() {
+        setForsythe("4k3/p1ppp3/5n2/5nn1/8/8/1P3PPP/4K3");
+        setFrozenFlag(E1.mFile, E1.mRank, true);
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.totalCaptureCounts["w"]).toBe(0);
+        expect(positionData.totalCaptureCounts["b"]).toBe(2);
+    });
+
+    it("Strong rook cage in h1 corner with outside promoted black queen, shortest path e-d", function() {
+        setForsythe("4k3/p1pp4/1p6/5q2/5q2/8/4PPPP/4KB2");
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.totalCaptureCounts["w"]).toBe(0);
+        expect(positionData.totalCaptureCounts["b"]).toBe(2);
+    });
+});
+
+describe("Pawn captures with multiple missing friendly rook cages", function() {
+    beforeAll(function() {
+        initializeBoard();
+    });
+
+    beforeEach(function() {
+        clearBoard();
+    });
+
+    it("Rook cages in a1 and h1 corners", function() {
+        setForsythe("4k3/8/8/3b4/2b5/P5KP/1P1PP1P1/2B2B2");
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.totalCaptureCounts["w"]).toBe(0);
+        expect(positionData.totalCaptureCounts["b"]).toBe(2);
+    });
+
+    it("Rook cages in a1, h1, h8 corners with promoted rooks in a1, h8 cages", function() {
+        setForsythe("4kbR1/1p2p1pp/5p2/8/8/P6P/1PPPP1P1/r1B1KB2");
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.totalCaptureCounts["w"]).toBe(3);
+        expect(positionData.totalCaptureCounts["b"]).toBe(3);
+    });
+});
+
+describe("Pawn captures with rook cage with two missing rooks", function() {
+    beforeAll(function() {
+        initializeBoard();
+    });
+
+    beforeEach(function() {
+        clearBoard();
+    });
+
+    it("Two missing rooks on black's side with one promoted white knight", function () {
+        setForsythe("4k3/p1pp1p1p/1p2p1p1/8/3N4/3NN3/8/4K3");
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.totalCaptureCounts["w"]).toBe(2);
+        expect(positionData.totalCaptureCounts["b"]).toBe(0);
+    });
+
+    it("Two missing rooks on white's side with promoted black queen and knight", function () {
+        setForsythe("4k3/8/nn1q4/1n1q4/8/1P4P1/P1PPPP1P/4K3");
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.totalCaptureCounts["w"]).toBe(0);
+        expect(positionData.totalCaptureCounts["b"]).toBe(2);
+    });
+});
+
+describe("Special configuration for pawn captures", function() {
+    beforeAll(function() {
+        initializeBoard();
+    });
+
+    beforeEach(function() {
+        clearBoard();
+    });
+
+    it("Black's side special, white promotion needs 1 capture in cage", function() {
+        setForsythe("4k3/p1p1pp1p/1p1p2p1/8/4N3/4NN2/8/4K3");
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.totalCaptureCounts["w"]).toBe(2);
+        expect(positionData.totalCaptureCounts["b"]).toBe(0);
+    });
+
+    it("Black's side special, white promotion needs 2 captures in cage", function() {
+        setForsythe("4k3/p1pppp1p/1p4p1/8/8/3B4/2B5/4K3");
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.totalCaptureCounts["w"]).toBe(2);
+        expect(positionData.totalCaptureCounts["b"]).toBe(0);
+    });
+
+    it("Black's side special, white promotion needs 2 captures in cage plus 1 outside", function() {
+        setForsythe("4k3/p1pppp1p/1p4p1/8/4B3/5B2/PPP5/4K3");
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.totalCaptureCounts["w"]).toBe(3);
+        expect(positionData.totalCaptureCounts["b"]).toBe(0);
+    });
+
+    it("White's side special, black has a promoted rook inside the cage", function() {
+        setForsythe("4k3/5pp1/8/8/8/P2P2P1/1PPKPP1P/r7");
+        setRetract("w");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.totalCaptureCounts["w"]).toBe(0);
+        expect(positionData.totalCaptureCounts["b"]).toBe(2);
+    });
+
+    it("White's side special, black has a pawn inside the cage", function() {
+        setForsythe("4k3/8/8/8/8/P2P2P1/1PPKPPpP/8");
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.totalCaptureCounts["w"]).toBe(0);
+        expect(positionData.totalCaptureCounts["b"]).toBe(2);
+    });
+});
+
 describe("untangled positions", function() {
     beforeAll(function() {
         initializeBoard();
@@ -401,6 +718,18 @@ describe("tangled positions", function() {
         expect(getBlackPawnCaptures(board)).toBe(0);
         expect(getTotalPawnCaptures(board)).toBe(4);
     })
+
+    /* https://www.janko.at/Retros/Masterworks/Part5.htm
+       #44 - L. Ceriani - La Genesi delle Posizioni, 1961 - Ded. T. H. Willcocks
+    */
+    it("Tangled position from Ceriani problem", function() {
+        setEnableSeparateCaptureTracking(true);
+        setForsythe("1B1NKb2/n1NnpPrp/1PPkPrP1/1pRPppp1/2p4P/3p4/8/8");
+        expect(getWhitePawnCaptures(board)).toBe(2);
+        expect(getBlackPawnCaptures(board)).toBe(4);
+        expect(getTotalPawnCaptures(board)).toBe(6);
+        setEnableSeparateCaptureTracking(false);
+    });
 });
 
 describe("slow cases", function() {
@@ -463,17 +792,10 @@ describe("slow cases", function() {
         // expect(getTotalPawnCaptures(board)).toBe(IMPOSSIBLE);
     });
 
-    // too slow for now
-    xit("both sides have 7 pawns on opponent's starting rank", function() {
+    it("both sides have 7 pawns on opponent's starting rank", function() {
         setForsythe("8/PPPPPPP1/8/8/8/8/ppppppp1/8");
         expect(getWhitePawnCaptures(board)).toBe(0);
         expect(getBlackPawnCaptures(board)).toBe(0);
         expect(getTotalPawnCaptures(board)).toBe(7);
     });
-
-    /* A position from a real retro problem
-       https://www.janko.at/Retros/Masterworks/Part5.htm
-       #44 - L. Ceriani - La Genesi delle Posizioni, 1961 - Ded. T. H. Willcocks
-       1B1NKb2/n1NnpPrp/1PPkPrP1/1pRPppp1/2p4P/3p4/8/8
-    */
 });

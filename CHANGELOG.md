@@ -1,3 +1,8 @@
+v2.3
+
+* Retractor can now count pawn captures coming from promoted pieces that are on the
+board.
+
 v2.2.3
 
 * Fixed a bug where promoted rooks weren't detected properly when a cage 

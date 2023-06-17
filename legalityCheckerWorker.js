@@ -8,6 +8,8 @@ onmessage = function(e) {
     currentRetract = e.data[2];
 	getPawnCaptureCache().set(e.data[3]);
 	knownCages = e.data[4];
+	getPawnCaptureConfig().set(e.data[5]);
+	clearTempCounts();
 	if (!tempUndoStack) {
 	    tempUndoStack = new UndoStack();
     }

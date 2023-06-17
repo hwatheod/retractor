@@ -1,6 +1,6 @@
 <div class="helpPage" id="help_front">
 <p>
-    Welcome to <a href="https://github.com/hwatheod/retractor/blob/master/CHANGELOG.md" target="_blank">Retractor 2.2.3</a>! Retractor is a tool for working with retrograde analysis (retro) chess problems.
+    Welcome to <a href="https://github.com/hwatheod/retractor/blob/master/CHANGELOG.md" target="_blank">Retractor 2.3</a>! Retractor is a tool for working with retrograde analysis (retro) chess problems.
     <br>
     In a retro problem, you play chess backwards to learn about the history of a position.
         <a href="javascript:openHelpPage('help_tutorial_1')">Click here</a> for an introduction to retros.
@@ -26,6 +26,7 @@
     <a href="javascript:openHelpPage('help_solve')">Solving a position</a><br>
     <a href="javascript:openHelpPage('help_piece_markings')">Frozen, promoted, original markings on pieces</a><br>
     <a href="javascript:openHelpPage('help_cage')">Cages</a><br>
+    <a href="javascript:openHelpPage('help_config')">Config settings</a> (Advanced)<br>
     <a href="detectedByRetractor.html" target="_blank">What illegal positions are detected by Retractor 2? (new tab)</a><br>
     <a href="javascript:openHelpPage('help_about')">About Retractor 2</a>
 </div>
@@ -73,11 +74,12 @@
     </p>
 
     <p>
-    In the "Captures" section, Retractor shows the number of pawn captures and number of total captures it could
-    determine for White (W), Black (B), and Total (T).  The "Total" column may exceed the sum of "White" and "Black", because
-    sometimes a capture can be detected without knowing which side made it (example: White pawn on e5, Black pawn on
-    e4).  The "Total" row includes captures from non-pawn sources, such as an original bishop captured on its own
-    square (example: White pawns on b2 and d2, empty square on c1, means that the White c1 bishop was captured on c1).
+    In the "Captures" section, Retractor shows the number of <a href="javascript:openHelpPage('help_pawn_captures')">pawn captures</a>
+    and number of total captures it could determine for White (W), Black (B), and Total (T).  The "Total" column may
+    exceed the sum of "White" and "Black", because sometimes a capture can be detected without knowing which side made it
+    (example: White pawn on e5, Black pawn on e4).  The "Total" row includes captures from non-pawn sources, such as an
+    original bishop captured on its own square (example: White pawns on b2 and d2, empty square on c1, means that the
+    White c1 bishop was captured on c1).
     </p>
 
     <p>
@@ -94,6 +96,22 @@
     board.  If you undo a move back to a position where you interrupted the calculation, the numbers will continue
     to show as grey as a reminder that they may not be correct.
     </p>
+</div>
+
+<div class="helpPage" id="help_pawn_captures">
+    <p>If the number of pawn captures reported is too low, it may be because there are pawn promotions that cannot
+        currently be detected by Retractor. Another possibility is when one side has reached its maximum number
+        of pawn captures, then the number of pawn captures reported for the other side may be too low. In the
+        latter case, you should try the config option <a href="javascript:openHelpPage('help_config')">separate capture tracking</a>.
+    </p>
+
+    <p>If the number of pawn captures reported is too high, it is because the number may include rooks captured
+        in their home cage. Retractor does not attempt to determine whether they could actually have been captured by
+        a pawn or not. However, the <b>total</b> number of captures reported will never be too high. When determining
+        illegality, Retractor only uses the total number of captures. The pawn capture value is reported separately for
+        the user's convenience only.
+    </p>
+
 </div>
 
 <div class="helpPage" id="help_solve">
@@ -197,6 +215,34 @@
         1. Visualize which units are actually trapped in a cage.<br>
         2. Do not include any pieces that have already escaped from the cage, or have an escape route.
     </p>
+</div>
+<div class="helpPage" id="help_config">
+    <p>In most cases, users should not have to touch these settings. Config settings can only be changed in edit mode
+        from the "Config" button on the left side.</p>
+    <p>
+    <b>Promotion search threshold:</b> When there are promoted pieces on the board, Retractor searches over all possible
+       combinations of promotion squares for the promoted pieces to determine additional pawn captures. If the number of
+       combinations exceeds this threshold, then Retractor will skip this search entirely. The default value 1000 is reasonable
+       for most problems. I have not found any problems where it is necessary to set it higher. If Retractor is slow
+       and you are working with a position with some promoted pieces on the board but the number of captures by promoted
+       pawns is irrelevant, you can try setting it lower.
+    </p>
+
+    <p>
+    <b>Separate capture tracking:</b> Checking this box is useful in positions where the number of pawn captures reported
+       for one side is too low because the other side has already reached its maximum number of pawn captures.
+        Consider the following problem by Dr. Niels H&#xf8;eg - <i>Retrograde Analysis</i>, 1915
+        (<a href="javascript:openTutorialPosition('bN6/pPkR3p/PpPpPP2/8/2KP4/B6B/1q1P2PQ/br1R2Nr', 'w')">click here to set up</a>).
+        If "separate capture tracking" is off (default), Retractor only reports 4 pawn captures for White, but
+        because Black cannot make any pawn captures, White actually must make 6 pawn captures. If "separate capture tracking"
+        is on, Retractor will report 6 pawn captures for White.
+    </p>
+
+    <p>
+        In some positions, using "separate capture tracking" in combination with many promoted pieces can slow things down.
+        In this case, you can try lowering the promotion search threshold.
+    </p>
+
 </div>
 <div class="helpPage" id="help_ettl_solution">
     All 32 pieces are on the board, so there have been no captures. The White king on e5 is in check from the Black

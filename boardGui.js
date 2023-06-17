@@ -404,7 +404,8 @@ function asyncLegalityCheck() {
 	}
 
 	legalityCheckingActive = true;
-	legalityCheckerWorker.postMessage([board, positionData, currentRetract, getPawnCaptureCache(), knownCages]);
+	legalityCheckerWorker.postMessage([board, positionData, currentRetract, getPawnCaptureCache(), knownCages,
+		getPawnCaptureConfig()]);
 	setTimeout(function() { if (legalityCheckingActive) showError("Checking legality..."); }, 500);
 }
 

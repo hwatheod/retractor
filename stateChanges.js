@@ -118,6 +118,7 @@ function processMoveText(moveText) {
 	message = numMoves.toString() + " move" + ((numMoves != 1) ? "s" : "") + " replayed.";
 	if (numMoves > 0) {
 		message += "  Use 'forward' button to view.";
+		disableSolutionButtons();
 	}
 	if (illegalMove != null) {
 		message += "  Stopped at illegal move " + illegalMove;
@@ -171,7 +172,7 @@ function solveGui() {
 		resetLegalityCheckerWorker();
 		solverActive = true;
 		solverWorker.postMessage([new SolveParameters(solveDepth, extraDepth, maxSolutions, noWhiteUncaptures, noBlackUncaptures), board,
-			currentRetract, positionData.ep, getPawnCaptureCache(), knownCages]);
+			currentRetract, positionData.ep, getPawnCaptureCache(), knownCages, getPawnCaptureConfig()]);
 	} else { // cancel
 		resetSolver();
 	}
@@ -232,6 +233,7 @@ function switchToPlayMode() {
 	document.getElementById("setPositionButton").style.visibility = "hidden";
 	document.getElementById("pawnCapturesTable").hidden = false;
 	document.getElementById("promoteeTable").hidden = false;
+	document.getElementById("config").hidden = true;
 	document.getElementById("forsytheText").setAttribute("readonly", "");
 	document.getElementById("moves").style.display = "block";
 
@@ -267,6 +269,7 @@ function switchToEditMode(clearFlags) {
 	document.getElementById("moves").style.display = "none";
 	document.getElementById("pawnCapturesTable").hidden = true;
 	document.getElementById("promoteeTable").hidden = true;
+	document.getElementById("config").hidden = false;
 	resetUncapturedPiece();
 	showError("");
 	updateEditModeData();
