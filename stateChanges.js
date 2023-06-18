@@ -148,11 +148,14 @@ function solveGui() {
 			solverActive = false;
 			solutions = e.data[0];
 			getPawnCaptureCache().set(e.data[1]);
+			const maybeTruncated = e.data[2];
+			const timeInSeconds = e.data[3];
 			resetSolver();
 			if (solutions.length == 0) {
-				showError("No solutions found; position is impossible.");
+				showError("No solutions found; position is impossible. Time: " + timeInSeconds + " seconds.");
+			} else {
+				showError("Solve finished in " + timeInSeconds + " seconds.");
 			}
-			const maybeTruncated = e.data[2];
 			showSolutions(maybeTruncated);
 			updateVisualBoard();
 		}

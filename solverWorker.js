@@ -14,7 +14,10 @@ onmessage = function(e) {
     getPawnCaptureConfig().set(e.data[6]);
 	undoStack.reset();
 
+	const startTime = Date.now();
     const result = solve(solveParameters);
+    const stopTime = Date.now();
+    const timeInSeconds = (stopTime - startTime) / 1000;
     const maybeTruncated = result.length == solveParameters.maxSolutions;
-    postMessage([result, getPawnCaptureCache(), maybeTruncated]);
+    postMessage([result, getPawnCaptureCache(), maybeTruncated, timeInSeconds]);
 }

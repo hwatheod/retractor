@@ -1,3 +1,7 @@
+v2.3.1
+
+* Report the time taken for solving.
+
 v2.3
 
 * Retractor can now count pawn captures coming from promoted pieces that are on the
