@@ -12,9 +12,9 @@
   A       29                24                6           59
   B       33                18                0           51 (duplicates of type A have been excluded)
   C       53                 7                0           60
-  D       86                28               47          161
+  D       86                29               46          161
   ----------------------------------------------------------
-  total  211                77               53          341
+  total  211                78               52          341
  */
 
 const typeA = {testSolved: true, testUnsolved: false};
@@ -1013,7 +1013,10 @@ describe("type D last move problems", function() {
     /* Werner Keym */
     xtestProblem("8/2p1p2P/5pp1/7P/6Pp/P3PPkp/1P2PR2/5RK1", "P-", "O-O");
     /* Bernd Schwarzkopf */
-    xtestProblem("4BKBn/3ppRBP/5p1p/6p1/1P6/P1P5/pbrPP3/Nbkb4", "PxQ", "PxQ");
+    testProblem(["4BKBn/3ppRBP/5p1p/6p1/1P6/P1P5/pbrPP3/Nbkb4",
+        "8/8/8/8/8/PPP5/pbrPP3/Nbkb4", "4BKBn/3ppRBP/5ppp/8/8/8/8/8",
+        "8/8/8/8/1P6/PpP5/RbrPP3/Nbkb4", "4BKBn/3ppRBr/5pPp/6p1/8/8/8/8"], "PxQ", "PxQ",
+        {"ENABLE_SEPARATE_CAPTURE_TRACKING": true});
     /* Roberto Osorio & Jorge Lois */
     // this one needs extraDepth of 5
     testProblem("8/p2pppp1/8/5p2/6P1/2PPkPPB/1PrR1RPr/2bn1RK1", "PxQ", "O-O", {'extraDepth': 5});
