@@ -580,7 +580,7 @@ function evaluateHelper(pawns, bestPreviousLevel, whiteCapturesLeft, blackCaptur
             if (unblockedFile != -1 &&
                 (Math.sign(targetFile - file) == -Math.sign(unblockedFile - file))) {
                 distance += 2;
-            } else {
+            } else if (rank == lastRank) {
                 const thirdLastRank = secondLastRank + pawnDir;
                 for (const adjacentFile of [file - 1, file + 1]) {
                     if (adjacentFile >= 0 && adjacentFile <= 7 && targetFile == adjacentFile &&

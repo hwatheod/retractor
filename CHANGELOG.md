@@ -1,3 +1,8 @@
+v2.3.2
+
+* Fixed a pawn capture evaluation bug. For one particular lower bound, forgot to check that the
+pawn was on its promotion rank.
+
 v2.3.1
 
 * Report the time taken for solving.
