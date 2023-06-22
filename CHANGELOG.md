@@ -1,3 +1,7 @@
+v2.3.3
+
+* Fixed a rare pawn capture caching bug that could happen in "separate pawn capture tracking" mode. 
+
 v2.3.2
 
 * Fixed a pawn capture evaluation bug. For one particular lower bound, forgot to check that the

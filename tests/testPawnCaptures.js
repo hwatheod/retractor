@@ -728,6 +728,12 @@ describe("tangled positions", function() {
         expect(getWhitePawnCaptures(board)).toBe(2);
         expect(getBlackPawnCaptures(board)).toBe(4);
         expect(getTotalPawnCaptures(board)).toBe(6);
+
+        // remove all pieces but keep all pawns, make sure previous result is not cached (no longer correct)
+        setForsythe("4K3/4pP1p/1PPkP1P1/1p1Pppp1/2p4P/3p4/8/8");
+        expect(getWhitePawnCaptures(board)).toBe(0);
+        expect(getBlackPawnCaptures(board)).toBe(4);
+        expect(getTotalPawnCaptures(board)).toBe(6);
         setEnableSeparateCaptureTracking(false);
     });
 });

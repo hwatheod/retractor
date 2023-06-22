@@ -983,13 +983,6 @@ function getPawnCaptures(pawns, which, specialConfigurationSide, bestResult, whi
 }
 
 function getPawnCapturesWithPromotionSearch(board, promotionFiles, missingFriendlyRookData, which, cache) {
-    const pawnsOriginal = getPawns(board);
-    const cacheKey = JSON.stringify([pawnsOriginal, promotionFiles, missingFriendlyRookData]);
-    const cacheLookup = cache[cacheKey];
-    if (cacheLookup) {
-        return cacheLookup.result;
-    }
-
     evaluateHelperCache.clear();
     debugLog0(getForsythe(board));
     const startTime = Date.now();
@@ -1007,6 +1000,14 @@ function getPawnCapturesWithPromotionSearch(board, promotionFiles, missingFriend
     const blackCapturesLeft = getEnableSeparateCaptureTracking() ? 16 - whiteUnitCount : IMPOSSIBLE;
     let bestResult = which == 0 ? 17 - blackUnitCount : (which == 1 ? 17 - whiteUnitCount :
         33 - (blackUnitCount + whiteUnitCount));
+
+    const pawnsOriginal = getPawns(board);
+    const cacheKey = JSON.stringify([pawnsOriginal, promotionFiles, missingFriendlyRookData, whiteCapturesLeft, blackCapturesLeft]);
+    const cacheLookup = cache[cacheKey];
+    if (cacheLookup && (cacheLookup.isExact || cacheLookup.result >= bestResult)) {
+        return cacheLookup.result;
+    }
+
 
     // capture will be made by the OPPOSITE side of the rook's side
     const potentialMissingFriendlyRookCaptureCount =
@@ -1043,6 +1044,7 @@ function getPawnCapturesWithPromotionSearch(board, promotionFiles, missingFriend
     if (productSize <= getPromotionSearchThreshold() && allPromotionFiles.length > 0) {
         let done = false;
         const position = Array(allPromotionFiles.length).fill(0);
+        let isExact = false;
         while (!done) {
             debugCount++;
             debugLog("debugCount: " + debugCount);
@@ -1100,11 +1102,12 @@ function getPawnCapturesWithPromotionSearch(board, promotionFiles, missingFriend
             debugLog("Result: " + result);
             debugLog((stopInnerTime - startInnerTime) / 1000.0 + " seconds");
             if (result == 0) {
-                cache[cacheKey] = new PawnCapturesCacheResult(0, true);
+                cache[cacheKey] = new PawnCapturesCacheResult(0, 0 < bestResult);
                 return 0;
             }
             if (result < bestResult) {
                 bestResult = result;
+                isExact = true;
             }
 
             // Find the next configuration
@@ -1120,14 +1123,14 @@ function getPawnCapturesWithPromotionSearch(board, promotionFiles, missingFriend
                 done = true;
             }
         }
-        cache[cacheKey] = new PawnCapturesCacheResult(bestResult, true);
+        cache[cacheKey] = new PawnCapturesCacheResult(bestResult, isExact);
         const stopTime = Date.now();
         debugLog0("Time for this position: " + (stopTime - startTime)/1000.0 + " seconds");
         return bestResult;
     } else {
         const result = getPawnCaptures(pawnsOriginal, which, -1, bestResult, whiteCapturesLeft, blackCapturesLeft)
             + potentialMissingFriendlyRookCaptureCount;
-        cache[cacheKey] = new PawnCapturesCacheResult(result, true);
+        cache[cacheKey] = new PawnCapturesCacheResult(result, result < bestResult);
         const stopTime = Date.now();
         debugLog0("Time for this position: " + (stopTime - startTime)/1000.0 + " seconds");
         return result;
