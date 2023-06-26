@@ -992,9 +992,11 @@ function getNextState(heap) {
 }
 
 class PawnCapturesCacheResult {
-    constructor(result, isExact) {
+    constructor(result, isExact, bestWhitePosition, bestBlackPosition) {
         this.result = result;
         this.isExact = isExact; // if false, then the result is only a lower bound
+        this.bestWhitePosition = bestWhitePosition;
+        this.bestBlackPosition = bestBlackPosition;
     }
 }
 
@@ -1057,67 +1059,34 @@ function getPawnCaptures(pawns, which, specialConfigurationSide, bestResult, whi
     return IMPOSSIBLE;
 }
 
-function getPawnCapturesWithPromotionSearch(board, promotionFiles, missingFriendlyRookData, which, cache) {
+function getPawnCapturesWithPromotionSearch(pawnsOriginal, whitePromotionFiles, blackPromotionFiles,
+                                            whiteStartingPosition, blackStartingPosition, productSize,
+                                            missingFriendlyRookData, which, cacheKey, isSpecialConfigurationSide,
+                                            bestResult, whiteCapturesLeft, blackCapturesLeft,
+                                            cache) {
     const startTime = Date.now();
-    let whiteUnitCount = 0, blackUnitCount = 0;
-    for (let file = 0; file < 8; file++) {
-        for (let rank = 0; rank < 8; rank++) {
-            if (board[file][rank].color == "w") {
-                whiteUnitCount++;
-            } else if (board[file][rank].color == "b") {
-                blackUnitCount++;
-            }
-        }
-    }
-    const whiteCapturesLeft = getEnableSeparateCaptureTracking() ? 16 - blackUnitCount : IMPOSSIBLE;
-    const blackCapturesLeft = getEnableSeparateCaptureTracking() ? 16 - whiteUnitCount : IMPOSSIBLE;
-    let bestResult = which == 0 ? 17 - blackUnitCount : (which == 1 ? 17 - whiteUnitCount :
-        33 - (blackUnitCount + whiteUnitCount));
-
-    const pawnsOriginal = getPawns(board);
-    const cacheKey = JSON.stringify([pawnsOriginal, promotionFiles, missingFriendlyRookData, whiteCapturesLeft, blackCapturesLeft]);
     const cacheLookup = cache[cacheKey];
     if (cacheLookup && (cacheLookup.isExact || cacheLookup.result >= bestResult)) {
-        return cacheLookup.result;
+        return [cacheLookup.result, cacheLookup.bestWhitePosition, cacheLookup.bestBlackPosition];
     }
-    debugLog0(getForsythe(board) + " which = " + which);
 
     // capture will be made by the OPPOSITE side of the rook's side
     const potentialMissingFriendlyRookCaptureCount =
             missingFriendlyRookData.reduce((acc, rookData) => acc + ((which == 2 || which != rookData[0]) ? rookData[1] : 0), 0);
 
-    let allPromotionFiles = [];
-    const whitePromotionIndices = [];
-    let count = 0;
-    let productSize = 1;
-    let whitePromotedPieces = 0, blackPromotedPieces = 0;
-    for (const key in promotionFiles) {
-        if (promotionFiles.hasOwnProperty(key)) {
-            if (promotionFiles[key].length > 0) {
-                for (const item of promotionFiles[key]) {
-                    productSize *= item.length;
-                }
-                allPromotionFiles = allPromotionFiles.concat(promotionFiles[key]);
-                assert(key[0] == "w" || key[0] == "b", "Unexpected promotion files key: " + key);
-                if (key[0] == "w") {
-                    whitePromotedPieces += promotionFiles[key].length;
-                    for (let i = 0; i < promotionFiles[key].length; i++) {
-                        whitePromotionIndices.push(count + i);
-                    }
-                } else {
-                    blackPromotedPieces += promotionFiles[key].length;
-                }
-                count += promotionFiles[key].length;
-            }
-        }
-    }
     debugLog("productSize: " + productSize);
     debugLog("which = " + which);
     let debugCount = 0;
-    if (productSize <= getPromotionSearchThreshold() && allPromotionFiles.length > 0) {
+    let bestWhitePosition = null, bestBlackPosition = null;
+    let isExact = false;
+    if (productSize <= getPromotionSearchThreshold() && (whitePromotionFiles.length > 0 || blackPromotionFiles.length > 0)) {
         let done = false;
+        const allPromotionFiles =
+            which == 1 ? blackPromotionFiles.concat(whitePromotionFiles) : whitePromotionFiles.concat(blackPromotionFiles);
+        const startingPosition =
+            which == 1 ? blackStartingPosition.concat(whiteStartingPosition) : whiteStartingPosition.concat(blackStartingPosition);
+        const positionOffset = Array(allPromotionFiles.length).fill(0);
         const position = Array(allPromotionFiles.length).fill(0);
-        let isExact = false;
         while (!done) {
             debugCount++;
             debugLog("debugCount: " + debugCount);
@@ -1135,15 +1104,16 @@ function getPawnCapturesWithPromotionSearch(board, promotionFiles, missingFriend
             let missingFriendlyRookCaptureCount = potentialMissingFriendlyRookCaptureCount;
             let specialConfigurationSide = -1;
             for (let i = 0; i < allPromotionFiles.length; i++) {
+                position[i] = (startingPosition[i] + positionOffset[i]) % allPromotionFiles[i].length;
                 const file = allPromotionFiles[i][position[i]];
                 let side;
-                if (whitePromotionIndices.includes(i)) {
+                if ((which == 1 && i >= blackPromotionFiles.length) || (which != 1 && i < whitePromotionFiles.length)) {
                     side = 0;
                     pawns[0][file].push(7);
                     debugLog("Adding white promoted pawn on file " + file);
                 } else {
                     side = 1;
-                    pawns[1][allPromotionFiles[i][position[i]]].push(0);
+                    pawns[1][file].push(0);
                     debugLog("Adding black promoted pawn on file " + file);
                 }
 
@@ -1160,8 +1130,7 @@ function getPawnCapturesWithPromotionSearch(board, promotionFiles, missingFriend
                         // "Special Configuration" if one side has 2 missing rooks in one cage and other side has exactly
                         // 1 promoted piece.
                         if (count == 2) {
-                            const sidePromotedPieces = side == 0 ? whitePromotedPieces : blackPromotedPieces;
-                            specialConfigurationSide = sidePromotedPieces == 1 ? side : -1;
+                            specialConfigurationSide = isSpecialConfigurationSide[side] ? side : -1;
                         }
                     }
                 }
@@ -1174,73 +1143,118 @@ function getPawnCapturesWithPromotionSearch(board, promotionFiles, missingFriend
             const stopInnerTime = Date.now();
             debugLog("Result: " + result);
             debugLog((stopInnerTime - startInnerTime) / 1000.0 + " seconds");
-            if (result == 0) {
-                cache[cacheKey] = new PawnCapturesCacheResult(0, 0 < bestResult);
-                const stopTime = Date.now();
-                debugLog0("Time for this position: " + (stopTime - startTime)/1000.0 + " seconds");
-                return 0;
-            }
             if (result < bestResult) {
                 bestResult = result;
+                if (which == 1) {
+                    bestBlackPosition = position.slice(0, blackPromotionFiles.length);
+                    bestWhitePosition = position.slice(blackPromotionFiles.length, allPromotionFiles.length);
+                } else {
+                    bestWhitePosition = position.slice(0, whitePromotionFiles.length);
+                    bestBlackPosition = position.slice(whitePromotionFiles.length, allPromotionFiles.length);
+                }
                 isExact = true;
+            }
+            if (result == 0) {
+                break;
             }
 
             // Find the next configuration
             let positionIndex = 0;
             while (positionIndex < allPromotionFiles.length &&
-                position[positionIndex] == allPromotionFiles[positionIndex].length - 1) {
-                position[positionIndex] = 0;
+                positionOffset[positionIndex] == allPromotionFiles[positionIndex].length - 1) {
+                positionOffset[positionIndex] = 0;
                 positionIndex++;
             }
             if (positionIndex < allPromotionFiles.length) {
-                position[positionIndex]++;
+                positionOffset[positionIndex]++;
             } else {
                 done = true;
             }
         }
-        cache[cacheKey] = new PawnCapturesCacheResult(bestResult, isExact);
-        const stopTime = Date.now();
-        debugLog0("Time for this position: " + (stopTime - startTime)/1000.0 + " seconds");
-        return bestResult;
     } else {
         const result = getPawnCaptures(pawnsOriginal, which, -1, bestResult, whiteCapturesLeft, blackCapturesLeft)
             + potentialMissingFriendlyRookCaptureCount;
-        cache[cacheKey] = new PawnCapturesCacheResult(result, result < bestResult);
-        const stopTime = Date.now();
-        debugLog0("Time for this position: " + (stopTime - startTime)/1000.0 + " seconds");
-        return result;
+        if (result < bestResult) {
+            isExact = true;
+        }
+        bestResult = result;
     }
+
+    cache[cacheKey] = new PawnCapturesCacheResult(bestResult, isExact,
+        isExact ? bestWhitePosition : null, isExact ? bestBlackPosition : null);
+    const stopTime = Date.now();
+    debugLog0("Time for this position: " + (stopTime - startTime)/1000.0 + " seconds");
+    return [bestResult, bestWhitePosition, bestBlackPosition];
 }
 
-function getWhitePawnCaptures(board, promotionFiles, missingFriendlyRookData) {
+function getAllPawnCaptures(board, promotionFiles, missingFriendlyRookData) {
     if (promotionFiles == null) {
         promotionFiles = {};
     }
     if (missingFriendlyRookData == null) {
         missingFriendlyRookData = [];
     }
-    return getPawnCapturesWithPromotionSearch(board, promotionFiles, missingFriendlyRookData, 0,
-        pawnCapturesCache.whitePawnCapturesCache);
-}
+    debugLog0(getForsythe(board));
+    let whiteUnitCount = 0, blackUnitCount = 0;
+    for (let file = 0; file < 8; file++) {
+        for (let rank = 0; rank < 8; rank++) {
+            if (board[file][rank].color == "w") {
+                whiteUnitCount++;
+            } else if (board[file][rank].color == "b") {
+                blackUnitCount++;
+            }
+        }
+    }
+    const whiteCapturesLeft = getEnableSeparateCaptureTracking() ? 16 - blackUnitCount : IMPOSSIBLE;
+    const blackCapturesLeft = getEnableSeparateCaptureTracking() ? 16 - whiteUnitCount : IMPOSSIBLE;
 
-function getBlackPawnCaptures(board, promotionFiles, missingFriendlyRookData) {
-    if (promotionFiles == null) {
-        promotionFiles = {};
-    }
-    if (missingFriendlyRookData == null) {
-        missingFriendlyRookData = [];
-    }
-    return getPawnCapturesWithPromotionSearch(board, promotionFiles, missingFriendlyRookData, 1,
-        pawnCapturesCache.blackPawnCapturesCache);
-}
+    const pawnsOriginal = getPawns(board);
+    const cacheKey = JSON.stringify([pawnsOriginal, promotionFiles, missingFriendlyRookData, whiteCapturesLeft, blackCapturesLeft]);
 
-function getTotalPawnCaptures(board, promotionFiles, missingFriendlyRookData) {
-    if (promotionFiles == null) {
-        promotionFiles = {};
+    let whitePromotionFiles = [], blackPromotionFiles = [];
+    let productSize = 1;
+    let whitePromotedPieces = 0, blackPromotedPieces = 0;
+    for (const key in promotionFiles) {
+        if (promotionFiles.hasOwnProperty(key)) {
+            if (promotionFiles[key].length > 0) {
+                for (const item of promotionFiles[key]) {
+                    productSize *= item.length;
+                }
+                assert(key[0] == "w" || key[0] == "b", "Unexpected promotion files key: " + key);
+                if (key[0] == "w") {
+                    whitePromotedPieces += promotionFiles[key].length;
+                    whitePromotionFiles = whitePromotionFiles.concat(promotionFiles[key]);
+                } else {
+                    blackPromotedPieces += promotionFiles[key].length;
+                    blackPromotionFiles = blackPromotionFiles.concat(promotionFiles[key]);
+                }
+            }
+        }
     }
-    if (missingFriendlyRookData == null) {
-        missingFriendlyRookData = [];
+
+    const isSpecialConfigurationSide = [ whitePromotedPieces == 1, blackPromotedPieces == 1];
+    const result = [0, 0, 0];
+    let whiteStartingPosition = Array(whitePromotionFiles.length).fill(0);
+    let blackStartingPosition = Array(blackPromotionFiles.length).fill(0);
+    for (let which = 0; which <= 2; which++) {
+        const cache =
+            (which == 0 ? pawnCapturesCache.whitePawnCapturesCache :
+                (which == 1 ? pawnCapturesCache.blackPawnCapturesCache : pawnCapturesCache.totalPawnCapturesCache));
+        const bestResult = which == 0 ? 17 - blackUnitCount : (which == 1 ? 17 - whiteUnitCount :
+            33 - (blackUnitCount + whiteUnitCount));
+
+        const [captureCount, bestWhitePosition, bestBlackPosition] =
+            getPawnCapturesWithPromotionSearch(pawnsOriginal, whitePromotionFiles, blackPromotionFiles,
+            whiteStartingPosition, blackStartingPosition, productSize, missingFriendlyRookData, which, cacheKey, isSpecialConfigurationSide,
+            bestResult, whiteCapturesLeft, blackCapturesLeft, cache);
+        result[which] = captureCount;
+
+        if (bestWhitePosition != null) {
+            whiteStartingPosition = bestWhitePosition;
+        }
+        if (bestBlackPosition != null) {
+            blackStartingPosition = bestBlackPosition;
+        }
     }
-    return getPawnCapturesWithPromotionSearch(board, promotionFiles, missingFriendlyRookData, 2,
-        pawnCapturesCache.totalPawnCapturesCache);
+    return result;
 }

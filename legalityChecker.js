@@ -735,12 +735,14 @@ function isPositionLegalInternal() {
 	error = finalizePossiblePromotionFiles();
 	if (error != error_ok) return error;
 
-	tempPawnCaptureCounts["w"] = getWhitePawnCaptures(board, tempPossiblePromotionFiles, tempMissingFriendlyRookData);
+	const [whiteCaptures, blackCaptures, totalCaptures] =
+		getAllPawnCaptures(board, tempPossiblePromotionFiles, tempMissingFriendlyRookData);
+	tempPawnCaptureCounts["w"] = whiteCaptures;
 	if (tempPawnCaptureCounts["w"] == IMPOSSIBLE) {
 		return error_impossiblePawnStructure;
 	}
-	tempPawnCaptureCounts["b"] = getBlackPawnCaptures(board, tempPossiblePromotionFiles, tempMissingFriendlyRookData);
-	tempPawnCaptureCounts["t"] = getTotalPawnCaptures(board, tempPossiblePromotionFiles, tempMissingFriendlyRookData);
+	tempPawnCaptureCounts["b"] = blackCaptures;
+	tempPawnCaptureCounts["t"] = totalCaptures;
 	tempTotalCaptureCounts["w"] += tempPawnCaptureCounts["w"];
 	tempTotalCaptureCounts["b"] += tempPawnCaptureCounts["b"];
 
