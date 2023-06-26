@@ -296,6 +296,7 @@ function solveHelper(solveParameters, depth, currentPath, outputSolutions) {
 }
 
 function solve(solveParameters) {
+    evaluateHelperCache.clear();
     const outputSolutions = [];
     solveHelper(solveParameters, 0, [], outputSolutions);
     return outputSolutions;

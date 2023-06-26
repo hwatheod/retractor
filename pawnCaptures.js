@@ -22,9 +22,10 @@ function debugLog2(str) {
     }
 }
 
+let DEBUG_DEPTH = 0;
 let DEBUG_PAWN_CAPTURES3 = false;
-function debugLog3(str) {
-    if (DEBUG_PAWN_CAPTURES3) {
+function debugLog3(str, depth) {
+    if (DEBUG_PAWN_CAPTURES3 && depth <= DEBUG_DEPTH) {
         console.log(str);
     }
 }
@@ -454,8 +455,16 @@ function restore(object, removed) {
     }
 }
 
+function previousEven(n) {
+    return n - (n % 2);
+}
+
+function nextEven(n) {
+    return n + (n % 2);
+}
+
 function evaluateHelper(pawns, bestPreviousLevel, whiteCapturesLeft, blackCapturesLeft, invertedAssignments, which,
-                        specialConfigurationSide, cache) {
+                        specialConfigurationSide, cache, depth) {
     if (whiteCapturesLeft < 0 || blackCapturesLeft < 0) {
         return IMPOSSIBLE;
     }
@@ -501,6 +510,7 @@ function evaluateHelper(pawns, bestPreviousLevel, whiteCapturesLeft, blackCaptur
                 }
 
                 if (existsDirectPath(newPawns, side, [file, rank], targetSquare)) {
+                    debugLog3("Simplifying pawn at " + file + " " + rank + " to " + targetFile, depth);
                     simplified = true;
                     removed[sourceSquare] = newInvertedAssignments[sourceSquare];
                     delete newInvertedAssignments[sourceSquare];
@@ -550,6 +560,11 @@ function evaluateHelper(pawns, bestPreviousLevel, whiteCapturesLeft, blackCaptur
             const targetFile = newInvertedAssignments[sourceSquare][0];
             const targetRank = newInvertedAssignments[sourceSquare][1];
             if (targetFile == file && targetRank == rank) {
+                if (side == 0) {
+                    whiteZeroDistanceSquares.push([file, rank]);
+                } else {
+                    blackZeroDistanceSquares.push([file, rank]);
+                }
                 continue;
             }
             if (Math.sign(targetRank - rank) != pawnDir) {
@@ -616,24 +631,77 @@ function evaluateHelper(pawns, bestPreviousLevel, whiteCapturesLeft, blackCaptur
         }
     }
 
+    let whiteLowerBound = 0, blackLowerBound = 0, eitherLowerBound = 0;
     for (const [whiteFile, whiteRank] of whiteZeroDistanceSquares) {
         for (const [blackFile, blackRank] of blackZeroDistanceSquares) {
-            if (whiteFile == blackFile && whiteRank > blackRank &&
-                (which == 2 || (which == 0 && [5, 6].includes(blackRank)) || (which == 1 && [1, 2].includes(whiteRank)))) {
-                lowerBound += 2;
+            if (whiteFile == blackFile && whiteRank > blackRank) {
+                if ([5, 6].includes(blackRank)) {
+                    whiteLowerBound += 2;
+                } else if ([1, 2].includes(whiteRank)) {
+                    blackLowerBound += 2;
+                } else {
+                    eitherLowerBound += 2;
+                }
             }
         }
     }
+    if (!getEnableSeparateCaptureTracking()) {
+        if (which == 0) {
+            lowerBound += whiteLowerBound;
+        } else if (which == 1) {
+            lowerBound += blackLowerBound;
+        } else {
+            lowerBound += whiteLowerBound + blackLowerBound + eitherLowerBound;
+        }
+    } else {
+        if (whiteTotalDistance + whiteLowerBound > whiteCapturesLeft ||
+            blackTotalDistance + blackLowerBound > blackCapturesLeft ||
+            whiteLowerBound + blackLowerBound + eitherLowerBound >
+              previousEven(whiteCapturesLeft - whiteTotalDistance) + previousEven(blackCapturesLeft - blackTotalDistance)) {
+            restore(invertedAssignments, removed);
+            cache[cacheKey] = new PawnCapturesCacheResult(IMPOSSIBLE, true);
+            return IMPOSSIBLE;
+        }
 
+        if (which == 0) {
+            if (blackTotalDistance + blackLowerBound + eitherLowerBound > blackCapturesLeft) {
+                const excessBound = blackTotalDistance + blackLowerBound + eitherLowerBound - blackCapturesLeft;
+                whiteLowerBound += nextEven(excessBound);
+            }
+            if (whiteTotalDistance + whiteLowerBound > whiteCapturesLeft) {
+                restore(invertedAssignments, removed);
+                cache[cacheKey] = new PawnCapturesCacheResult(IMPOSSIBLE, true);
+                return IMPOSSIBLE;
+            }
+            lowerBound += whiteLowerBound;
+        } else if (which == 1) {
+            if (whiteTotalDistance + whiteLowerBound + eitherLowerBound > whiteCapturesLeft) {
+                const excessBound = whiteTotalDistance + whiteLowerBound + eitherLowerBound - whiteCapturesLeft;
+                blackLowerBound += nextEven(excessBound);
+            }
+            if (blackTotalDistance + blackLowerBound > blackCapturesLeft) {
+                restore(invertedAssignments, removed);
+                cache[cacheKey] = new PawnCapturesCacheResult(IMPOSSIBLE, true);
+                return IMPOSSIBLE;
+            }
+            lowerBound += blackLowerBound;
+        } else {
+            lowerBound += whiteLowerBound + blackLowerBound + eitherLowerBound;
+        }
+    }
+
+    debugLog3("Lower bound after simplification is " + (simplifiedValue + lowerBound), depth);
     if (simplifiedValue + lowerBound >= bestPreviousLevel) {
         restore(invertedAssignments, removed);
         cache[cacheKey] = new PawnCapturesCacheResult(simplifiedValue + lowerBound, false);
+        debugLog3("Early cutoff, lower bound >= bestPreviousLevel " + bestPreviousLevel, depth);
         return simplifiedValue + lowerBound;
     }
 
     if (!keyFound) {
         restore(invertedAssignments, removed);
         cache[cacheKey] = new PawnCapturesCacheResult(simplifiedValue, true);
+        debugLog3("Board is empty, returning value " + simplifiedValue, depth);
         return simplifiedValue;
     }
 
@@ -684,15 +752,18 @@ function evaluateHelper(pawns, bestPreviousLevel, whiteCapturesLeft, blackCaptur
                     newInvertedAssignments[[newFile, newRank, newKeyIndex]] = newInvertedAssignments[[file, rank, keyIndex]];
                     const originalAssignment = newInvertedAssignments[[file, rank, keyIndex]];
                     delete newInvertedAssignments[[file, rank, keyIndex]];
+                    debugLog3("Moving pawn from " + file + " " + rank + " to " + newFile + " " + newRank, depth);
 
                     const recursiveValue = evaluateHelper(
                         newPawns, best - simplifiedValue - weight,
                         getEnableSeparateCaptureTracking() ? whiteCapturesLeft - ((side == 0 && newFile != file) ? 1 : 0) : whiteCapturesLeft,
                         getEnableSeparateCaptureTracking() ? blackCapturesLeft - ((side == 1 && newFile != file) ? 1 : 0) : blackCapturesLeft,
                         newInvertedAssignments, which,
-                        specialConfigurationSide, cache);
+                        specialConfigurationSide, cache, depth+1);
                     const recursiveBest = simplifiedValue + weight + recursiveValue;
+                    debugLog3("Evaluation is " + recursiveBest, depth);
                     if (recursiveBest < best) best = recursiveBest;
+                    debugLog3("Unmoving pawn from " + newFile + " " + newRank + " to " + file + " " + rank, depth);
 
                     newPawns[side][newFile].splice(newPawns[side][newFile].length - 1, 1);
                     newPawns[side][file].push(rank);
@@ -702,6 +773,7 @@ function evaluateHelper(pawns, bestPreviousLevel, whiteCapturesLeft, blackCaptur
                     if (best == simplifiedValue + lowerBound) {
                         restore(invertedAssignments, removed);
                         cache[cacheKey] = new PawnCapturesCacheResult(best, true);
+                        debugLog3("Reached lower bound, returning " + best, depth);
                         return best;
                     }
                 }
@@ -711,12 +783,11 @@ function evaluateHelper(pawns, bestPreviousLevel, whiteCapturesLeft, blackCaptur
 
     restore(invertedAssignments, removed);
     cache[cacheKey] = new PawnCapturesCacheResult(best, true);
+    debugLog3("Tried all moves, returning " + best, depth);
     return best;
 }
 
 function evaluate(assignments, which, specialConfigurationSide, bestResult, whiteCapturesLeft, blackCapturesLeft) {
-    debugLog3(assignmentsToString(assignments));
-    debugLog3("bestResult: " + bestResult);
     const startTime = Date.now();
     const pawns = [[], []];
     const invertedAssignments = {};
@@ -743,9 +814,16 @@ function evaluate(assignments, which, specialConfigurationSide, bestResult, whit
     const cache = (specialConfigurationSide != -1 ? {} : (which == 0 ? evaluateHelperCache.whitePawnCapturesCache :
         (which == 1 ? evaluateHelperCache.blackPawnCapturesCache : evaluateHelperCache.totalPawnCapturesCache)));
     const result = evaluateHelper(pawns, bestResult, whiteCapturesLeft, blackCapturesLeft, invertedAssignments, which,
-        specialConfigurationSide, cache);
-    debugLog3("Evaluation result: " + result);
-    debugLog3((Date.now() - startTime) / 1000.0 + " seconds");
+        specialConfigurationSide, cache, 0);
+    const stopTime = Date.now();
+    const timeTaken = (stopTime - startTime) / 1000.0;
+    if (timeTaken > 0.01) {
+        debugLog2(assignmentsToString(assignments));
+        debugLog2("evaluate(assignments, " +
+            [which, specialConfigurationSide, bestResult, whiteCapturesLeft, blackCapturesLeft].join(",")
+            + ")", 0);
+        debugLog2(timeTaken + " seconds");
+    }
     return result;
 }
 
@@ -789,27 +867,27 @@ function findPawnToAssign(pawns, which) {
 }
 
 function assignmentsToString(assignments) {
-    let result = "";
+    let result = "assignments = [";
     for (let side = 0; side < 2; side++) {
         if (side == 0) {
-            result += "W: | ";
+            result += "[";
         } else {
-            result += "\nB: | ";
+            result += "],[";
         }
         for (let file = 0; file < 8; file++) {
-            if (assignments[side][file][0] != -1) {
-                result += file + ": " + assignments[side][file] + " | ";
+            result += "[" + assignments[side][file] + "]";
+            if (file < 7) {
+                result += ","
             }
         }
     }
+    result += "]];"
     return result;
 }
 
 function search(searchState, which, specialConfigurationSide, bestResult, whiteCapturesLeft, blackCapturesLeft, heap) {
     debugLog2("Searching: ");
     debugLog2("which = " + which);
-    debugLog2(searchState.position);
-    debugLog2(assignmentsToString(searchState.assignments));
     debugLog2("Estimated distance: " + searchState.estimatedDistance);
     const pawns = searchState.position;
     const assignments = searchState.assignments;
@@ -873,11 +951,8 @@ function search(searchState, which, specialConfigurationSide, bestResult, whiteC
             newAssignments[side][newFile][1] = rank;
             const heuristicEstimate = getTwoColorHeuristic(newPawns, which, newAssignments);
             if (heuristicEstimate != IMPOSSIBLE) {
-                const startTime = Date.now();
                 const value = evaluate(newAssignments, which, specialConfigurationSide, bestResult - heuristicEstimate,
                     whiteCapturesLeft, blackCapturesLeft);
-                const stopTime = Date.now();
-                debugLog2((stopTime - startTime) / 1000.0 + " seconds");
                 if (value != IMPOSSIBLE) {
                     const newState = new PawnCaptureSearchState(newPawns, newAssignments, value + heuristicEstimate);
                     insertIntoHeap(newState, heap);
@@ -983,8 +1058,6 @@ function getPawnCaptures(pawns, which, specialConfigurationSide, bestResult, whi
 }
 
 function getPawnCapturesWithPromotionSearch(board, promotionFiles, missingFriendlyRookData, which, cache) {
-    evaluateHelperCache.clear();
-    debugLog0(getForsythe(board));
     const startTime = Date.now();
     let whiteUnitCount = 0, blackUnitCount = 0;
     for (let file = 0; file < 8; file++) {
@@ -1007,7 +1080,7 @@ function getPawnCapturesWithPromotionSearch(board, promotionFiles, missingFriend
     if (cacheLookup && (cacheLookup.isExact || cacheLookup.result >= bestResult)) {
         return cacheLookup.result;
     }
-
+    debugLog0(getForsythe(board) + " which = " + which);
 
     // capture will be made by the OPPOSITE side of the rook's side
     const potentialMissingFriendlyRookCaptureCount =
@@ -1103,6 +1176,8 @@ function getPawnCapturesWithPromotionSearch(board, promotionFiles, missingFriend
             debugLog((stopInnerTime - startInnerTime) / 1000.0 + " seconds");
             if (result == 0) {
                 cache[cacheKey] = new PawnCapturesCacheResult(0, 0 < bestResult);
+                const stopTime = Date.now();
+                debugLog0("Time for this position: " + (stopTime - startTime)/1000.0 + " seconds");
                 return 0;
             }
             if (result < bestResult) {

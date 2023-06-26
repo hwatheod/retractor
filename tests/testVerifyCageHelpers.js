@@ -308,7 +308,7 @@ describe("Test import cages", function() {
         initializeBoard();
     });
 
-    beforeEach(function() {
+    afterEach(function() {
         clearCages();
     });
 

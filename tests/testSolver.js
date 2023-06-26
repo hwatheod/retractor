@@ -24,6 +24,7 @@ const typeD = {testSolved: true, testUnsolved: false};
 const otherProblems = {testSolved: true, testUnsolved: false};
 const otherTest = describe;
 const defaultExtraDepth = 3;
+const defaultSeparateCaptureTracking = false;
 
 otherTest("test solve parameters", function() {
     beforeAll(function() {
@@ -82,7 +83,7 @@ describe("some problems with unique solutions", function() {
         }
 
         func(forsythe + " " + toRetract + " " + solution.length, function() {
-            setEnableSeparateCaptureTracking(parameters['ENABLE_SEPARATE_CAPTURE_TRACKING'] ?? false);
+            setEnableSeparateCaptureTracking(parameters['ENABLE_SEPARATE_CAPTURE_TRACKING'] ?? defaultSeparateCaptureTracking);
             setForsythe(forsythe);
             setRetract(toRetract);
             expect(errorText[startPlay()]).toBe(errorText[error_ok]);
@@ -90,7 +91,7 @@ describe("some problems with unique solutions", function() {
             const solutions = solve(solveParameters);
             expect(solutions.length).toBe(1);
             expect(solutions[0].map(moveToString)).toEqual(solution);
-            setEnableSeparateCaptureTracking(false);
+            setEnableSeparateCaptureTracking(defaultSeparateCaptureTracking);
         });
     }
 
@@ -192,7 +193,7 @@ describe("type A last move problems", function() {
             forsythe = testPositionAndCages[0];
         }
         func(forsythe, function() {
-            setEnableSeparateCaptureTracking(parameters['ENABLE_SEPARATE_CAPTURE_TRACKING'] ?? false);
+            setEnableSeparateCaptureTracking(parameters['ENABLE_SEPARATE_CAPTURE_TRACKING'] ?? defaultSeparateCaptureTracking);
             if (typeof testPositionAndCages != 'string') {
                 testPositionAndCages.slice(1).forEach(addCage);
             }
@@ -209,7 +210,7 @@ describe("type A last move problems", function() {
             if (startPlay() == error_ok) {
                 expect(solve(solveParameters).length).toBe(0);
             }
-            setEnableSeparateCaptureTracking(false);
+            setEnableSeparateCaptureTracking(defaultSeparateCaptureTracking);
         });
     }
 
@@ -383,7 +384,7 @@ describe("type B last move problems", function() {
             forsythe = testPositionAndCages[0];
         }
         func(forsythe, function() {
-            setEnableSeparateCaptureTracking(parameters['ENABLE_SEPARATE_CAPTURE_TRACKING'] ?? false);
+            setEnableSeparateCaptureTracking(parameters['ENABLE_SEPARATE_CAPTURE_TRACKING'] ?? defaultSeparateCaptureTracking);
             if (typeof testPositionAndCages != 'string') {
                 testPositionAndCages.slice(1).forEach(addCage);
             }
@@ -394,7 +395,7 @@ describe("type B last move problems", function() {
             const solutions = solve(solveParameters);
             expect(solutions.length).toBe(1);
             expect(solutions[0][0]).toEqual(solution);
-            setEnableSeparateCaptureTracking(false);
+            setEnableSeparateCaptureTracking(defaultSeparateCaptureTracking);
         });
     }
 
@@ -546,7 +547,7 @@ describe("type C last move problems", function() {
             forsythe = testPositionAndCages[0];
         }
         func(forsythe, function() {
-            setEnableSeparateCaptureTracking(parameters['ENABLE_SEPARATE_CAPTURE_TRACKING'] ?? false);
+            setEnableSeparateCaptureTracking(parameters['ENABLE_SEPARATE_CAPTURE_TRACKING'] ?? defaultSeparateCaptureTracking);
             if (typeof testPositionAndCages != 'string') {
                 testPositionAndCages.slice(1).forEach(addCage);
             }
@@ -558,7 +559,7 @@ describe("type C last move problems", function() {
             const solutions = solve(solveParameters);
             expect(solutions.length).toBe(1);
             expect(solutions[0][0]).toEqual(solution);
-            setEnableSeparateCaptureTracking(false);
+            setEnableSeparateCaptureTracking(defaultSeparateCaptureTracking);
         });
     }
 
@@ -725,7 +726,7 @@ describe("type D last move problems", function() {
             forsythe = testPositionAndCages[0];
         }
         func(forsythe, function() {
-            setEnableSeparateCaptureTracking(parameters['ENABLE_SEPARATE_CAPTURE_TRACKING'] ?? false);
+            setEnableSeparateCaptureTracking(parameters['ENABLE_SEPARATE_CAPTURE_TRACKING'] ?? defaultSeparateCaptureTracking);
             if (typeof testPositionAndCages != 'string') {
                 testPositionAndCages.slice(1).forEach(addCage);
             }
@@ -741,7 +742,7 @@ describe("type D last move problems", function() {
             expect(errorText[startPlay()]).toBe(errorText[error_ok]);
             const solutionsBlack = solve(solveParameters);
             expect(solutionsBlack.length).toBe(1);
-            setEnableSeparateCaptureTracking(false);
+            setEnableSeparateCaptureTracking(defaultSeparateCaptureTracking);
         });
     }
 
