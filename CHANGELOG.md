@@ -1,3 +1,7 @@
+v2.3.4
+
+* Several optimizations in the pawn capture counting algorithm.
+
 v2.3.3
 
 * Fixed a rare pawn capture caching bug that could happen in "separate pawn capture tracking" mode. 
