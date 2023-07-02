@@ -1,3 +1,7 @@
+v2.3.5
+
+* Pawn capture counting algorithm now takes into account known non-pawn captures.
+
 v2.3.4
 
 * Several optimizations in the pawn capture counting algorithm.
