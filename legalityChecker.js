@@ -736,7 +736,7 @@ function isPositionLegalInternal() {
 	if (error != error_ok) return error;
 
 	const [whiteCaptures, blackCaptures, totalCaptures] =
-		getAllPawnCaptures(board, tempPossiblePromotionFiles, tempMissingFriendlyRookData);
+		getAllPawnCaptures(board, tempPossiblePromotionFiles, tempMissingFriendlyRookData, tempTotalCaptureCounts);
 	tempPawnCaptureCounts["w"] = whiteCaptures;
 	if (tempPawnCaptureCounts["w"] == IMPOSSIBLE) {
 		return error_impossiblePawnStructure;

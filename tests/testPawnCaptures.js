@@ -759,12 +759,26 @@ describe("tangled positions", function() {
         expect(b).toBe(0);
         expect(t).toBe(4);
     })
+});
+
+describe("separate capture tracking", function() {
+    beforeAll(function() {
+        initializeBoard();
+    });
+
+    beforeEach(function() {
+        clearBoard();
+        setEnableSeparateCaptureTracking(true);
+    });
+
+    afterEach(function() {
+        setEnableSeparateCaptureTracking(false);
+    });
 
     /* https://www.janko.at/Retros/Masterworks/Part5.htm
        #44 - L. Ceriani - La Genesi delle Posizioni, 1961 - Ded. T. H. Willcocks
     */
     it("Tangled position from Ceriani problem", function() {
-        setEnableSeparateCaptureTracking(true);
         setForsythe("1B1NKb2/n1NnpPrp/1PPkPrP1/1pRPppp1/2p4P/3p4/8/8");
         let [w, b, t] = getAllPawnCaptures(board);
         expect(w).toBe(2);
@@ -777,7 +791,24 @@ describe("tangled positions", function() {
         expect(w).toBe(0);
         expect(b).toBe(4);
         expect(t).toBe(6);
-        setEnableSeparateCaptureTracking(false);
+    });
+
+    it("Bishop captured in home square", function() {
+        setForsythe("rnbqk2r/ppppppp1/8/7P/7p/8/PPPPPPP1/R1BQKB1R");
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(positionData.totalCaptureCounts["w"]).toBe(1);
+        expect(positionData.totalCaptureCounts["b"]).toBe(2);
+    });
+
+    // https://www.janko.at/Retros/Masterworks/index.htm
+    // #18 - Dr. Niels Høeg - Retrograde Analysis, 1915
+    it("Black made no captures forcing 6 captures by White", function() {
+        setForsythe("bN6/pPkR3p/PpPpPP2/8/2KP4/B6B/1q1P2PQ/br1R2Nr");
+        const [w, b, t] = getAllPawnCaptures(board);
+        expect(w).toBe(6);
+        expect(b).toBe(0);
+        expect(t).toBe(6);
     });
 });
 

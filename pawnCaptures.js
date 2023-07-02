@@ -1187,12 +1187,15 @@ function getPawnCapturesWithPromotionSearch(pawnsOriginal, whitePromotionFiles, 
     return [bestResult, bestWhitePosition, bestBlackPosition];
 }
 
-function getAllPawnCaptures(board, promotionFiles, missingFriendlyRookData) {
+function getAllPawnCaptures(board, promotionFiles, missingFriendlyRookData, totalCaptureCounts) {
     if (promotionFiles == null) {
         promotionFiles = {};
     }
     if (missingFriendlyRookData == null) {
         missingFriendlyRookData = [];
+    }
+    if (totalCaptureCounts == null) {
+        totalCaptureCounts = {'w': 0, 'b': 0};
     }
     debugLog0(getForsythe(board));
     let whiteUnitCount = 0, blackUnitCount = 0;
@@ -1205,8 +1208,8 @@ function getAllPawnCaptures(board, promotionFiles, missingFriendlyRookData) {
             }
         }
     }
-    const whiteCapturesLeft = getEnableSeparateCaptureTracking() ? 16 - blackUnitCount : IMPOSSIBLE;
-    const blackCapturesLeft = getEnableSeparateCaptureTracking() ? 16 - whiteUnitCount : IMPOSSIBLE;
+    const whiteCapturesLeft = getEnableSeparateCaptureTracking() ? 16 - blackUnitCount - totalCaptureCounts['w'] : IMPOSSIBLE;
+    const blackCapturesLeft = getEnableSeparateCaptureTracking() ? 16 - whiteUnitCount - totalCaptureCounts['b'] : IMPOSSIBLE;
 
     const pawnsOriginal = getPawns(board);
     const cacheKey = JSON.stringify([pawnsOriginal, promotionFiles, missingFriendlyRookData, whiteCapturesLeft, blackCapturesLeft]);
@@ -1240,8 +1243,9 @@ function getAllPawnCaptures(board, promotionFiles, missingFriendlyRookData) {
         const cache =
             (which == 0 ? pawnCapturesCache.whitePawnCapturesCache :
                 (which == 1 ? pawnCapturesCache.blackPawnCapturesCache : pawnCapturesCache.totalPawnCapturesCache));
-        const bestResult = which == 0 ? 17 - blackUnitCount : (which == 1 ? 17 - whiteUnitCount :
-            33 - (blackUnitCount + whiteUnitCount));
+        const bestResult = which == 0 ? 17 - blackUnitCount - totalCaptureCounts['w'] :
+            (which == 1 ? 17 - whiteUnitCount - totalCaptureCounts['b'] :
+            33 - (blackUnitCount + whiteUnitCount + totalCaptureCounts['w'] + totalCaptureCounts['b']));
 
         const [captureCount, bestWhitePosition, bestBlackPosition] =
             getPawnCapturesWithPromotionSearch(pawnsOriginal, whitePromotionFiles, blackPromotionFiles,
