@@ -59,7 +59,7 @@ function parseSerializedCage(line) {
         let invalid = false;
         for (const chunk of chunks) {
             const keyValue = chunk.split("=", 2);
-            switch(keyValue[0].toLowerCase()) {
+            switch (keyValue[0].toLowerCase()) {
                 case 'depth':
                     if (keyValue[1].match(/^[0-9]+$/g)) {
                         depth = parseInt(keyValue[1]);
@@ -200,23 +200,24 @@ const originalSquares = {
     'wB': ['c1', 'f1'],
     'wQ': ['d1'],
     'wK': ['e1'],
-    'wP': ['a','b','c','d','e','f','g','h'].map(c => c + "2"),
+    'wP': ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'].map(c => c + "2"),
     'bR': ['a8', 'h8'],
     'bN': ['b8', 'g8'],
     'bB': ['c8', 'f8'],
     'bQ': ['d8'],
     'bK': ['e8'],
-    'bP': ['a','b','c','d','e','f','g','h'].map(c => c + "7")
+    'bP': ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'].map(c => c + "7")
 }
 
 function inHomeSquares(zoneSquares) {
-   return zoneSquares.every(square =>
-       board[square.mFile][square.mRank].unit == "" ||
-       originalSquares[board[square.mFile][square.mRank].color + board[square.mFile][square.mRank].unit].includes(
-           getSquareAlgNotation(square)));
+    return zoneSquares.every(square =>
+        board[square.mFile][square.mRank].unit == "" ||
+        originalSquares[board[square.mFile][square.mRank].color + board[square.mFile][square.mRank].unit].includes(
+            getSquareAlgNotation(square)));
 }
 
 const DEBUG_CAGE_VERIFY = false;
+
 function verifyCageSearch(zoneSquares, previousRetractor, currentPath, retractionSequence, depth, cache) {
     // A detailed description of this algorithm can be found at:
     // https://github.com/hwatheod/retractor-python/blob/main/doc/cages.pdf
@@ -304,7 +305,7 @@ function verifyCageSearch(zoneSquares, previousRetractor, currentPath, retractio
             Math.abs(retraction.from.mFile - retraction.to.mFile) > 1;
         if (!uncastle && !zoneSquares.some(zoneSquare => squareEquals(zoneSquare, retraction.to))) {
             const removedUnit = new Piece("", "");
-            copyPiece(removedUnit,  board[retraction.from.mFile][retraction.from.mRank]);
+            copyPiece(removedUnit, board[retraction.from.mFile][retraction.from.mRank]);
             if (!isEmpty(removedUnit)) { // empty means we removed this unit already from another retraction with the same unit
                 retractionSequence.push(retraction);
                 removedUnits.push([retraction.from, removedUnit]);
@@ -319,7 +320,7 @@ function verifyCageSearch(zoneSquares, previousRetractor, currentPath, retractio
 
     if (removedUnits.length > 0) {
         // If we removed any units, then recurse with the position after removing those units.
-        if (!verifyCageSearch(zoneSquares, previousRetractor, currentPath, retractionSequence, depth-1, cache)) {
+        if (!verifyCageSearch(zoneSquares, previousRetractor, currentPath, retractionSequence, depth - 1, cache)) {
             return false;
         }
         removedUnits.forEach(removedUnit => {
@@ -342,7 +343,7 @@ function verifyCageSearch(zoneSquares, previousRetractor, currentPath, retractio
             retractionSequence.push(retraction);
             const retractor = board[retraction.from.mFile][retraction.from.mRank].color;
             doRetraction(retraction.from, retraction.to, retraction.uncapturedUnit, retraction.unpromote, false, false);
-            if (!verifyCageSearch(zoneSquares, retractor, currentPath, retractionSequence, depth-1, cache)) {
+            if (!verifyCageSearch(zoneSquares, retractor, currentPath, retractionSequence, depth - 1, cache)) {
                 return false;
             }
             retractionSequence.splice(-1, 1); // delete last element

@@ -15,18 +15,18 @@ class SolveParameters {
  The "clone" function doesn't work because it does not preserve the underlying class, but changes
  everything to Object.  So Square(2, 0) becomes Object(2, 0), etc.
 */
-const whiteQueensideUncastling = function() {
+const whiteQueensideUncastling = function () {
     return new Move(new Square(2, 0), new Square(4, 0), "", false, "K", false);
 }
 
-const whiteKingsideUncastling = function() {
+const whiteKingsideUncastling = function () {
     return new Move(new Square(6, 0), new Square(4, 0), "", false, "K", false);
 }
 
-const blackQueensideUncastling = function() {
+const blackQueensideUncastling = function () {
     return new Move(new Square(2, 7), new Square(4, 7), "", false, "K", false);
 }
-const blackKingsideUncastling = function() {
+const blackKingsideUncastling = function () {
     return new Move(new Square(6, 7), new Square(4, 7), "", false, "K", false)
 }
 
@@ -195,13 +195,25 @@ function getPseudoLegalMovesKing(file, rank, color, moveList, includeNoUncapture
 }
 
 function getPseudoLegalMovesSquare(file, rank, color, moveList, includeUncaptures, cageVerify) {
-    switch(board[file][rank].unit) {
-        case 'K': getPseudoLegalMovesKing(file, rank, color, moveList, true, includeUncaptures); break;
-        case 'Q': getPseudoLegalMovesQueen(file, rank, color, moveList, true, includeUncaptures, cageVerify); break;
-        case 'R': getPseudoLegalMovesRook(file, rank, color, moveList, true, includeUncaptures, cageVerify); break;
-        case 'B': getPseudoLegalMovesBishop(file, rank, color, moveList, true, includeUncaptures, cageVerify); break;
-        case 'N': getPseudoLegalMovesKnight(file, rank, color, moveList, true, includeUncaptures, cageVerify); break;
-        case 'P': getPseudoLegalMovesPawn(file, rank, color, moveList, true, includeUncaptures, cageVerify); break;
+    switch (board[file][rank].unit) {
+        case 'K':
+            getPseudoLegalMovesKing(file, rank, color, moveList, true, includeUncaptures);
+            break;
+        case 'Q':
+            getPseudoLegalMovesQueen(file, rank, color, moveList, true, includeUncaptures, cageVerify);
+            break;
+        case 'R':
+            getPseudoLegalMovesRook(file, rank, color, moveList, true, includeUncaptures, cageVerify);
+            break;
+        case 'B':
+            getPseudoLegalMovesBishop(file, rank, color, moveList, true, includeUncaptures, cageVerify);
+            break;
+        case 'N':
+            getPseudoLegalMovesKnight(file, rank, color, moveList, true, includeUncaptures, cageVerify);
+            break;
+        case 'P':
+            getPseudoLegalMovesPawn(file, rank, color, moveList, true, includeUncaptures, cageVerify);
+            break;
     }
 }
 

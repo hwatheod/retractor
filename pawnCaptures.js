@@ -1,6 +1,7 @@
 IMPOSSIBLE = 999;
 
 const DEBUG_PAWN_CAPTURES0 = false;
+
 function debugLog0(str) {
     if (DEBUG_PAWN_CAPTURES0) {
         console.log(str);
@@ -8,6 +9,7 @@ function debugLog0(str) {
 }
 
 const DEBUG_PAWN_CAPTURES = false;
+
 function debugLog(str) {
     if (DEBUG_PAWN_CAPTURES) {
         console.log(str);
@@ -16,6 +18,7 @@ function debugLog(str) {
 
 let DEBUG_POSITIONS = [];
 let DEBUG_PAWN_CAPTURES2 = false;
+
 function debugLog2(str) {
     if (DEBUG_PAWN_CAPTURES2) {
         console.log(str);
@@ -24,6 +27,7 @@ function debugLog2(str) {
 
 let DEBUG_DEPTH = 0;
 let DEBUG_PAWN_CAPTURES3 = false;
+
 function debugLog3(str, depth) {
     if (DEBUG_PAWN_CAPTURES3 && depth <= DEBUG_DEPTH) {
         console.log(str);
@@ -75,11 +79,11 @@ function setEnableSeparateCaptureTracking(flag) {
 function getPawns(board) {
     const whitePawns = [];
     const blackPawns = [];
-    for(let file = 0; file < 8; file++) {
+    for (let file = 0; file < 8; file++) {
         whitePawns[file] = [];
         blackPawns[file] = [];
 
-        for(let rank = 0; rank < 8; rank++) {
+        for (let rank = 0; rank < 8; rank++) {
             if (board[file][rank].unit == "P") {
                 if (board[file][rank].color == "w") {
                     whitePawns[file].push(rank);
@@ -114,7 +118,7 @@ function blankAssignments() {
 function copyAssignments(assignments) {
     const copy = blankAssignments();
     for (let side = 0; side < 2; side++) {
-        for (let file = 0; file < 8; file ++) {
+        for (let file = 0; file < 8; file++) {
             for (let j = 0; j < 2; j++) {
                 copy[side][file][j] = assignments[side][file][j];
             }
@@ -126,13 +130,13 @@ function copyAssignments(assignments) {
 function insertIntoHeap(state, heap) {
     heap.push(state);
     let index = heap.length - 1;
-    let parent = Math.floor((index - 1)/2);
+    let parent = Math.floor((index - 1) / 2);
     while (index > 0 && heap[index].estimatedDistance < heap[parent].estimatedDistance) { // sift up
         const temp = heap[index];
         heap[index] = heap[parent];
         heap[parent] = temp;
         index = parent;
-        parent = Math.floor((index - 1)/2);
+        parent = Math.floor((index - 1) / 2);
     }
 }
 
@@ -145,7 +149,7 @@ function solveSingleColorHungarian(pawnCounts, used) {
 
         const tightWorkerToJobEdgesIndex = tightWorkerToJobEdges[workerIndex].indexOf(jobIndex);
         assert(tightWorkerToJobEdgesIndex != -1, "Did not find job " + jobIndex + " in " +
-          "tightWorkerToJobEdges[" + workerIndex + "] = " + tightWorkerToJobEdges[workerIndex].toString());
+            "tightWorkerToJobEdges[" + workerIndex + "] = " + tightWorkerToJobEdges[workerIndex].toString());
         tightWorkerToJobEdges[workerIndex].splice(tightWorkerToJobEdgesIndex, 1);
         log("Assigned worker " + workerIndex + " to job " + jobIndex + " " + "abcdefgh".charAt(jobFiles[jobIndex]));
     }
@@ -168,14 +172,17 @@ function solveSingleColorHungarian(pawnCounts, used) {
     }
 
     const DEBUG_HUNGARIAN = false;
+
     function log(str) {
-        if (DEBUG_HUNGARIAN) { console.log(str); }
+        if (DEBUG_HUNGARIAN) {
+            console.log(str);
+        }
     }
 
     log("Solving: " + pawnCounts.toString() + " used: " + used.toString());
     const workerFiles = [];
     const jobFiles = [];
-    for (let file = 0; file < 8; file ++) {
+    for (let file = 0; file < 8; file++) {
         if (used[file] == 0) {
             workerFiles.push(file);
         }
@@ -203,7 +210,7 @@ function solveSingleColorHungarian(pawnCounts, used) {
         jobIndex++;
     });
 
-    while(jobToWorkerAssignments.indexOf(-1) != -1) {
+    while (jobToWorkerAssignments.indexOf(-1) != -1) {
         // initialize alternating paths to start at unassigned workers
         const reachableWorkers = [];
         const reachableJobs = [];
@@ -235,7 +242,7 @@ function solveSingleColorHungarian(pawnCounts, used) {
                             "Unexpected odd number of nodes in  path " + extendedAlternatingPath.toString());
                         // reverse all edges of augmenting path
                         for (let i = 0; i < extendedAlternatingPath.length; i += 2) {
-                            const newJobIndex = extendedAlternatingPath[i+1];
+                            const newJobIndex = extendedAlternatingPath[i + 1];
                             const newWorkerIndex = extendedAlternatingPath[i];
                             if (i < extendedAlternatingPath.length - 2) {
                                 const oldWorkerIndex = extendedAlternatingPath[i + 2];
@@ -313,9 +320,9 @@ function solveSingleColorHungarian(pawnCounts, used) {
                 for (let jobIndex = 0; jobIndex < jobFiles.length; jobIndex++) {
                     const cost = Math.abs(workerFiles[workerIndex] - jobFiles[jobIndex]);
                     assert(workerPotential[workerIndex] + jobPotential[jobIndex] <= cost,
-                            "Potential inequality violated at workerIndex " + workerIndex +
-                            " job Index " + jobIndex + " " + workerPotential[workerIndex] + " " +
-                            jobPotential[jobIndex] + " " + cost);
+                        "Potential inequality violated at workerIndex " + workerIndex +
+                        " job Index " + jobIndex + " " + workerPotential[workerIndex] + " " +
+                        jobPotential[jobIndex] + " " + cost);
                 }
             }
 
@@ -326,8 +333,8 @@ function solveSingleColorHungarian(pawnCounts, used) {
                         workerPotential[workerIndex] + jobPotential[jobIndex] ==
                         Math.abs(workerFiles[workerIndex] - jobFiles[jobIndex]),
                         "Edge from worker " + workerIndex + " to job " + jobIndex + " is not actually tight " +
-                         "worker potential " + workerPotential[workerIndex] + "job potential " +
-                         jobPotential[jobIndex] + " cost " + Math.abs(workerFiles[workerIndex] - jobFiles[jobIndex])));
+                        "worker potential " + workerPotential[workerIndex] + "job potential " +
+                        jobPotential[jobIndex] + " cost " + Math.abs(workerFiles[workerIndex] - jobFiles[jobIndex])));
             }
         }
         log("-------");
@@ -343,7 +350,7 @@ function solveSingleColorHungarian(pawnCounts, used) {
 
     assert(totalCost == totalPotential,
         "totalCost " + totalCost + " and totalPotential " + totalPotential + " disagree at end of algorithm" +
-       " worker potentials " + workerPotential.toString() + " job potentials " + jobPotential.toString());
+        " worker potentials " + workerPotential.toString() + " job potentials " + jobPotential.toString());
     return totalCost;
 }
 
@@ -441,9 +448,9 @@ function existsDirectPath(pawns, side, sourceSquare, targetSquare) {
     }
 
     return searchOrder.some(newFile =>
-       newFile >= 0 && newFile <= 7 && pawns[side][newFile].indexOf(newRank) == -1 &&
-            pawns[1 - side][newFile].indexOf(newRank) == -1 &&
-            existsDirectPath(pawns, side, [newFile, newRank], targetSquare)
+        newFile >= 0 && newFile <= 7 && pawns[side][newFile].indexOf(newRank) == -1 &&
+        pawns[1 - side][newFile].indexOf(newRank) == -1 &&
+        existsDirectPath(pawns, side, [newFile, newRank], targetSquare)
     );
 }
 
@@ -657,7 +664,7 @@ function evaluateHelper(pawns, bestPreviousLevel, whiteCapturesLeft, blackCaptur
         if (whiteTotalDistance + whiteLowerBound > whiteCapturesLeft ||
             blackTotalDistance + blackLowerBound > blackCapturesLeft ||
             whiteLowerBound + blackLowerBound + eitherLowerBound >
-              previousEven(whiteCapturesLeft - whiteTotalDistance) + previousEven(blackCapturesLeft - blackTotalDistance)) {
+            previousEven(whiteCapturesLeft - whiteTotalDistance) + previousEven(blackCapturesLeft - blackTotalDistance)) {
             restore(invertedAssignments, removed);
             cache[cacheKey] = new PawnCapturesCacheResult(IMPOSSIBLE, true);
             return IMPOSSIBLE;
@@ -759,7 +766,7 @@ function evaluateHelper(pawns, bestPreviousLevel, whiteCapturesLeft, blackCaptur
                         getEnableSeparateCaptureTracking() ? whiteCapturesLeft - ((side == 0 && newFile != file) ? 1 : 0) : whiteCapturesLeft,
                         getEnableSeparateCaptureTracking() ? blackCapturesLeft - ((side == 1 && newFile != file) ? 1 : 0) : blackCapturesLeft,
                         newInvertedAssignments, which,
-                        specialConfigurationSide, cache, depth+1);
+                        specialConfigurationSide, cache, depth + 1);
                     const recursiveBest = simplifiedValue + weight + recursiveValue;
                     debugLog3("Evaluation is " + recursiveBest, depth);
                     if (recursiveBest < best) best = recursiveBest;
@@ -792,7 +799,7 @@ function evaluate(assignments, which, specialConfigurationSide, bestResult, whit
     const pawns = [[], []];
     const invertedAssignments = {};
 
-    for(let file = 0; file < 8; file++) {
+    for (let file = 0; file < 8; file++) {
         pawns[0].push([]);
         pawns[1].push([]);
     }
@@ -850,8 +857,8 @@ function findPawnToAssign(pawns, which) {
             }
         }
     } else {
-        for (let side in [1 - which, which])  {
-           for (let relativeRank = 1; relativeRank <= 7; relativeRank++) {
+        for (let side in [1 - which, which]) {
+            for (let relativeRank = 1; relativeRank <= 7; relativeRank++) {
                 const rank = side == 0 ? relativeRank : 7 - relativeRank;
                 for (let file = 0; file < 8; file++) {
                     const index = pawns[side][file].indexOf(rank);
@@ -859,7 +866,7 @@ function findPawnToAssign(pawns, which) {
                         return [side, file, index];
                     }
                 }
-           }
+            }
         }
     }
 
@@ -919,7 +926,7 @@ function search(searchState, which, specialConfigurationSide, bestResult, whiteC
         const thirdLastRank = (side == 0) ? 2 : 5;
         if (file == 0 && rank == lastRank && newPawns[1 - side][1].includes(secondLastRank)) {
             rightmostFile = 5;
-        } else if (file == 7  && rank == lastRank && newPawns[1 - side][6].includes(secondLastRank)) {
+        } else if (file == 7 && rank == lastRank && newPawns[1 - side][6].includes(secondLastRank)) {
             leftmostFile = 2;
         } else if (file == 1 && rank == lastRank) {
             if (newPawns[1 - side][2].includes(secondLastRank)) {
@@ -1072,7 +1079,7 @@ function getPawnCapturesWithPromotionSearch(pawnsOriginal, whitePromotionFiles, 
 
     // capture will be made by the OPPOSITE side of the rook's side
     const potentialMissingFriendlyRookCaptureCount =
-            missingFriendlyRookData.reduce((acc, rookData) => acc + ((which == 2 || which != rookData[0]) ? rookData[1] : 0), 0);
+        missingFriendlyRookData.reduce((acc, rookData) => acc + ((which == 2 || which != rookData[0]) ? rookData[1] : 0), 0);
 
     debugLog("productSize: " + productSize);
     debugLog("which = " + which);
@@ -1090,7 +1097,7 @@ function getPawnCapturesWithPromotionSearch(pawnsOriginal, whitePromotionFiles, 
         while (!done) {
             debugCount++;
             debugLog("debugCount: " + debugCount);
-            if (DEBUG_POSITIONS.some(([a,b]) => a == which && b == debugCount)) {
+            if (DEBUG_POSITIONS.some(([a, b]) => a == which && b == debugCount)) {
                 DEBUG_PAWN_CAPTURES2 = true;
                 debugLog2("which = " + which + ", debugCount = " + debugCount);
             } else {
@@ -1161,7 +1168,7 @@ function getPawnCapturesWithPromotionSearch(pawnsOriginal, whitePromotionFiles, 
             // Find the next configuration
             let positionIndex = 0;
             while (positionIndex < allPromotionFiles.length &&
-                positionOffset[positionIndex] == allPromotionFiles[positionIndex].length - 1) {
+            positionOffset[positionIndex] == allPromotionFiles[positionIndex].length - 1) {
                 positionOffset[positionIndex] = 0;
                 positionIndex++;
             }
@@ -1183,7 +1190,7 @@ function getPawnCapturesWithPromotionSearch(pawnsOriginal, whitePromotionFiles, 
     cache[cacheKey] = new PawnCapturesCacheResult(bestResult, isExact,
         isExact ? bestWhitePosition : null, isExact ? bestBlackPosition : null);
     const stopTime = Date.now();
-    debugLog0("Time for this position: " + (stopTime - startTime)/1000.0 + " seconds");
+    debugLog0("Time for this position: " + (stopTime - startTime) / 1000.0 + " seconds");
     return [bestResult, bestWhitePosition, bestBlackPosition];
 }
 
@@ -1235,7 +1242,7 @@ function getAllPawnCaptures(board, promotionFiles, missingFriendlyRookData, tota
         }
     }
 
-    const isSpecialConfigurationSide = [ whitePromotedPieces == 1, blackPromotedPieces == 1];
+    const isSpecialConfigurationSide = [whitePromotedPieces == 1, blackPromotedPieces == 1];
     const result = [0, 0, 0];
     let whiteStartingPosition = Array(whitePromotionFiles.length).fill(0);
     let blackStartingPosition = Array(blackPromotionFiles.length).fill(0);
@@ -1245,12 +1252,12 @@ function getAllPawnCaptures(board, promotionFiles, missingFriendlyRookData, tota
                 (which == 1 ? pawnCapturesCache.blackPawnCapturesCache : pawnCapturesCache.totalPawnCapturesCache));
         const bestResult = which == 0 ? 17 - blackUnitCount - totalCaptureCounts['w'] :
             (which == 1 ? 17 - whiteUnitCount - totalCaptureCounts['b'] :
-            33 - (blackUnitCount + whiteUnitCount + totalCaptureCounts['w'] + totalCaptureCounts['b']));
+                33 - (blackUnitCount + whiteUnitCount + totalCaptureCounts['w'] + totalCaptureCounts['b']));
 
         const [captureCount, bestWhitePosition, bestBlackPosition] =
             getPawnCapturesWithPromotionSearch(pawnsOriginal, whitePromotionFiles, blackPromotionFiles,
-            whiteStartingPosition, blackStartingPosition, productSize, missingFriendlyRookData, which, cacheKey, isSpecialConfigurationSide,
-            bestResult, whiteCapturesLeft, blackCapturesLeft, cache);
+                whiteStartingPosition, blackStartingPosition, productSize, missingFriendlyRookData, which, cacheKey, isSpecialConfigurationSide,
+                bestResult, whiteCapturesLeft, blackCapturesLeft, cache);
         result[which] = captureCount;
 
         if (bestWhitePosition != null) {

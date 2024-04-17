@@ -26,16 +26,16 @@ const otherTest = describe;
 const defaultExtraDepth = 3;
 const defaultSeparateCaptureTracking = false;
 
-otherTest("test solve parameters", function() {
-    beforeAll(function() {
+otherTest("test solve parameters", function () {
+    beforeAll(function () {
         initializeBoard();
     });
 
-    beforeEach(function() {
+    beforeEach(function () {
         clearBoard();
     });
 
-    it("no more than 10 solutions", function() {
+    it("no more than 10 solutions", function () {
         placeOnSquare(A1, WHITE_KING);
         placeOnSquare(C5, BLACK_KING);
         setRetract("w");
@@ -45,7 +45,7 @@ otherTest("test solve parameters", function() {
         expect(solutions.length).toBe(10);
     });
 
-    it("no white uncaptures", function() {
+    it("no white uncaptures", function () {
         placeOnSquare(A1, WHITE_KING);
         placeOnSquare(C5, BLACK_KING);
         setRetract("w");
@@ -55,7 +55,7 @@ otherTest("test solve parameters", function() {
         expect(solutions.length).toBe(3);
     });
 
-    it("no black uncaptures", function() {
+    it("no black uncaptures", function () {
         placeOnSquare(A1, WHITE_KING);
         placeOnSquare(C5, BLACK_KING);
         setRetract("b");
@@ -67,7 +67,7 @@ otherTest("test solve parameters", function() {
 
 });
 
-describe("some problems with unique solutions", function() {
+describe("some problems with unique solutions", function () {
     function testProblem(testPositionAndCages, solution, toRetract, parameters, func) {
         parameters = parameters ?? {};
         const extraDepth = parameters['extraDepth'] ?? defaultExtraDepth;
@@ -82,7 +82,7 @@ describe("some problems with unique solutions", function() {
             forsythe = testPositionAndCages[0];
         }
 
-        func(forsythe + " " + toRetract + " " + solution.length, function() {
+        func(forsythe + " " + toRetract + " " + solution.length, function () {
             setEnableSeparateCaptureTracking(parameters['ENABLE_SEPARATE_CAPTURE_TRACKING'] ?? defaultSeparateCaptureTracking);
             setForsythe(forsythe);
             setRetract(toRetract);
@@ -102,11 +102,11 @@ describe("some problems with unique solutions", function() {
         testProblem(testPositionAndCages, solution, toRetract, parameters ?? {}, otherProblems.testUnsolved ? it : xit);
     }
 
-    beforeAll(function() {
+    beforeAll(function () {
         initializeBoard();
     });
 
-    beforeEach(function() {
+    beforeEach(function () {
         clearBoard();
     });
 
@@ -176,7 +176,7 @@ function addCage(cageString) {
     stopPlay(false);
 }
 
-describe("type A last move problems", function() {
+describe("type A last move problems", function () {
     function testProblem(testPositionAndCages, solution, toRetract, parameters, func) {
         parameters = parameters ?? {};
         const extraDepth = parameters['extraDepth'] ?? defaultExtraDepth;
@@ -192,7 +192,7 @@ describe("type A last move problems", function() {
         } else {
             forsythe = testPositionAndCages[0];
         }
-        func(forsythe, function() {
+        func(forsythe, function () {
             setEnableSeparateCaptureTracking(parameters['ENABLE_SEPARATE_CAPTURE_TRACKING'] ?? defaultSeparateCaptureTracking);
             if (typeof testPositionAndCages != 'string') {
                 testPositionAndCages.slice(1).forEach(addCage);
@@ -221,16 +221,16 @@ describe("type A last move problems", function() {
         testProblem(testPositionAndCages, solution, toRetract, parameters ?? {}, typeA.testUnsolved ? it : xit);
     }
 
-    beforeAll(function() {
+    beforeAll(function () {
         initializeBoard();
     });
 
-    beforeEach(function() {
+    beforeEach(function () {
         clearBoard();
         jasmine.addCustomEqualityTester(matchMoveTypeWithMove);
     });
 
-    afterEach(function() {
+    afterEach(function () {
         clearCages();
     });
 
@@ -367,7 +367,7 @@ describe("type A last move problems", function() {
     testProblem("8/1p5P/6P1/5B1P/6PP/5BNk/7P/5RK1", "O-O");
 });
 
-describe("type B last move problems", function() {
+describe("type B last move problems", function () {
     function testProblem(testPositionAndCages, solution, toRetract, parameters, func) {
         parameters = parameters ?? {};
         const extraDepth = parameters['extraDepth'] ?? defaultExtraDepth;
@@ -383,7 +383,7 @@ describe("type B last move problems", function() {
         } else {
             forsythe = testPositionAndCages[0];
         }
-        func(forsythe, function() {
+        func(forsythe, function () {
             setEnableSeparateCaptureTracking(parameters['ENABLE_SEPARATE_CAPTURE_TRACKING'] ?? defaultSeparateCaptureTracking);
             if (typeof testPositionAndCages != 'string') {
                 testPositionAndCages.slice(1).forEach(addCage);
@@ -406,16 +406,16 @@ describe("type B last move problems", function() {
         testProblem(testPositionAndCages, solution, toRetract, parameters ?? {}, typeB.testUnsolved ? it : xit);
     }
 
-    beforeAll(function() {
+    beforeAll(function () {
         initializeBoard();
     });
 
-    beforeEach(function() {
+    beforeEach(function () {
         clearBoard();
         jasmine.addCustomEqualityTester(matchMoveTypeWithMove);
     });
 
-    afterEach(function() {
+    afterEach(function () {
         clearCages();
     });
 
@@ -454,7 +454,7 @@ describe("type B last move problems", function() {
     testProblem("6kB/4pR1p/5ppK/8/8/8/8/8", "B-");
     /* Keym, Werner */
     testProblem(["4KBBk/2prpp2/3p2pp/8/8/8/8/8", "5B2/4ppp1/8/8/8/8/8/8", "4KBrk/2prpp1B/3p2pp/8/8/8/8/8",
-            "4KB1k/2prpp1P/3p2pp/8/8/8/8/8"], "BxQ");
+        "4KB1k/2prpp1P/3p2pp/8/8/8/8/8"], "BxQ");
     /* Varnholt, Jörn */
     testProblem("4Bb1B/3ppK1k/5ppp/8/8/8/8/8", "BxR");
     /* Bajtay, Jozsef; Hernitz, Zvonimir */
@@ -533,7 +533,7 @@ describe("type B last move problems", function() {
     testProblem("8/8/8/8/4k3/7p/5n1r/3n1RK1", "O-O");
 });
 
-describe("type C last move problems", function() {
+describe("type C last move problems", function () {
     function testProblem(testPositionAndCages, solution, parameters, func) {
         parameters = parameters ?? {};
         const extraDepth = parameters['extraDepth'] ?? defaultExtraDepth;
@@ -546,7 +546,7 @@ describe("type C last move problems", function() {
         } else {
             forsythe = testPositionAndCages[0];
         }
-        func(forsythe, function() {
+        func(forsythe, function () {
             setEnableSeparateCaptureTracking(parameters['ENABLE_SEPARATE_CAPTURE_TRACKING'] ?? defaultSeparateCaptureTracking);
             if (typeof testPositionAndCages != 'string') {
                 testPositionAndCages.slice(1).forEach(addCage);
@@ -563,16 +563,16 @@ describe("type C last move problems", function() {
         });
     }
 
-    beforeAll(function() {
+    beforeAll(function () {
         initializeBoard();
     });
 
-    beforeEach(function() {
+    beforeEach(function () {
         clearBoard();
         jasmine.addCustomEqualityTester(matchMoveTypeWithMove);
     });
 
-    afterEach(function() {
+    afterEach(function () {
         clearCages();
     });
 
@@ -712,7 +712,7 @@ describe("type C last move problems", function() {
     testProblem("8/8/8/8/8/8/5P2/2k2RK1", "O-O");
 });
 
-describe("type D last move problems", function() {
+describe("type D last move problems", function () {
     function testProblem(testPositionAndCages, solution1, solution2, parameters, func) {
         parameters = parameters ?? {};
         const extraDepth = parameters['extraDepth'] ?? defaultExtraDepth;
@@ -725,7 +725,7 @@ describe("type D last move problems", function() {
         } else {
             forsythe = testPositionAndCages[0];
         }
-        func(forsythe, function() {
+        func(forsythe, function () {
             setEnableSeparateCaptureTracking(parameters['ENABLE_SEPARATE_CAPTURE_TRACKING'] ?? defaultSeparateCaptureTracking);
             if (typeof testPositionAndCages != 'string') {
                 testPositionAndCages.slice(1).forEach(addCage);
@@ -746,15 +746,15 @@ describe("type D last move problems", function() {
         });
     }
 
-    beforeAll(function() {
+    beforeAll(function () {
         initializeBoard();
     });
 
-    beforeEach(function() {
+    beforeEach(function () {
         clearBoard();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         clearCages();
     });
 
@@ -904,7 +904,7 @@ describe("type D last move problems", function() {
     testProblem("3Bb1kN/2ppK1pp/3p2p1/8/8/8/8/8", "B-", "N-");
     /* Mario Richter */
     testProblem(["8/6p1/7p/8/8/P2P4/P1kPP3/K1Bb4",
-     "8/8/8/8/8/3P4/PPkPP3/K1Bb4", "8/8/8/8/8/P2P4/P1kPP3/K1nb4", "8/8/8/8/8/P2P4/P1kPP3/K1bb4"],
+            "8/8/8/8/8/3P4/PPkPP3/K1Bb4", "8/8/8/8/8/P2P4/P1kPP3/K1nb4", "8/8/8/8/8/P2P4/P1kPP3/K1bb4"],
         "B-", "P-");
     /* Mario Richter */
     testProblem("bRr1B3/k1pKpp2/ppp5/8/8/P7/1P6/8", "B-", "P-=R");
@@ -1015,8 +1015,8 @@ describe("type D last move problems", function() {
     xtestProblem("8/2p1p2P/5pp1/7P/6Pp/P3PPkp/1P2PR2/5RK1", "P-", "O-O");
     /* Bernd Schwarzkopf */
     testProblem(["4BKBn/3ppRBP/5p1p/6p1/1P6/P1P5/pbrPP3/Nbkb4",
-        "8/8/8/8/8/PPP5/pbrPP3/Nbkb4", "4BKBn/3ppRBP/5ppp/8/8/8/8/8",
-        "8/8/8/8/1P6/PpP5/RbrPP3/Nbkb4", "4BKBn/3ppRBr/5pPp/6p1/8/8/8/8"], "PxQ", "PxQ",
+            "8/8/8/8/8/PPP5/pbrPP3/Nbkb4", "4BKBn/3ppRBP/5ppp/8/8/8/8/8",
+            "8/8/8/8/1P6/PpP5/RbrPP3/Nbkb4", "4BKBn/3ppRBr/5pPp/6p1/8/8/8/8"], "PxQ", "PxQ",
         {"ENABLE_SEPARATE_CAPTURE_TRACKING": true});
     /* Roberto Osorio & Jorge Lois */
     // this one needs extraDepth of 5
@@ -1098,7 +1098,7 @@ describe("type D last move problems", function() {
     xtestProblem("kNb2b2/rp1pppp1/p1p5/8/8/5P1P/1PPPP1PR/2B2BnK", "PxQ=N", "PxQ=N");
     /* Werner Keym */
     testProblem(["8/6p1/7p/8/6P1/2PPkPPB/1PrR1RPr/2Bn1RK1",
-        "8/8/8/8/8/8/5PP1/4KR1R frozen=e1,h1", "8/8/8/8/6P1/2PPkPPB/1PrRpRPr/2BQK2R frozen=e1,h1"],
+            "8/8/8/8/8/8/5PP1/4KR1R frozen=e1,h1", "8/8/8/8/6P1/2PPkPPB/1PrRpRPr/2BQK2R frozen=e1,h1"],
         "PxQ=N", "O-O");
     /* Buchanan, Osorio/Lois, Keym */
     xtestProblem("1NQQB3/1pRKppp1/p1p5/8/8/4P1P1/1PPkrP1P/2bbqn2", "PxR=N", "PxR=N");
@@ -1113,7 +1113,7 @@ describe("type D last move problems", function() {
 
 function matchMoveTypeWithMove(move, moveType) {
     // determines whether the "move type" (a string like PxR=N) describes the actual move (of class RetractionMove)
-    if (typeof(moveType) == "string" && move instanceof Move) {
+    if (typeof (moveType) == "string" && move instanceof Move) {
         if (moveType == "O-O-O") {
             return (move.fromUnit == "K" && move.from.mFile == 2 && move.to.mFile == 4);
         }
@@ -1141,11 +1141,11 @@ function matchMoveTypeWithMove(move, moveType) {
         if (moveType.charAt(1) == "x" && move.uncapturedUnit != moveType.charAt(2)) return false;
 
         if (moveType == "P-") { // make sure single step
-          if (Math.abs(move.from.mRank - move.to.mRank) != 1) return false;
+            if (Math.abs(move.from.mRank - move.to.mRank) != 1) return false;
         }
 
         if (moveType == "P--") { // make sure double step
-          if (Math.abs(move.from.mRank - move.to.mRank) != 2) return false;
+            if (Math.abs(move.from.mRank - move.to.mRank) != 2) return false;
         }
 
         return true;
