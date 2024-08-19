@@ -196,7 +196,7 @@ describe("legal double checks", function () {
     });
 
     it("Q+B en passant, white king on 5th rank ok", function () {
-        setForsythe("8/8/3r4/5K2/8/4kqpb/8/8");
+        setForsythe("8/8/2r5/4K3/8/3kqpb1/8/8");
         setRetract("b");
         expect(errorText[startPlay()]).toBe(errorText[error_ok]);
     })
