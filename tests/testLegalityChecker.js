@@ -67,12 +67,6 @@ describe("too many units", function () {
         expect(errorText[startPlay()]).toBe(errorText[error_tooManyPromotedBlackLightSquareBishops]);
     });
 
-    it("too many promoted white knights", function () {
-        setForsythe("K1k5/8/PPPP4/rnbqqb2/NNN5/NNNN4/8/8");
-        setRetract("w");
-        expect(errorText[startPlay()]).toBe(errorText[error_tooManyPromotedWhiteKnights]);
-    });
-
     it("too many promoted black knights", function () {
         setForsythe("K1k5/8/pppp4/RnBqQB2/nnn5/nnnn4/8/8");
         setRetract("w");

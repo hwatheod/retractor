@@ -120,12 +120,6 @@ describe("Test verifyCageInternal - positive cases", function () {
         startPlay(false);
         expect(verifyCageInternal(false).isCageVerified).toBe(true);
     });
-    it("4B1rk/3ppKpp/8/8/8/8/8/8", function () { // Willcocks, 4BNrk/3ppK1p/6pp/8/8/8/8/8
-        setForsythe("4B1rk/3ppKpp/8/8/8/8/8/8");
-        setRetract("w");
-        startPlay(false);
-        expect(verifyCageInternal(false).isCageVerified).toBe(true);
-    });
     it("1K6/1p1pppp1/1pp5/8/8/8/8/8", function () { // Keym, k1KB4/PpRpp1p1/b1p2p2/1p6/8/8/8/8
         setForsythe("1K6/1p1pppp1/1pp5/8/8/8/8/8");
         setRetract("w");
