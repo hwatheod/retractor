@@ -17,6 +17,7 @@
 <script type="text/javascript" src="piece.js"></script>
 <script type="text/javascript" src="board.js"></script>
 <script type="text/javascript" src="boardGui.js"></script>
+<script type="text/javascript" src="solutions.js"></script>
 <script type="text/javascript" src="undo.js"></script>
 <script type="text/javascript" src="stateChanges.js"></script>
 <script type="text/javascript" src="pawnCaptures.js"></script>
@@ -187,7 +188,9 @@
         </div>
         <div id="copyGameModal" class="modal-content">
             <span id="copyGameClose" class="close">&times;</span>
-            <label for="copyGameText">Copy game from here</label><br>
+            <label for="copyGameText">Copy game from here</label>
+            <input type="button" id="copyGameFormatToggle" value="Switch to PGN" style="visibility: hidden">
+            <br>
             <textarea id="copyGameText" cols=40 rows=5 readonly></textarea>
         </div>
         <div id="verifyCageModal" class="modal-content">
@@ -272,6 +275,7 @@
             <label for="exportSolutionsFilename">Export filename:</label>
             <input id="exportSolutionsFilename" type="text">
             <input type="button" id="exportSolutions" value="Export Solutions">
+            <input type="button" id="exportSolutionsPGN" value="Export as PGN">
         </span>
         <div id="solutionDisplay"></div>
     </div>
@@ -432,6 +436,21 @@
     // Setup copy game modal
     const copyGameModal = document.getElementById("copyGameModal");
     document.getElementById("copyGameClose").onclick = function() { clearModal("copyGameModal"); }
+    
+    document.getElementById("copyGameFormatToggle").onclick = function() {
+        const textArea = document.getElementById("copyGameText");
+        const button = document.getElementById("copyGameFormatToggle");
+        
+        if (button.value === "Switch to PGN") {
+            // Switch to PGN format
+            textArea.innerHTML = textArea.dataset.pgnFormat;
+            button.value = "Switch to Retro Moves";
+        } else {
+            // Switch to retro format
+            textArea.innerHTML = textArea.dataset.retroFormat;
+            button.value = "Switch to PGN";
+        }
+    }
 
     // Setup verify cage modal
     const verifyCageModal = document.getElementById("verifyCageModal");
@@ -540,6 +559,34 @@
             const filenameSuffix = currentTimeIsoString.slice(0, -5).replaceAll(/[:-]/g, "");
             filename = "exported_solutions_" + filenameSuffix + ".txt";
         }
+        download(data, filename);
+    }
+
+    document.getElementById("exportSolutionsPGN").onclick = function() {
+        const exportedPGNs = exportSolutionsPGN();
+        if (exportedPGNs == null) {
+            return;
+        }
+        let filename = document.getElementById("exportSolutionsFilename").value;
+        if (!filename) {
+            const currentTimeIsoString = new Date(Date.now()).toISOString();
+            const filenameSuffix = currentTimeIsoString.slice(0, -5).replaceAll(/[:-]/g, "");
+            filename = "exported_game_" + filenameSuffix + ".pgn";
+        } else if (!filename.endsWith(".pgn")) {
+            filename += ".pgn";
+        }
+        
+        // If multiple solutions, combine them with comments
+        let pgnContent;
+        if (exportedPGNs.length == 1) {
+            pgnContent = exportedPGNs[0];
+        } else {
+            pgnContent = exportedPGNs.map((pgn, index) => {
+                return "[Game \"" + (index + 1) + "\"]\n" + pgn;
+            }).join("\n\n");
+        }
+        
+        const data = new Blob([pgnContent]);
         download(data, filename);
     }
 

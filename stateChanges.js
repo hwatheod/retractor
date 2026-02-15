@@ -81,7 +81,27 @@ function redoAllGui() {
 function copyGameGui() {
     const moveRecord = undoStack.getMoveRecordToHere();
     const textMoveRecord = moveRecord.map(moveToString).join(" ");
+    const pgnText = generateCurrentBoardPGN();
+
+    populateAndShowCopyModal(textMoveRecord, pgnText);
+}
+
+function populateAndShowCopyModal(textMoveRecord, pgnText) {
+    // Store both formats
+    document.getElementById("copyGameText").dataset.retroFormat = textMoveRecord;
+    document.getElementById("copyGameText").dataset.pgnFormat = pgnText;
+    
+    // Display retro format by default
     document.getElementById("copyGameText").innerHTML = textMoveRecord;
+    document.getElementById("copyGameFormatToggle").value = "Switch to PGN";
+    
+    // Show/hide the toggle button based on whether we have PGN
+    if (pgnText != null) {
+        document.getElementById("copyGameFormatToggle").style.visibility = "visible";
+    } else {
+        document.getElementById("copyGameFormatToggle").style.visibility = "hidden";
+    }
+    
     showModal("copyGameModal");
 }
 

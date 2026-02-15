@@ -1,3 +1,7 @@
+v2.3.6
+
+* PGN generation capability added (Issue #14)
+
 v2.3.5
 
 * Pawn capture counting algorithm now takes into account known non-pawn captures.

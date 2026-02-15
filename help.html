@@ -1,6 +1,6 @@
 <div class="helpPage" id="help_front">
 <p>
-    Welcome to <a href="https://github.com/hwatheod/retractor/blob/master/CHANGELOG.md" target="_blank">Retractor 2.3.5</a>! Retractor is a tool for working with retrograde analysis (retro) chess problems.
+    Welcome to <a href="https://github.com/hwatheod/retractor/blob/master/CHANGELOG.md" target="_blank">Retractor 2.3.6</a>! Retractor is a tool for working with retrograde analysis (retro) chess problems.
     <br>
     In a retro problem, you play chess backwards to learn about the history of a position.
         <a href="javascript:openHelpPage('help_tutorial_1')">Click here</a> for an introduction to retros.
@@ -57,7 +57,7 @@
     The &gt; button replays a retraction previously undone.<br>
     The &gt;&gt; button replays all retractions previously undone.<br>
     The <a href="javascript:openHelpPage('help_solve')">Solve</a> button attempts to solve the current position.<br>
-    The Copy button displays all moves in a text box which you can then copy to the clipboard.<br>
+    The Copy button displays all moves in a text box (list of retromoves, or standard forward-play PGN) which you can then copy to the clipboard.<br>
     The Paste button allows you to paste a sequence of moves.<br>
     The <a href="javascript:openHelpPage('help_cage')">Cage</a> button allows you to verify, import, and export cages.
     </p>
@@ -138,8 +138,11 @@
     <p>
         If Retractor finds one or more solutions, they will show as buttons in the upper right section of the
         page.  You can click on a button to navigate to that move in that solution.  "Copy" will display that solution
-        in a text box which you can then copy to the clipboard. "Export Solutions" will export a text file with the
-        final position of each solution (in Forsythe notation).
+        in a text box (list of retro moves, or standard forward-play PGN) which you can then copy to the clipboard. 
+        "Export Solutions" will export a text file with the final position of each solution (in Forsythe notation). 
+        "Export to PGN" exports a single PGN file with one game for each solution. The starting position of each PGN game 
+        is the position at the end of the solution, and the moves are in reverse order so they can be replayed forwards 
+        in any standard PGN tool (some PGN tools may not support multiple games).
     </p>
     <p>
         If you make any move on the board, then all the solution buttons will be deactivated (because they may no
