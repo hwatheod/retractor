@@ -157,9 +157,11 @@
 
 <div class="helpPage" id="help_piece_markings">
     <p>
-    In Edit mode, you can mark pieces as either <em>frozen</em> or <em>promoted</em>.  By shift-clicking on a piece
-    (not a pawn), the piece will cycle through the possibilities: frozen, promoted, neither.  The current markings,
-    if any, for all pieces will show up as "Flags" in the upper right section of the page. If you do not see a Flags
+    In Edit mode, you can mark pieces as <em>frozen</em>, <em>promoted</em>, or <em>original</em>.  By shift-clicking on a piece
+    (not a pawn), the piece will cycle through the possibilities: frozen, promoted, original, neither
+    (or just promoted, original, neither for pieces that cannot be frozen).  The current markings,
+    if any, for all pieces will show up as "Flags" in the upper right section of the page, using the
+    abbreviations F (frozen), P (promoted), and O (original). If you do not see a Flags
     section, that means there are no markings for any pieces.
     </p>
     <p>
@@ -172,6 +174,20 @@
     promoted piece on the board that Retractor cannot detect, or if there is a condition "piece X is promoted"
     given in a problem.
     </p>
+    <p>
+    Marking a piece as original indicates to Retractor that this piece is <em>not</em> promoted &mdash; it is an
+    original piece that was never created by a promotion.  This is useful when a problem stipulates that a certain
+    piece is original, or when you want to rule out retraction sequences that involve unpromoting that piece.
+    When a piece is marked original:
+    </p>
+    <ul>
+        <li>Retractor will never generate unpromotion moves for it (neither in play mode nor when solving).</li>
+        <li>Retractor will check for contradictions: if it deduces that the piece must be promoted
+            (for example, a rook trapped in a cage, or a bishop boxed in by unmoved pawns),
+            but the piece is marked as original, the position is flagged as illegal.
+            This works on any rank &mdash; for instance, a White rook on a7 surrounded by Black
+            pawns on a6, b7, and d7 is deduced promoted even though it is not on the 8th rank.</li>
+    </ul>
 </div>
 
 <div class="helpPage" id="help_cage">

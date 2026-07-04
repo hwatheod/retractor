@@ -104,21 +104,21 @@ function getPseudoLegalMovesUnpromotion(file, rank, color, moveList, includeNoUn
 function getPseudoLegalMovesQueen(file, rank, color, moveList, includeNoUncapture, includeUncaptures, cageVerify) {
     getPseudoLegalMovesDiagonal(file, rank, color, moveList, false, includeNoUncapture, includeUncaptures, "Q");
     getPseudoLegalMovesOrthogonal(file, rank, color, moveList, false, includeNoUncapture, includeUncaptures, "Q");
-    if ((color == "w" && rank == 7) || (color == "b" && rank == 0)) {
+    if (!board[file][rank].original && ((color == "w" && rank == 7) || (color == "b" && rank == 0))) {
         getPseudoLegalMovesUnpromotion(file, rank, color, moveList, includeNoUncapture, includeUncaptures, "Q", cageVerify);
     }
 }
 
 function getPseudoLegalMovesRook(file, rank, color, moveList, includeNoUncapture, includeUncaptures, cageVerify) {
     getPseudoLegalMovesOrthogonal(file, rank, color, moveList, false, includeNoUncapture, includeUncaptures, "R");
-    if ((color == "w" && rank == 7) || (color == "b" && rank == 0)) {
+    if (!board[file][rank].original && ((color == "w" && rank == 7) || (color == "b" && rank == 0))) {
         getPseudoLegalMovesUnpromotion(file, rank, color, moveList, includeNoUncapture, includeUncaptures, "R", cageVerify);
     }
 }
 
 function getPseudoLegalMovesBishop(file, rank, color, moveList, includeNoUncapture, includeUncaptures, cageVerify) {
     getPseudoLegalMovesDiagonal(file, rank, color, moveList, false, includeNoUncapture, includeUncaptures, "B");
-    if ((color == "w" && rank == 7) || (color == "b" && rank == 0)) {
+    if (!board[file][rank].original && ((color == "w" && rank == 7) || (color == "b" && rank == 0))) {
         getPseudoLegalMovesUnpromotion(file, rank, color, moveList, includeNoUncapture, includeUncaptures, "B", cageVerify);
     }
 }
@@ -128,7 +128,7 @@ function getPseudoLegalMovesKnight(file, rank, color, moveList, includeNoUncaptu
     knightVectors.forEach(knightVector => {
         getPseudoLegalMovesVector(file, rank, color, moveList, knightVector, true, includeNoUncapture, includeUncaptures, false, "N");
     });
-    if ((color == "w" && rank == 7) || (color == "b" && rank == 0)) {
+    if (!board[file][rank].original && ((color == "w" && rank == 7) || (color == "b" && rank == 0))) {
         getPseudoLegalMovesUnpromotion(file, rank, color, moveList, includeNoUncapture, includeUncaptures, "N", cageVerify);
     }
 }

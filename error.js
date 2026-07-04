@@ -80,6 +80,8 @@ error_noBlackPromotionSquaresForQueen = 80;
 error_noBlackPromotionSquaresForRook = 81;
 error_noBlackPromotionSquaresForBishop = 82;
 error_noBlackPromotionSquaresForKnight = 83;
+error_impossibleOriginalWhiteOfficer = 84;
+error_impossibleOriginalBlackOfficer = 85;
 
 errorText = [];
 errorText[error_ok] = "ok";
@@ -164,3 +166,5 @@ errorText[error_noBlackPromotionSquaresForQueen] = "No available promotion squar
 errorText[error_noBlackPromotionSquaresForRook] = "No available promotion squares for a promoted black rook.";
 errorText[error_noBlackPromotionSquaresForBishop] = "No available promotion squares for a promoted black bishop.";
 errorText[error_noBlackPromotionSquaresForKnight] = "No available promotion squares for a promoted black knight.";
+errorText[error_impossibleOriginalWhiteOfficer] = "A white officer marked as original is deduced to be promoted.";
+errorText[error_impossibleOriginalBlackOfficer] = "A black officer marked as original is deduced to be promoted.";

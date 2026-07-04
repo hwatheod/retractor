@@ -133,13 +133,17 @@ function clickSquare(event) {
             if (event.shiftKey) {
                 const piece = board[square.mFile][square.mRank];
                 if (piece.unit == "" || piece.unit == "P") return false;
-                /* frozen -> promoted -> none */
+                /* frozen -> promoted -> original -> none */
                 if (piece.frozen) {
                     piece.frozen = false;
                     trySetPromoted(square.mFile, square.mRank, piece);
                     updateFlags();
                 } else if (piece.promoted) {
                     piece.promoted = false;
+                    piece.original = true;
+                    updateFlags();
+                } else if (piece.original) {
+                    piece.original = false;
                     updateFlags();
                 } else {
                     if (trySetFrozen(square.mFile, square.mRank, piece)) {
@@ -463,7 +467,7 @@ function updateFlags() {
         for (let rank = 0; rank < 8; rank++) {
             if (board[file][rank].unit == "P") continue;
             let flagsSet = "";
-            //if (board[file][rank].original && board[file][rank].unit != "K") flagsSet += "O";
+            if (board[file][rank].original && !board[file][rank].frozen && board[file][rank].unit != "K") flagsSet += "O";
             if (board[file][rank].promoted) flagsSet += "P";
             if (board[file][rank].frozen) flagsSet += "F";
             if (flagsSet != "") {

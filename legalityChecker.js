@@ -707,6 +707,9 @@ function isPositionLegalInternal() {
     error = checkKingInEnemyPawnCage();
     if (error != error_ok) return error;
 
+    error = checkOriginalPromotedContradiction();
+    if (error != error_ok) return error;
+
     const markedPromotions = {};
     for (let file = 0; file < 8; file++) {
         for (let rank = 0; rank < 8; rank++) {
@@ -758,6 +761,33 @@ function isPositionLegalInternal() {
     error = checkTooManyCaptures();
     if (error != error_ok) return error;
 
+    return error_ok;
+}
+
+function checkOriginalPromotedContradiction() {
+    /*
+       After cage and bishop analysis has run, the engine may have set the "promoted"
+       flag on pieces that it determines must be promoted (e.g. a rook trapped in a
+       cage, or an enemy bishop boxed in by unmoved pawns).
+
+       If the user has also marked such a piece as "original" (not promoted), that is
+       a direct contradiction — the position is illegal.
+
+       This check is more general than a reachability analysis on the promotion rank:
+       it catches contradictions on any square (e.g. a rook on the 7th rank trapped
+       by pawns, not just pieces on the 8th/1st rank).
+     */
+    for (let file = 0; file < 8; file++) {
+        for (let rank = 0; rank < 8; rank++) {
+            const piece = board[file][rank];
+            if (piece.original && piece.promoted) {
+                errorSquares.push(new Square(file, rank));
+                return piece.color == "w"
+                    ? error_impossibleOriginalWhiteOfficer
+                    : error_impossibleOriginalBlackOfficer;
+            }
+        }
+    }
     return error_ok;
 }
 
