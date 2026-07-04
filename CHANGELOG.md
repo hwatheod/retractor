@@ -1,5 +1,9 @@
 v2.3.6
 
+* Officers can now be marked as "original" (not promoted) via shift-click in edit mode. (Issue #18)
+
+v2.3.6
+
 * PGN generation capability added (Issue #14)
 
 v2.3.5

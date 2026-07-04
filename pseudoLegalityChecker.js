@@ -207,6 +207,9 @@ function isPseudoLegal(from, to, uncapturedUnit, unpromote) {
         if (fromColor == "b" && fromRank != 0) {
             return error_blackUnpromoteFirstRank;
         }
+        if (fromPiece.original) {
+            return error_cannotUnpromoteOriginal;
+        }
     }
     // pseudo-legality check
     if (uncapturedUnit == "K") return error_cannotUncaptureKing;
