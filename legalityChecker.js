@@ -696,6 +696,33 @@ function checkIllegalDoubleCheck(checkers, colorInCheck) {
     return error_illegalDoubleCheck;
 }
 
+function tooManyOriginalOfficers(detailedUnit) {
+    switch (detailedUnit) {
+        case "wQ":
+            return error_tooManyOriginalWhiteQueens;
+        case "wR":
+            return error_tooManyOriginalWhiteRooks;
+        case "wBL":
+            return error_tooManyOriginalWhiteLightSquareBishops;
+        case "wBD":
+            return error_tooManyOriginalWhiteDarkSquareBishops;
+        case "wN":
+            return error_tooManyOriginalWhiteKnights;
+        case "bQ":
+            return error_tooManyOriginalBlackQueens;
+        case "bR":
+            return error_tooManyOriginalBlackRooks;
+        case "bBL":
+            return error_tooManyOriginalBlackLightSquareBishops;
+        case "bBD":
+            return error_tooManyOriginalBlackDarkSquareBishops;
+        case "bN":
+            return error_tooManyOriginalBlackKnights;
+        default:
+            assert(false, "Unrecognized detailedUnit " + detailedUnit);
+    }
+}
+
 function isPositionLegalInternal() {
     // Note: This also updates the pawnCaptureCounts, totalCaptureCounts, and promotedCounts fields in positionData.
 
@@ -758,21 +785,32 @@ function isPositionLegalInternal() {
     if (error != error_ok) return error;
 
     const markedPromotions = {};
+    const markedOriginal = {};
     for (let file = 0; file < 8; file++) {
         for (let rank = 0; rank < 8; rank++) {
             if (board[file][rank].promoted) {
-                const detailedUnitType = board[file][rank].color + getDetailedUnitType(file, rank, board[file][rank].unit);
-                if (!(detailedUnitType in markedPromotions)) {
-                    markedPromotions[detailedUnitType] = 0;
+                const detailedUnit = board[file][rank].color + getDetailedUnitType(file, rank, board[file][rank].unit);
+                if (!(detailedUnit in markedPromotions)) {
+                    markedPromotions[detailedUnit] = 0;
                 }
-                markedPromotions[detailedUnitType]++;
+                markedPromotions[detailedUnit]++;
+            }
+            else if (board[file][rank].original) {
+                const detailedUnit = board[file][rank].color + getDetailedUnitType(file, rank, board[file][rank].unit);
+                if (!(detailedUnit in markedOriginal)) {
+                    markedOriginal[detailedUnit] = 0;
+                }
+                markedOriginal[detailedUnit]++;
+                if (markedOriginal[detailedUnit] > MAX_ORIGINAL_COUNTS[detailedUnit.slice(1)]) {
+                    return tooManyOriginalOfficers(detailedUnit);
+                }
             }
         }
     }
 
-    for (const detailedUnitType in markedPromotions) {
-        if (markedPromotions.hasOwnProperty(detailedUnitType) && markedPromotions[detailedUnitType] > 0) {
-            const error = updatePromotedCountWithMax(detailedUnitType, markedPromotions[detailedUnitType]);
+    for (const detailedUnit in markedPromotions) {
+        if (markedPromotions.hasOwnProperty(detailedUnit) && markedPromotions[detailedUnit] > 0) {
+            const error = updatePromotedCountWithMax(detailedUnit, markedPromotions[detailedUnit]);
             if (error != error_ok) return error;
         }
     }
