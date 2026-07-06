@@ -3,6 +3,8 @@ v2.3.7
 * Officers can now be marked as "original" (not promoted) via shift-click in edit mode. (Issue #18)
 * Disallow uncastling with a promoted rook. (Issue #20)
 
+Thank you @dcolazin for contributing code for Issue #18, and also for the download_images and Makefile scripts.
+
 v2.3.6
 
 * PGN generation capability added (Issue #14)
