@@ -298,6 +298,10 @@ function checkUncastling(fromFile, fromRank, toFile, toRank, fromColor) {
     if (!(board[rookFile][backRank].color == fromColor && board[rookFile][backRank].unit == 'R'))
         return error_uncastlingRookNotInPosition;
 
+    // make sure rook is not marked as promoted
+    if (board[rookFile][backRank].promoted) {
+        return error_cannotUncastleWithPromotedRook;
+    }
     // make sure all relevant squares are unoccupied
     if (fromFile == 2) { // queenside uncastling
         if (!(isEmpty(board[0][backRank]) && isEmpty(board[1][backRank]) && isEmpty(board[4][backRank]))) {

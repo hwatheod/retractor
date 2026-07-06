@@ -52,7 +52,8 @@ function checkIllegalBishops() {
                             if (file == bishopFile && rank == firstRank) continue;
                             if ((file + rank) % 2 != bishopSquareColor) continue;
                             if (board[file][rank].color == color && board[file][rank].unit == "B") {
-                                tempUndoStack.changePromotedFlag(file, rank, true);
+                                const error = markPromoted(file, rank);
+                                if (error != error_ok) return error;
                             }
                         }
                     }
@@ -65,9 +66,8 @@ function checkIllegalBishops() {
                     if (originalBishopFiles.indexOf(bishopFile) == -1) { // Case 1
                         return side == 0 ? error_illegallyPlacedWhiteBishop : error_illegallyPlacedBlackBishop;
                     } else {
-                        const error = cannotBePromoted(bishopFile, firstRank);
+                        const error = markFrozen(bishopFile, firstRank);
                         if (error != error_ok) return error;
-                        tempUndoStack.changeFrozenFlag(bishopFile, firstRank, true);
                     }
 
                     // Case 2
@@ -94,7 +94,8 @@ function checkIllegalBishops() {
                     }
 
                     // Case 4
-                    tempUndoStack.changePromotedFlag(bishopFile, firstRank, true);
+                    const error = markPromoted(bishopFile, firstRank);
+                    if (error != error_ok) return error;
                     const detailedUnitType = getDetailedUnitType(bishopFile, firstRank, "B");
                     addPossiblePromotionFiles(opposite(color), detailedUnitType, [bishopFile, bishopFile]);
                 }
@@ -127,10 +128,12 @@ function checkIllegalBishops() {
                     return error_illegalBishopAndPawnInCorner;
                 }
                 if (board[knightFile][firstRank].color == oppositeColor && board[knightFile][firstRank].unit == "B") {
-                    tempUndoStack.changePromotedFlag(knightFile, firstRank, true);
+                    const error = markPromoted(knightFile, firstRank);
+                    if (error != error_ok) return error;
                     bishopFound = true;
                 } else if (board[rookFile][secondRank].color == oppositeColor && board[rookFile][secondRank].unit == "B") {
-                    tempUndoStack.changePromotedFlag(rookFile, secondRank, true);
+                    const error = markPromoted(rookFile, secondRank);
+                    if (error != error_ok) return error;
                     bishopFound = true;
                 }
                 if (bishopFound) {
@@ -230,11 +233,12 @@ function validateWeakCage(leftBoundary, rightBoundary, side, region) {
         const file = square[0];
         const rank = square[1];
         if (board[file][rank].color == color && board[file][rank].unit == "R") {
-            const error = cannotBePromoted(file, rank);
+            const error = markOriginal(file, rank);
             if (error != error_ok) return error;
             friendlyRookCount++;
         } else if (board[file][rank].color != color && board[file][rank].unit == "R") {
-            tempUndoStack.changePromotedFlag(file, rank, true);
+            const error = markPromoted(file, rank);
+            if (error != error_ok) return error;
             addPossiblePromotionFiles(oppositeColor, "R", [leftBoundary + 1, rightBoundary - 1]);
         } else if (board[file][rank].color != color && board[file][rank].unit == "P") {
             enemyPawnCount++;
@@ -327,7 +331,7 @@ function validateStrongCage(leftBoundary, rightBoundary, side) {
         if (piece.color == color) {
             // friendly piece
             if (piece.unit in friendlyUnitPositions) {
-                const error = cannotBePromoted(file, firstRank);
+                const error = markOriginal(file, firstRank);
                 if (error != error_ok) return error;
                 friendlyUnitPositions[piece.unit].push(file);
             }
@@ -427,7 +431,8 @@ function validateStrongCage(leftBoundary, rightBoundary, side) {
             for (let rank = 0; rank < 8; rank++) {
                 if (rank == firstRank && leftBoundary <= file && file <= rightBoundary) continue;
                 if (board[file][rank].color == color && board[file][rank].unit == "Q") {
-                    tempUndoStack.changePromotedFlag(file, rank, true);
+                    const error = markPromoted(file, rank);
+                    if (error != error_ok) return error;
                 }
             }
         }
