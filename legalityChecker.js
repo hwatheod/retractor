@@ -180,12 +180,12 @@ function makeRetraction(from, to, uncapturedUnit, unpromote) {
         // move the king
         tempUndoStack.boardSetPieceFromPiece(toFile, toRank, fromPiece);
         tempUndoStack.boardClearPiece(fromFile, fromRank);
-        tempUndoStack.changeFrozenFlag(toFile, toRank, true);  // king is frozen after uncastling
+        markFrozen(toFile, toRank);  // king is frozen after uncastling
 
         // move the rook
         tempUndoStack.boardSetPieceFromPiece(targetRookFile, toRank, board[rookFile][fromRank]);
         tempUndoStack.boardClearPiece(rookFile, fromRank);
-        tempUndoStack.changeFrozenFlag(targetRookFile, toRank, true);  // rook is frozen after uncastling
+        markFrozen(targetRookFile, toRank);  // rook is frozen after uncastling
         return;
     }
     if (uncapturedUnit == "ep") {
@@ -458,9 +458,20 @@ function incrementTotalCaptureCount(color, amount) {
     return checkTooManyCaptures();
 }
 
+function markFrozen(file, rank) {
+    const error = markOriginal(file, rank);
+    if (error != error_ok) {
+        return error;
+    }
+
+    tempUndoStack.changeFrozenFlag(file, rank, true);
+    return error_ok;
+}
+
 // if we detect that a piece must be original, we call this function to ensure it is not marked promoted.
-function cannotBePromoted(file, rank) {
+function markOriginal(file, rank) {
     if (!board[file][rank].promoted) {
+        tempUndoStack.changeOriginalFlag(file, rank, true);
         return error_ok;
     }
 
@@ -490,6 +501,45 @@ function cannotBePromoted(file, rank) {
                 return error_impossiblePromotedBlackKnight;
             default:
                 assert(false, 'Unexpected promoted black piece ' + board[file][rank].unit + ' file ' +
+                    file + ' rank ' + rank);
+        }
+    } else {
+        assert(false, 'Unexpected color ' + board[file][rank].color);
+    }
+}
+
+function markPromoted(file, rank) {
+    if (!board[file][rank].original) {
+        tempUndoStack.changePromotedFlag(file, rank, true);
+        return error_ok;
+    }
+
+    if (board[file][rank].color == "w") {
+        switch (board[file][rank].unit) {
+            case 'Q':
+                return error_impossibleOriginalWhiteQueen;
+            case 'R':
+                return error_impossibleOriginalWhiteRook;
+            case 'B':
+                return error_impossibleOriginalWhiteBishop;
+            case 'N':
+                return error_impossibleOriginalWhiteKnight;
+            default:
+                assert(false, 'Unexpected original white piece ' + board[file][rank].unit + ' file ' +
+                    file + ' rank ' + rank);
+        }
+    } else if (board[file][rank].color == "b") {
+        switch (board[file][rank].unit) {
+            case 'Q':
+                return error_impossibleOriginalBlackQueen;
+            case 'R':
+                return error_impossibleOriginalBlackRook;
+            case 'B':
+                return error_impossibleOriginalBlackBishop;
+            case 'N':
+                return error_impossibleOriginalBlackKnight;
+            default:
+                assert(false, 'Unexpected original black piece ' + board[file][rank].unit + ' file ' +
                     file + ' rank ' + rank);
         }
     } else {
@@ -707,9 +757,6 @@ function isPositionLegalInternal() {
     error = checkKingInEnemyPawnCage();
     if (error != error_ok) return error;
 
-    error = checkOriginalPromotedContradiction();
-    if (error != error_ok) return error;
-
     const markedPromotions = {};
     for (let file = 0; file < 8; file++) {
         for (let rank = 0; rank < 8; rank++) {
@@ -761,33 +808,6 @@ function isPositionLegalInternal() {
     error = checkTooManyCaptures();
     if (error != error_ok) return error;
 
-    return error_ok;
-}
-
-function checkOriginalPromotedContradiction() {
-    /*
-       After cage and bishop analysis has run, the engine may have set the "promoted"
-       flag on pieces that it determines must be promoted (e.g. a rook trapped in a
-       cage, or an enemy bishop boxed in by unmoved pawns).
-
-       If the user has also marked such a piece as "original" (not promoted), that is
-       a direct contradiction — the position is illegal.
-
-       This check is more general than a reachability analysis on the promotion rank:
-       it catches contradictions on any square (e.g. a rook on the 7th rank trapped
-       by pawns, not just pieces on the 8th/1st rank).
-     */
-    for (let file = 0; file < 8; file++) {
-        for (let rank = 0; rank < 8; rank++) {
-            const piece = board[file][rank];
-            if (piece.original && piece.promoted) {
-                errorSquares.push(new Square(file, rank));
-                return piece.color == "w"
-                    ? error_impossibleOriginalWhiteOfficer
-                    : error_impossibleOriginalBlackOfficer;
-            }
-        }
-    }
     return error_ok;
 }
 

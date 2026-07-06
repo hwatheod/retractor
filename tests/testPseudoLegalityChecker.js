@@ -259,6 +259,11 @@ describe("uncastling tests", function () {
             placeOnSquare(H4, BLACK_BISHOP);
             expect(errorText[isPseudoLegal(C1, E1, "", false)]).toBe(errorText[error_uncastlingCannotUncastleThroughOrIntoCheck]);
         });
+
+        it("promoted rook", function() {
+            setPromotedFlag(3, 0, true);
+            expect(errorText[isPseudoLegal(C1, E1, "", false)]).toBe(errorText[error_cannotUncastleWithPromotedRook]);
+        });
     });
 
     describe("white kingside uncastling", function () {
@@ -295,6 +300,11 @@ describe("uncastling tests", function () {
         it("uncastling through check", function () {
             placeOnSquare(F4, BLACK_ROOK);
             expect(errorText[isPseudoLegal(G1, E1, "", false)]).toBe(errorText[error_uncastlingCannotUncastleThroughOrIntoCheck]);
+        });
+
+        it("promoted rook", function() {
+            setPromotedFlag(5, 0, true);
+            expect(errorText[isPseudoLegal(G1, E1, "", false)]).toBe(errorText[error_cannotUncastleWithPromotedRook]);
         });
     });
 
@@ -338,6 +348,11 @@ describe("uncastling tests", function () {
             placeOnSquare(G5, WHITE_QUEEN);
             expect(errorText[isPseudoLegal(C8, E8, "", false)]).toBe(errorText[error_uncastlingCannotUncastleThroughOrIntoCheck]);
         });
+
+        it("promoted rook", function() {
+            setPromotedFlag(3, 7, true);
+            expect(errorText[isPseudoLegal(C8, E8, "", false)]).toBe(errorText[error_cannotUncastleWithPromotedRook]);
+        });
     });
 
     describe("black kingside uncastling", function () {
@@ -374,6 +389,11 @@ describe("uncastling tests", function () {
         it("uncastling through check", function () {
             placeOnSquare(F1, WHITE_QUEEN);
             expect(errorText[isPseudoLegal(G8, E8, "", false)]).toBe(errorText[error_uncastlingCannotUncastleThroughOrIntoCheck]);
+        });
+
+        it("promoted rook", function() {
+            setPromotedFlag(5, 7, true);
+            expect(errorText[isPseudoLegal(G8, E8, "", false)]).toBe(errorText[error_cannotUncastleWithPromotedRook]);
         });
     });
 });

@@ -1,6 +1,7 @@
-v2.3.6
+v2.3.7
 
 * Officers can now be marked as "original" (not promoted) via shift-click in edit mode. (Issue #18)
+* Disallow uncastling with a promoted rook. (Issue #20)
 
 v2.3.6
 

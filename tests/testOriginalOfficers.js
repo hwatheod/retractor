@@ -20,7 +20,7 @@ describe("trapped original officer legality", function () {
         setForsythe("2B5/1p1p4/8/8/8/8/8/4K2k");
         setOriginalFlag(2, 7, true); // c8
         setRetract("w");
-        expect(errorText[startPlay()]).toBe(errorText[error_impossibleOriginalWhiteOfficer]);
+        expect(errorText[startPlay()]).toBe(errorText[error_impossibleOriginalWhiteBishop]);
     });
 
     it("same position without original flag is legal", function () {
@@ -51,7 +51,7 @@ describe("trapped original officer legality", function () {
         setForsythe("5B1k/4p1p1/8/8/8/8/8/4K3");
         setOriginalFlag(5, 7, true); // f8
         setRetract("w");
-        expect(errorText[startPlay()]).toBe(errorText[error_impossibleOriginalWhiteOfficer]);
+        expect(errorText[startPlay()]).toBe(errorText[error_impossibleOriginalWhiteBishop]);
     });
 
     it("original white rook can escape via gap in pawn wall", function () {
@@ -68,7 +68,7 @@ describe("trapped original officer legality", function () {
         setForsythe("4k3/8/8/8/8/8/1P1P4/2b1K3");
         setOriginalFlag(2, 0, true); // c1
         setRetract("b");
-        expect(errorText[startPlay()]).toBe(errorText[error_impossibleOriginalBlackOfficer]);
+        expect(errorText[startPlay()]).toBe(errorText[error_impossibleOriginalBlackBishop]);
     });
 
     it("same black position without original flag is legal", function () {
@@ -80,11 +80,11 @@ describe("trapped original officer legality", function () {
     it("original white rook deduced promoted on 7th rank is illegal", function () {
         // Rook on a7 is trapped by the cage formed by black pawns on b7, d7,
         // and a6.  The engine deduces it must be promoted.  If marked original,
-        // that is a contradiction — even though the rook is NOT on the 8th rank.
+        // that is a contradiction.
         setForsythe("2b1k3/Rp1p4/p7/8/8/8/8/4K3");
         setOriginalFlag(0, 6, true); // a7
         setRetract("w");
-        expect(errorText[startPlay()]).toBe(errorText[error_impossibleOriginalWhiteOfficer]);
+        expect(errorText[startPlay()]).toBe(errorText[error_impossibleOriginalWhiteRook]);
     });
 
     it("same rook position without original flag is legal", function () {
