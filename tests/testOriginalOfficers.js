@@ -225,3 +225,31 @@ describe("original officer — solver move generation", function () {
         expect(unpromotions.length).toBe(0);
     });
 });
+
+describe("too many original officers", function () {
+    beforeAll(function () {
+        initializeBoard();
+    });
+
+    beforeEach(function () {
+        clearBoard();
+    });
+
+    it("too many original white knights", function () {
+        setForsythe("4k3/8/8/8/8/8/8/NNN1K3");
+        setRetract("w");
+        setOriginalFlag(0, 0, true);
+        setOriginalFlag(1, 0, true);
+        setOriginalFlag(2, 0, true);
+        expect(errorText[startPlay()]).toBe(errorText[error_tooManyOriginalWhiteKnights]);
+    });
+
+    it("too many original black rooks after uncastling", function () {
+        setForsythe("rr3rk1/8/8/8/8/8/8/4K3");
+        setRetract("b");
+        setOriginalFlag(0, 7, true);
+        setOriginalFlag(1, 7, true);
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        expect(errorText[doRetraction(G8, E8, "", false, true, true)]).toBe(errorText[error_tooManyOriginalBlackRooks]);
+    });
+});
