@@ -1,3 +1,7 @@
+v2.3.8
+
+* Cycle detection now available as an option in the solver (Issue #2)
+
 v2.3.7
 
 * Officers can now be marked as "original" (not promoted) via shift-click in edit mode. (Issue #18)

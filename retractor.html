@@ -154,6 +154,13 @@
                 <label for="noBlackUncaptures">No black uncaptures</label>
                 <input type="checkbox" id="noBlackUncaptures" />
                 <br>
+                <label for="cycleMode">Cycle detection:</label>
+                <select id="cycleMode">
+                    <option value="reject_none" selected>None</option>
+                    <option value="reject_within_extra">Extra depth only</option>
+                    <option value="reject_all">All depths</option>
+                </select>
+                <br>
                 <div id="solveErrorMessage" style="color:#FF0000"></div>
                 <br>
                 <input id="startSolve" type="button" value="Solve" onclick="solveGui()">

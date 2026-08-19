@@ -65,6 +65,43 @@ otherTest("test solve parameters", function () {
         expect(solutions.length).toBe(8);
     });
 
+    it("reject cycles all depths", function () {
+        // only rooks can move, no captures. If no cycles permitted within the solution depth, then only 12 solutions for last 4 moves.
+        setForsythe("r1bqkb1r/pppppppp/8/8/8/8/PPPPPPPP/R1BQKB1R");
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        const solveParameters = new SolveParameters(4, 3, 20, true, true, "reject_all");
+        const solutions = solve(solveParameters);
+        expect(solutions.length).toBe(12);
+    });
+
+    it("reject cycles extra depth", function () {
+        // Initial position with knights frozen and queen missing. Should be illegal.
+        setForsythe("rnb1kbnr/pppppppp/8/8/8/8/PPPPPPPP/RNB1KBNR");
+        setRetract("b");
+        setFrozenFlag(B1.mFile, B1.mRank, true);
+        setFrozenFlag(B8.mFile, B8.mRank, true);
+        setFrozenFlag(G1.mFile, G1.mRank, true);
+        setFrozenFlag(G8.mFile, G8.mRank, true);
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        const solveParameters = new SolveParameters(1, 3, 5, false, false, "reject_within_extra");
+        const solutions = solve(solveParameters);
+        expect(solutions.length).toBe(0);
+    });
+
+    it("reject cycles none", function () {
+        // Initial position with knights frozen and queen missing. Should be illegal, but can't detect if no cycle detection.
+        setForsythe("rnb1kbnr/pppppppp/8/8/8/8/PPPPPPPP/RNB1KBNR");
+        setRetract("b");
+        setFrozenFlag(B1.mFile, B1.mRank, true);
+        setFrozenFlag(B8.mFile, B8.mRank, true);
+        setFrozenFlag(G1.mFile, G1.mRank, true);
+        setFrozenFlag(G8.mFile, G8.mRank, true);
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        const solveParameters = new SolveParameters(1, 3, 1, false, false, "reject_none");
+        const solutions = solve(solveParameters);
+        expect(solutions.length).toBe(1);
+    });
 });
 
 describe("some problems with unique solutions", function () {

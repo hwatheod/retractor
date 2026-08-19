@@ -195,7 +195,8 @@ function solveGui() {
         document.getElementById("solveErrorMessage").innerHTML = "Solving, please wait...";
         resetLegalityCheckerWorker();
         solverActive = true;
-        solverWorker.postMessage([new SolveParameters(solveDepth, extraDepth, maxSolutions, noWhiteUncaptures, noBlackUncaptures), board,
+        const cycleMode = document.getElementById("cycleMode") ? document.getElementById("cycleMode").value : "reject_none";
+        solverWorker.postMessage([new SolveParameters(solveDepth, extraDepth, maxSolutions, noWhiteUncaptures, noBlackUncaptures, cycleMode), board,
             currentRetract, positionData.ep, getPawnCaptureCache(), knownCages, getPawnCaptureConfig()]);
     } else { // cancel
         resetSolver();

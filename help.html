@@ -1,6 +1,6 @@
 <div class="helpPage" id="help_front">
 <p>
-    Welcome to <a href="https://github.com/hwatheod/retractor/blob/master/CHANGELOG.md" target="_blank">Retractor 2.3.7</a>! Retractor is a tool for working with retrograde analysis (retro) chess problems.
+    Welcome to <a href="https://github.com/hwatheod/retractor/blob/master/CHANGELOG.md" target="_blank">Retractor 2.3.8</a>! Retractor is a tool for working with retrograde analysis (retro) chess problems.
     <br>
     In a retro problem, you play chess backwards to learn about the history of a position.
         <a href="javascript:openHelpPage('help_tutorial_1')">Click here</a> for an introduction to retros.
@@ -132,6 +132,12 @@
         </li>
         <li>Max solutions - the maximum number of solutions to report.</li>
         <li>No white/black uncaptures - If you check one of these boxes, then Retractor will not consider uncaptures for that side.</li>
+        <li>Cycle detection - how Retractor should prune cycles encountered in the search: <br>
+            &nbsp;&nbsp;&nbsp;None - do not prune cycles<br>
+            &nbsp;&nbsp;&nbsp;Extra depth only - prune cycles where the second occurrence on a branch is within the extra depth portion of the search<br>
+            &nbsp;&nbsp;&nbsp;All depths - prune all cycles encountered in the search. Note that this may cause some solutions to be omitted.  
+        </li>
+
     </ul>
     </p>
 

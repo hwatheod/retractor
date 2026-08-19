@@ -1,10 +1,11 @@
 class SolveParameters {
-    constructor(solveDepth, extraDepth, maxSolutions, noWhiteUncaptures, noBlackUncaptures) {
+    constructor(solveDepth, extraDepth, maxSolutions, noWhiteUncaptures, noBlackUncaptures, cycleMode) {
         this.solveDepth = solveDepth;
         this.extraDepth = extraDepth;
         this.maxSolutions = maxSolutions;
         this.noWhiteUncaptures = noWhiteUncaptures == null ? false : noWhiteUncaptures;
         this.noBlackUncaptures = noBlackUncaptures == null ? false : noBlackUncaptures;
+        this.cycleMode = cycleMode == null ? "reject_none" : cycleMode;
     }
 }
 
@@ -28,6 +29,47 @@ const blackQueensideUncastling = function () {
 }
 const blackKingsideUncastling = function () {
     return new Move(new Square(6, 7), new Square(4, 7), "", false, "K", false)
+}
+
+// Serialize board state + flags + ep + currentRetract into a compact string used for cycle detection.
+// We include piece, color, and the three flags (frozen/promoted/original) and the ep square and current retract color.
+function serializeBoardStateForCycle() {
+    let s = "";
+    for (let rank = 0; rank < 8; rank++) {
+        for (let file = 0; file < 8; file++) {
+            const p = board[file][rank];
+            if (p.unit == "") {
+                s += ".";
+            } else {
+                // use uppercase letters for white, lowercase for black
+                s += (p.color == 'w') ? p.unit : p.unit.toLowerCase();
+            }
+            // flags: F frozen, R promoted (use 'r' to avoid confusion), O original
+            if (p.frozen) s += "F";
+            if (p.promoted) s += "M"; // 'M' = promoted (avoid 'P' confusion with pawn)
+            if (p.original) s += "O";
+            s += "|";
+        }
+    }
+    s += "EP:" + String(positionData.ep) + "|R:" + currentRetract;
+    return s;
+}
+
+function shouldRejectCycle(solveParameters, visitedMap, stateKey, currentGlobalDepth) {
+    if (solveParameters.cycleMode === "reject_none") {
+        return false;
+    }
+    if (!visitedMap.has(stateKey)) return false; // not a cycle
+    const firstDepth = visitedMap.get(stateKey);
+
+    if (solveParameters.cycleMode === "reject_all") {
+        return true;
+    } else if (solveParameters.cycleMode === "reject_within_extra") {
+        // Reject only if second occurrence is in the extraDepth part of the search.
+        return currentGlobalDepth > solveParameters.solveDepth;
+    }
+    // default conservative behavior
+    return false;
 }
 
 function addUncaptures(move, moveList) {
@@ -260,7 +302,9 @@ function getPseudoLegalMoves(color, includeUncaptures, cageVerify) {
     }
 }
 
-function legalToExtraDepth(solveParameters, depth) {
+function legalToExtraDepth(solveParameters, depth, visitedMap, currentGlobalDepth) {
+    // depth is how deep we've progressed into the extraDepth recursion (0..extraDepth)
+    // currentGlobalDepth is the total path length before taking another extra move.
     if (depth == solveParameters.extraDepth) {
         return true;
     }
@@ -271,19 +315,34 @@ function legalToExtraDepth(solveParameters, depth) {
     const pseudoLegalMoves = getPseudoLegalMoves(currentRetract, includeUncaptures, false);
     return pseudoLegalMoves.some(pseudoLegalMove => {
         if (doRetraction(pseudoLegalMove.from, pseudoLegalMove.to, pseudoLegalMove.uncapturedUnit, pseudoLegalMove.unpromote, true, true) == error_ok) {
-            const result = legalToExtraDepth(solveParameters, depth + 1);
+            const newGlobalDepth = currentGlobalDepth + 1;
+            const stateKey = solveParameters.cycleMode === "reject_none" ? "" : serializeBoardStateForCycle();
+            const reject = shouldRejectCycle(solveParameters, visitedMap, stateKey, newGlobalDepth);
+            let result = false;
+            if (!reject) {
+                let added = false;
+                if (!visitedMap.has(stateKey)) {
+                    visitedMap.set(stateKey, newGlobalDepth);
+                    added = true;
+                }
+                result = legalToExtraDepth(solveParameters, depth + 1, visitedMap, newGlobalDepth);
+                if (added) {
+                    visitedMap.delete(stateKey);
+                }
+            }
             undo();
             return result;
         } else {
             undo();
+            return false;
         }
-        return false;
     });
 }
 
-function solveHelper(solveParameters, depth, currentPath, outputSolutions) {
+function solveHelper(solveParameters, depth, currentPath, outputSolutions, visitedMap) {
     if (depth == solveParameters.solveDepth) {
-        if (legalToExtraDepth(solveParameters, 0)) {
+        // Now verify legal to extra depth. We pass visitedMap and the current globalDepth = depth
+        if (legalToExtraDepth(solveParameters, 0, visitedMap, depth)) {
             outputSolutions.push(currentPath.slice());
         }
         return;
@@ -296,11 +355,29 @@ function solveHelper(solveParameters, depth, currentPath, outputSolutions) {
     for (let i = 0; i < pseudoLegalMoves.length; i++) {
         const pseudoLegalMove = pseudoLegalMoves[i];
         if (doRetraction(pseudoLegalMove.from, pseudoLegalMove.to, pseudoLegalMove.uncapturedUnit, pseudoLegalMove.unpromote, true, true) == error_ok) {
-            currentPath.push(pseudoLegalMove);
-            solveHelper(solveParameters, depth + 1, currentPath, outputSolutions);
+            // board has been changed by doRetraction; compute state key
+            const newDepth = depth + 1;
+            const stateKey = solveParameters.cycleMode === "reject_none" ? "" : serializeBoardStateForCycle();
+            const reject = shouldRejectCycle(solveParameters, visitedMap, stateKey, newDepth);
+            if (!reject) {
+                let added = false;
+                if (!visitedMap.has(stateKey)) {
+                    visitedMap.set(stateKey, newDepth);
+                    added = true;
+                }
+                currentPath.push(pseudoLegalMove);
+                solveHelper(solveParameters, depth + 1, currentPath, outputSolutions, visitedMap);
+                currentPath.splice(currentPath.length - 1, 1);
+                if (added) {
+                    visitedMap.delete(stateKey);
+                }
+                if (outputSolutions.length >= solveParameters.maxSolutions) {
+                    undo();
+                    return;
+                }
+            }
+            // undo the retraction
             undo();
-            currentPath.splice(currentPath.length - 1, 1);
-            if (outputSolutions.length >= solveParameters.maxSolutions) return;
         } else {
             undo();
         }
@@ -310,6 +387,12 @@ function solveHelper(solveParameters, depth, currentPath, outputSolutions) {
 function solve(solveParameters) {
     evaluateHelperCache.clear();
     const outputSolutions = [];
-    solveHelper(solveParameters, 0, [], outputSolutions);
+
+    const visitedMap = new Map();
+    // mark starting board state as seen at depth 0
+    visitedMap.set(serializeBoardStateForCycle(), 0);
+
+    // start recursion with visited map
+    solveHelper(solveParameters, 0, [], outputSolutions, visitedMap);
     return outputSolutions;
 }
