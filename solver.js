@@ -55,7 +55,7 @@ function serializeBoardStateForCycle() {
     return s;
 }
 
-function shouldRejectCycle(solveParameters, visitedMap, stateKey, currentGlobalDepth) {
+function shouldRejectCycle(solveParameters, visitedMap, stateKey) {
     if (solveParameters.cycleMode === "reject_none") {
         return false;
     }
@@ -65,8 +65,9 @@ function shouldRejectCycle(solveParameters, visitedMap, stateKey, currentGlobalD
     if (solveParameters.cycleMode === "reject_all") {
         return true;
     } else if (solveParameters.cycleMode === "reject_within_extra") {
-        // Reject only if second occurrence is in the extraDepth part of the search.
-        return currentGlobalDepth > solveParameters.solveDepth;
+        // Reject only if the entire cycle (after the first node) is in the extra depth part of the search.
+        // These subsequent nodes are too deep to be in the solution list, so it is safe.
+        return firstDepth >= solveParameters.solveDepth;
     }
     // default conservative behavior
     return false;
@@ -317,18 +318,14 @@ function legalToExtraDepth(solveParameters, depth, visitedMap, currentGlobalDept
         if (doRetraction(pseudoLegalMove.from, pseudoLegalMove.to, pseudoLegalMove.uncapturedUnit, pseudoLegalMove.unpromote, true, true) == error_ok) {
             const newGlobalDepth = currentGlobalDepth + 1;
             const stateKey = solveParameters.cycleMode === "reject_none" ? "" : serializeBoardStateForCycle();
-            const reject = shouldRejectCycle(solveParameters, visitedMap, stateKey, newGlobalDepth);
+            const reject = shouldRejectCycle(solveParameters, visitedMap, stateKey);
             let result = false;
             if (!reject) {
-                let added = false;
-                if (!visitedMap.has(stateKey)) {
-                    visitedMap.set(stateKey, newGlobalDepth);
-                    added = true;
-                }
+                // we must always update so that a position which occurs in the solve depth and then twice again in the extra depth will get rejected
+                // by reject_within_extra.
+                visitedMap.set(stateKey, newGlobalDepth);
                 result = legalToExtraDepth(solveParameters, depth + 1, visitedMap, newGlobalDepth);
-                if (added) {
-                    visitedMap.delete(stateKey);
-                }
+                visitedMap.delete(stateKey);
             }
             undo();
             return result;
@@ -358,19 +355,13 @@ function solveHelper(solveParameters, depth, currentPath, outputSolutions, visit
             // board has been changed by doRetraction; compute state key
             const newDepth = depth + 1;
             const stateKey = solveParameters.cycleMode === "reject_none" ? "" : serializeBoardStateForCycle();
-            const reject = shouldRejectCycle(solveParameters, visitedMap, stateKey, newDepth);
+            const reject = shouldRejectCycle(solveParameters, visitedMap, stateKey);
             if (!reject) {
-                let added = false;
-                if (!visitedMap.has(stateKey)) {
-                    visitedMap.set(stateKey, newDepth);
-                    added = true;
-                }
+                visitedMap.set(stateKey, newDepth);
                 currentPath.push(pseudoLegalMove);
                 solveHelper(solveParameters, depth + 1, currentPath, outputSolutions, visitedMap);
                 currentPath.splice(currentPath.length - 1, 1);
-                if (added) {
-                    visitedMap.delete(stateKey);
-                }
+                visitedMap.delete(stateKey);
                 if (outputSolutions.length >= solveParameters.maxSolutions) {
                     undo();
                     return;

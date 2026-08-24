@@ -84,7 +84,7 @@ otherTest("test solve parameters", function () {
         setFrozenFlag(G1.mFile, G1.mRank, true);
         setFrozenFlag(G8.mFile, G8.mRank, true);
         expect(errorText[startPlay()]).toBe(errorText[error_ok]);
-        const solveParameters = new SolveParameters(1, 3, 5, false, false, "reject_within_extra");
+        const solveParameters = new SolveParameters(1, 4, 5, false, false, "reject_within_extra");
         const solutions = solve(solveParameters);
         expect(solutions.length).toBe(0);
     });

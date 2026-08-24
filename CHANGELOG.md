@@ -1,3 +1,7 @@
+v2.3.9
+
+* Fix several bugs in cycle detection (Issue #2)
+
 v2.3.8
 
 * Cycle detection now available as an option in the solver (Issue #2)
