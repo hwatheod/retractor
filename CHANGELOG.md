@@ -1,3 +1,8 @@
+v2.3.10
+
+* Cache illegal positions found in the search, if any cycle detection option other than "None" is chosen. This can speed up the
+  search if the same illegal positions are encountered by transposition throughout the search.
+
 v2.3.9
 
 * Fix several bugs in cycle detection (Issue #2)
