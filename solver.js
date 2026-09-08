@@ -62,11 +62,6 @@ function shouldRejectCycle(solveParameters, visitedMap, stateKey) {
     if (!visitedMap.has(stateKey)) return false; // not a cycle
     const firstDepth = visitedMap.get(stateKey);
 
-    // check for cached rejected cycles
-    if (firstDepth === true) {
-        return true;
-    }
-
     if (solveParameters.cycleMode === "reject_all") {
         return true;
     } else if (solveParameters.cycleMode === "reject_within_extra") {
@@ -330,11 +325,9 @@ function legalToExtraDepth(solveParameters, depth, visitedMap, currentGlobalDept
                 // by reject_within_extra.
                 visitedMap.set(stateKey, newGlobalDepth);
                 result = legalToExtraDepth(solveParameters, depth + 1, visitedMap, newGlobalDepth);
-                if (result) {  // if the cycle was rejected, we want to remember that fact in the cache, don't delete.
+                if (result) {  // if the position is illegal, we want to remember that fact in case we encounter it in another branch. Don't delete.
                     visitedMap.delete(stateKey);
                 }
-            } else {
-                visitedMap.set(stateKey, true);  // cache this rejected cycle so we reject quickly if we encounter it in another branch
             }
             undo();
             return result;
