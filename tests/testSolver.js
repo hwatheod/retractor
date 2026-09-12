@@ -102,6 +102,26 @@ otherTest("test solve parameters", function () {
         const solutions = solve(solveParameters);
         expect(solutions.length).toBe(1);
     });
+
+    it ("reject extra depth with caching", function() {
+        /*
+          Position derived from type A problem by Christiaans
+          Original problem: k7/B1P1p1p1/BQ1B4/1K6/8/4B3/PPPP4/8  (white to retract)
+          After the wrong attempted solution:
+             Qd4xPb6 b7-b6 Bc5-a7
+          we reach the position for this test, and we must prove it illegal.
+
+          On my laptop:
+            Without caching, the problem took ~1s
+            With caching, the problem takes ~0.1s
+        */
+        setForsythe("k7/1pP1p1p1/B2B4/1KB5/3Q4/4B3/PPPP4/8");
+        setRetract("b");
+        expect(errorText[startPlay()]).toBe(errorText[error_ok]);
+        const solveParameters = new SolveParameters(1, 25, 1, false, false, "reject_within_extra");
+        const solutions = solve(solveParameters);
+        expect(solutions.length).toBe(0);
+    })
 });
 
 describe("some problems with unique solutions", function () {
