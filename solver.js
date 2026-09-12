@@ -325,7 +325,9 @@ function legalToExtraDepth(solveParameters, depth, visitedMap, currentGlobalDept
                 // by reject_within_extra.
                 visitedMap.set(stateKey, newGlobalDepth);
                 result = legalToExtraDepth(solveParameters, depth + 1, visitedMap, newGlobalDepth);
-                visitedMap.delete(stateKey);
+                if (!stateKey || result) {  // only delete if position is found legal. If illegal, we want to remember it in case we encounter it in another branch.
+                    visitedMap.delete(stateKey);
+                }
             }
             undo();
             return result;
