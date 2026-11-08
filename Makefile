@@ -13,7 +13,7 @@ help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
 		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
-serve: ## Start the local web server (then open retractor.html)
+serve: ## Start the local web server (then open index.html)
 	@echo ">> Serving on http://localhost:$(PORT) (Ctrl-C to stop)"
 	$(PYTHON) -m http.server $(PORT)
 

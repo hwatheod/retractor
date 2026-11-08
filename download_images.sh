@@ -3,7 +3,7 @@
 # download_images.sh — fetch all chess piece images required by retractor
 #
 # The app references 26 PNG files in images/  (see boardGui.js:getImgFilename
-# and the <img> tags in retractor.html).  They follow the Wikimedia Commons
+# and the <img> tags in index.html).  They follow the Wikimedia Commons
 # "Cburnett" naming convention:
 #
 #     Chess_{unit}{pieceColor}{squareColor}{size}.png

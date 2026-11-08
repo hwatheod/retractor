@@ -11,7 +11,7 @@ on the github page for a link to the currently hosted location).
 If you would like to run the code locally, you should check out the repository and download the images with the
 `download_images.sh` script.  Then start a web server in the repository directory. If you have Python 3 installed, 
 you can use `python3 -m http.server 8000` to start a web server (for Python 2, use `python -m SimpleHTTPServer 8000`). 
-Then open `http://localhost:8000/retractor.html` in your browser. Opening the `retractor.html` file directly from your 
+Then open `http://localhost:8000/index.html` in your browser. Opening the `index.html` file directly from your 
 browser probably won't work, because of [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) restrictions 
 for local files on the latest browsers.  If you really cannot get anything else to work, you can look up how to disable 
 such restrictions in your browser, but this is not recommended.
